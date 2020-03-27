@@ -1,7 +1,7 @@
 <?php
-namespace PhpOffice\PhpWord\Processor\Read;
+namespace MDword\Read;
 
-use PhpOffice\PhpWord\Processor\Read\Part\ContentTypes;
+use MDword\Read\Part\ContentTypes;
 
 class Word2007 
 {
@@ -17,6 +17,7 @@ class Word2007
     
     private function read() {
         $this->Content_Types = new ContentTypes($this->getXmlDom('[Content_Types].xml'));
+        
         
         $files = $this->getZipFiles();
     }

@@ -1,5 +1,5 @@
 <?php
-namespace PhpOffice\PhpWord\Processor\Common;
+namespace MDword\Common;
 
 use Think\Template;
 use Think\Hook;

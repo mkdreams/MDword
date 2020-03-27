@@ -1,5 +1,5 @@
 <?php
-namespace PhpOffice\PhpWord\Processor\Common;
+namespace MDword\Common;
 
 class PartBase
 {
@@ -7,7 +7,7 @@ class PartBase
     
     /**
      * 
-     * @var \PhpOffice\PhpWord\Processor\Common\View
+     * @var \MDword\Common\View
      */
     protected $view;
     

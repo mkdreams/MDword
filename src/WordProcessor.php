@@ -1,7 +1,7 @@
 <?php
-namespace PhpOffice\PhpWord;
+namespace MDword;
 
-use PhpOffice\PhpWord\Processor\Read\Word2007;
+use MDword\Read\Word2007;
 
 class WordProcessor
 {

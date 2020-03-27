@@ -1,8 +1,8 @@
 <?php
-namespace PhpOffice\PhpWord\Processor\Read\Part;
+namespace MDword\Read\Part;
 
-use PhpOffice\PhpWord\Processor\Common\PartBase;
-use PhpOffice\PhpWord\Processor\Common\View;
+use MDword\Common\PartBase;
+use MDword\Common\View;
 
 class ContentTypes extends PartBase
 {
