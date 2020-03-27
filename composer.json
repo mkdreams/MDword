@@ -1,0 +1,19 @@
+{
+    "name": "mkdreams/MDword",
+    "description": "edit word",
+    "license": "Apache-2.0",
+    "authors": [
+        {
+            "name": "colin",
+            "email": "colin.chen@gmail.com"
+        }
+    ],
+    "require": {
+	   "php": ">=7.0.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "think\\": "src"
+        }
+    }
+}
