@@ -3,7 +3,7 @@ namespace MDword\Read;
 
 use MDword\Read\Part\ContentTypes;
 
-class Word2007 
+class Word 
 {
     private $zip = null;
     

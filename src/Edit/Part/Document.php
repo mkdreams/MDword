@@ -13,13 +13,10 @@ class Document extends PartBase
     
     public function setValue($name,$value) {
         $blocks = $this->getBlocks();
-//         var_dump($blocks);exit;
         if(isset($blocks[$name])) {
             foreach($blocks[$name] as $block) {
                 $this->update($block,$value);
-//                 $this->deleteBlock($block);
             }
-            
         }
         
 //         echo $this->DOMDocument->saveXML();exit;
