@@ -45,15 +45,21 @@ class Word2007
     private function read() {
         $this->Content_Types = new ContentTypes($this->getXmlDom('[Content_Types].xml'));
         foreach ($this->Content_Types->overrides as $part) {
-            $this->parts[$part['ContentType']][] = ['PartName'=>$part['PartName'],'DOMElement'=>$this->getXmlDom($part['PartName'])];
+            if($part['ContentType'] === 14) {//image/png
+                $this->parts[$part['ContentType']][] = ['PartName'=>$part['PartName'],'DOMElement'=>$part['PartName']];
+            }else{
+                $this->parts[$part['ContentType']][] = ['PartName'=>$part['PartName'],'DOMElement'=>$this->getXmlDom($part['PartName'])];
+            }
         }
     }
     
     public function save()
     {
-        foreach($this->parts as $type => $list ) {
+        foreach($this->parts as $list ) {
             foreach($list as $part) {
-                $this->zip->addFromString($part['PartName'], $part['DOMElement']->saveXML());
+                if(is_object($part['DOMElement'])) {
+                    $this->zip->addFromString($part['PartName'], $part['DOMElement']->saveXML());
+                }
             }
         }
         

@@ -83,6 +83,11 @@ class Document extends PartBase
         $blocks = [];
         $middleNodes = [];
         foreach ($items as $itemKey => $item) {
+            $t = $item->getElementsByTagName('t');
+            if($t->length !== 1) {
+                echo "skip one r\r\n";
+                continue;
+            }
             $text = $item->getElementsByTagName('t')->item(0)->nodeValue;
             preg_match_all("/./u",$text,$textArr);
             if(!is_array($textArr)) {

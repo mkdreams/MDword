@@ -10,7 +10,8 @@ class ContentTypes extends PartBase
     protected $overrides = [];
     protected $partNames = [];
     
-    protected $contentTypes = array (
+    protected $contentTypes =
+    array (
         0 => 'application/vnd.openxmlformats-package.relationships+xml',
         1 => 'application/xml',
         2 => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml',
@@ -22,6 +23,10 @@ class ContentTypes extends PartBase
         8 => 'application/vnd.openxmlformats-officedocument.theme+xml',
         9 => 'application/vnd.openxmlformats-package.core-properties+xml',
         10 => 'application/vnd.openxmlformats-officedocument.extended-properties+xml',
+        11 => 'application/octet-stream',
+        12 => 'application/vnd.openxmlformats-officedocument.wordprocessingml.numbering+xml',
+        13 => 'application/vnd.openxmlformats-officedocument.drawingml.chart+xml',
+        14 => 'image/png',
     );
     
     public function __construct(\DOMDocument $DOMDocument) {
@@ -37,6 +42,8 @@ class ContentTypes extends PartBase
         foreach($childrens as $children) {
             $this->paseItem($children);
         }
+        
+//         var_export($this->contentTypes);exit;
     }
     
     public function getPartNames() {
