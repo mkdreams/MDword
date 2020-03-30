@@ -9,26 +9,60 @@ class Word2007
     
     private $Content_Types = null;
     
+    private $tempDocumentFilename = null;
+    
     public $parts = [];
     
     public function load($archive) {
-        $this->zip = new \ZipArchive();
-        $this->zip->open($archive);
-        $this->read();
-    }
-    
-    private function read() {
-        $this->Content_Types = new ContentTypes($this->getXmlDom('[Content_Types].xml'));
-//         var_dump($this->getXmlDom('word/document.xml'));exit;
-        foreach ($this->Content_Types->overrides as $part) {
-            $this->parts[$part['ContentType']][] = $this->getXmlDom($part['PartName']);
+        $this->tempDocumentFilename = tempnam($this->getTempDir(), 'MDword');
+        if (false === $this->tempDocumentFilename) {
+            throw new \Exception('temp path make faild!');
+        }
+        
+        if (false === copy($archive, $this->tempDocumentFilename)) {
+            throw new \Exception($archive.'copy file fiald!');
         }
         
         
+        $this->zip = new \ZipArchive();
+        $this->zip->open($this->tempDocumentFilename);
         
-//         $files = $this->getZipFiles();
+        $this->read();
     }
     
+    public static function getTempDir()
+    {
+        $tempDir = sys_get_temp_dir();
+        
+        if (!empty(self::$tempDir)) {
+            $tempDir = self::$tempDir;
+        }
+        
+        return $tempDir;
+    }
+    
+    
+    private function read() {
+        $this->Content_Types = new ContentTypes($this->getXmlDom('[Content_Types].xml'));
+        foreach ($this->Content_Types->overrides as $part) {
+            $this->parts[$part['ContentType']][] = ['PartName'=>$part['PartName'],'DOMElement'=>$this->getXmlDom($part['PartName'])];
+        }
+    }
+    
+    public function save()
+    {
+        foreach($this->parts as $type => $list ) {
+            foreach($list as $part) {
+                $this->zip->addFromString($part['PartName'], $part['DOMElement']->saveXML());
+            }
+        }
+        
+        if (false === $this->zip->close()) {
+            throw new \Exception('Could not close zip file.');
+        }
+        
+        return $this->tempDocumentFilename;
+    }
     /**
      *
      * @param string $filename

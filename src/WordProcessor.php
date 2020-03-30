@@ -17,8 +17,22 @@ class WordProcessor
     }
     
     public function setValue($name, $value) {
-        $document = $this->words[$this->wordsIndex]->parts[2][0];
+        $document = $this->words[$this->wordsIndex]->parts[2][0]['DOMElement'];
         $documentEdit = new Document($document);
         $documentEdit->setValue($name, $value);
     }
+    
+    public function saveAs($fileName)
+    {
+        $tempFileName = $this->words[$this->wordsIndex]->save();
+        
+        if (file_exists($fileName)) {
+            unlink($fileName);
+        }
+        
+        copy($tempFileName, $fileName);
+        unlink($tempFileName);
+    }
+    
+    
 }
