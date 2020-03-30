@@ -9,6 +9,8 @@ class Word2007
     
     private $Content_Types = null;
     
+    public $parts = [];
+    
     public function load($archive) {
         $this->zip = new \ZipArchive();
         $this->zip->open($archive);
@@ -17,9 +19,14 @@ class Word2007
     
     private function read() {
         $this->Content_Types = new ContentTypes($this->getXmlDom('[Content_Types].xml'));
+//         var_dump($this->getXmlDom('word/document.xml'));exit;
+        foreach ($this->Content_Types->overrides as $part) {
+            $this->parts[$part['ContentType']][] = $this->getXmlDom($part['PartName']);
+        }
         
         
-        $files = $this->getZipFiles();
+        
+//         $files = $this->getZipFiles();
     }
     
     /**

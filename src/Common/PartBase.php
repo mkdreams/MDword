@@ -21,4 +21,8 @@ class PartBase
     public function parse() {
         
     }
+    
+    public function __get($name) {
+        return $this->$name;
+    }
 }
