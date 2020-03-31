@@ -2,6 +2,8 @@
 namespace MDword\Read;
 
 use MDword\Read\Part\ContentTypes;
+use MDword\Edit\Part\Document;
+use MDword\Edit\Part\Comments;
 
 class Word 
 {
@@ -10,8 +12,27 @@ class Word
     private $Content_Types = null;
     
     private $tempDocumentFilename = null;
+    /**
+     * @var Document
+     */
+    public $documentEdit = null;
+    /**
+     * @var Comments
+     */
+    public $commentsEdit = null;
     
     public $parts = [];
+    
+    private function read() {
+        $this->Content_Types = new ContentTypes($this->getXmlDom('[Content_Types].xml'));
+        foreach ($this->Content_Types->overrides as $part) {
+            if($part['ContentType'] === 14) {//image/png
+                $this->parts[$part['ContentType']][] = ['PartName'=>$part['PartName'],'DOMElement'=>$part['PartName']];
+            }else{
+                $this->parts[$part['ContentType']][] = ['PartName'=>$part['PartName'],'DOMElement'=>$this->getXmlDom($part['PartName'])];
+            }
+        }
+    }
     
     public function load($archive) {
         $this->tempDocumentFilename = tempnam($this->getTempDir(), 'MDword');
@@ -41,20 +62,10 @@ class Word
         return $tempDir;
     }
     
-    
-    private function read() {
-        $this->Content_Types = new ContentTypes($this->getXmlDom('[Content_Types].xml'));
-        foreach ($this->Content_Types->overrides as $part) {
-            if($part['ContentType'] === 14) {//image/png
-                $this->parts[$part['ContentType']][] = ['PartName'=>$part['PartName'],'DOMElement'=>$part['PartName']];
-            }else{
-                $this->parts[$part['ContentType']][] = ['PartName'=>$part['PartName'],'DOMElement'=>$this->getXmlDom($part['PartName'])];
-            }
-        }
-    }
-    
     public function save()
     {
+        $this->deleteComments();
+        
         foreach($this->parts as $list ) {
             foreach($list as $part) {
                 if(is_object($part['DOMElement'])) {
@@ -69,6 +80,57 @@ class Word
         
         return $this->tempDocumentFilename;
     }
+    
+    
+    private function deleteComments() {
+        $parts = [];
+        if(isset($this->parts[15])) {
+            $parts = array_merge($parts,$this->parts[15]);
+            unset($this->parts[15]);
+        }
+        if(isset($this->parts[16])) {
+            $parts = array_merge($parts,$this->parts[16]);
+            unset($this->parts[16]);
+        }
+        if(isset($this->parts[17])) {
+            $parts = array_merge($parts,$this->parts[17]);
+            unset($this->parts[17]);
+        }
+        
+        foreach($parts as $part) {
+            $this->zip->deleteName($part['PartName']);
+        }
+        
+        //remove comments tag
+        $DOMDocument = $this->documentEdit->DOMDocument;
+        $commentRangeStarts = $DOMDocument->getElementsByTagName('commentRangeStart');
+        $commentRangeEnds = $DOMDocument->getElementsByTagName('commentRangeEnd');
+        for($i=0;$i<$commentRangeStarts->length;$i++) {
+            $commentRangeStart = $commentRangeStarts->item(0);
+            $commentRangeStart->parentNode->removeChild($commentRangeStart);
+            $commentRangeEnd = $commentRangeEnds->item(0);
+            $commentRangeEnd->parentNode->removeChild($commentRangeEnd);
+            
+            $commentRangeStarts = $DOMDocument->getElementsByTagName('commentRangeStart');
+            $commentRangeEnds = $DOMDocument->getElementsByTagName('commentRangeEnd');
+        }
+//         foreach($commentRangeEnds as $commentRangeEnd) {
+//         }
+        
+//         $commentRangeStarts = $DOMDocument->getElementsByTagName('commentRangeStart');
+//         $commentRangeEnds = $DOMDocument->getElementsByTagName('commentRangeEnd');
+//         foreach($commentRangeStarts as $commentRangeStart) {
+//             $commentRangeStart->parentNode->removeChild($commentRangeStart);
+//         }
+//         foreach($commentRangeEnds as $commentRangeEnd) {
+//             $commentRangeEnd->parentNode->removeChild($commentRangeEnd);
+//         }
+        
+        $commentRangeStarts = $DOMDocument->getElementsByTagName('commentRangeStart');
+        $commentRangeEnds = $DOMDocument->getElementsByTagName('commentRangeEnd');
+        var_dump($commentRangeStarts,$commentRangeEnds);exit;
+    }
+    
     /**
      *
      * @param string $filename

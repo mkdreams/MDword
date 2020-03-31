@@ -5,21 +5,24 @@ class PartBase
 {
     protected $DOMDocument;
     
-    /**
-     * 
-     * @var \MDword\Common\View
-     */
-    protected $view;
-    
     protected $rootPath;
     
+    protected $xmlns = [];
+    
     public function __construct() {
-        $this->view = new View();
         $this->rootPath = dirname(__DIR__);
     }
     
-    public function parse() {
-        
+    public function initNameSpaces() {
+        $context = $this->DOMDocument->documentElement;
+        $xpath = new \DOMXPath($this->DOMDocument);
+        foreach( $xpath->query('namespace::*', $context) as $node ) {
+            $this->xmlns[$node->localName] = $node->nodeValue;
+        }
+    }
+    
+    public function getAttr($item,$name,$ns='w') {
+        return $item->getAttributeNS($this->xmlns[$ns],'id');
     }
     
     public function __get($name) {

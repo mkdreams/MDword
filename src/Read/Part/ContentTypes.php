@@ -2,7 +2,7 @@
 namespace MDword\Read\Part;
 
 use MDword\Common\PartBase;
-use MDword\Common\View;
+use MDword\Common\Build;
 
 class ContentTypes extends PartBase
 {
@@ -11,23 +11,28 @@ class ContentTypes extends PartBase
     protected $partNames = [];
     
     protected $contentTypes =
-    array (
-        0 => 'application/vnd.openxmlformats-package.relationships+xml',
-        1 => 'application/xml',
-        2 => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml',
-        3 => 'application/vnd.openxmlformats-officedocument.customXmlProperties+xml',
-        4 => 'application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml',
-        5 => 'application/vnd.openxmlformats-officedocument.wordprocessingml.settings+xml',
-        6 => 'application/vnd.openxmlformats-officedocument.wordprocessingml.webSettings+xml',
-        7 => 'application/vnd.openxmlformats-officedocument.wordprocessingml.fontTable+xml',
-        8 => 'application/vnd.openxmlformats-officedocument.theme+xml',
-        9 => 'application/vnd.openxmlformats-package.core-properties+xml',
-        10 => 'application/vnd.openxmlformats-officedocument.extended-properties+xml',
-        11 => 'application/octet-stream',
-        12 => 'application/vnd.openxmlformats-officedocument.wordprocessingml.numbering+xml',
-        13 => 'application/vnd.openxmlformats-officedocument.drawingml.chart+xml',
-        14 => 'image/png',
-    );
+    //--CONTENTTYPES--array (
+  0 => 'application/vnd.openxmlformats-package.relationships+xml',
+  1 => 'application/xml',
+  2 => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml',
+  3 => 'application/vnd.openxmlformats-officedocument.customXmlProperties+xml',
+  4 => 'application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml',
+  5 => 'application/vnd.openxmlformats-officedocument.wordprocessingml.settings+xml',
+  6 => 'application/vnd.openxmlformats-officedocument.wordprocessingml.webSettings+xml',
+  7 => 'application/vnd.openxmlformats-officedocument.wordprocessingml.fontTable+xml',
+  8 => 'application/vnd.openxmlformats-officedocument.theme+xml',
+  9 => 'application/vnd.openxmlformats-package.core-properties+xml',
+  10 => 'application/vnd.openxmlformats-officedocument.extended-properties+xml',
+  11 => 'application/octet-stream',
+  12 => 'application/vnd.openxmlformats-officedocument.wordprocessingml.numbering+xml',
+  13 => 'application/vnd.openxmlformats-officedocument.drawingml.chart+xml',
+  14 => 'image/png',
+  15 => 'application/vnd.openxmlformats-officedocument.wordprocessingml.comments+xml',
+  16 => 'application/vnd.openxmlformats-officedocument.wordprocessingml.commentsExtended+xml',
+  17 => 'application/vnd.openxmlformats-officedocument.wordprocessingml.commentsIds+xml',
+  18 => 'application/vnd.openxmlformats-officedocument.wordprocessingml.people+xml',
+)//--CONTENTTYPES--
+    ;
     
     public function __construct(\DOMDocument $DOMDocument) {
         parent::__construct();
@@ -43,7 +48,11 @@ class ContentTypes extends PartBase
             $this->paseItem($children);
         }
         
-//         var_export($this->contentTypes);exit;
+        if(MDWORD_AUTO_BUILD) {
+            $contentTypesStr = var_export($this->contentTypes,true);
+            $build = new Build();
+            $build->replace('CONTENTTYPES', $contentTypesStr, __FILE__);
+        }
     }
     
     public function getPartNames() {
@@ -68,12 +77,5 @@ class ContentTypes extends PartBase
                 $this->partNames[] = $PartName;
                 break;
         }
-    }
-    
-    public function display()
-    {
-        $this->view->assign('defaults',$this->defaults);
-        $this->view->assign('overrides',$this->overrides);
-        return $this->view->fetch('ContentTypes');
     }
 }
