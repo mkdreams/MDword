@@ -105,30 +105,17 @@ class Word
         $DOMDocument = $this->documentEdit->DOMDocument;
         $commentRangeStarts = $DOMDocument->getElementsByTagName('commentRangeStart');
         $commentRangeEnds = $DOMDocument->getElementsByTagName('commentRangeEnd');
-        for($i=0;$i<$commentRangeStarts->length;$i++) {
-            $commentRangeStart = $commentRangeStarts->item(0);
+        $commentReferences = $DOMDocument->getElementsByTagName('commentReference');
+        
+        while ($commentRangeStart = $commentRangeStarts->item(0)) {
             $commentRangeStart->parentNode->removeChild($commentRangeStart);
-            $commentRangeEnd = $commentRangeEnds->item(0);
-            $commentRangeEnd->parentNode->removeChild($commentRangeEnd);
-            
-            $commentRangeStarts = $DOMDocument->getElementsByTagName('commentRangeStart');
-            $commentRangeEnds = $DOMDocument->getElementsByTagName('commentRangeEnd');
         }
-//         foreach($commentRangeEnds as $commentRangeEnd) {
-//         }
-        
-//         $commentRangeStarts = $DOMDocument->getElementsByTagName('commentRangeStart');
-//         $commentRangeEnds = $DOMDocument->getElementsByTagName('commentRangeEnd');
-//         foreach($commentRangeStarts as $commentRangeStart) {
-//             $commentRangeStart->parentNode->removeChild($commentRangeStart);
-//         }
-//         foreach($commentRangeEnds as $commentRangeEnd) {
-//             $commentRangeEnd->parentNode->removeChild($commentRangeEnd);
-//         }
-        
-        $commentRangeStarts = $DOMDocument->getElementsByTagName('commentRangeStart');
-        $commentRangeEnds = $DOMDocument->getElementsByTagName('commentRangeEnd');
-        var_dump($commentRangeStarts,$commentRangeEnds);exit;
+        while ($commentRangeEnd = $commentRangeEnds->item(0)) {
+            $commentRangeEnd->parentNode->removeChild($commentRangeEnd);
+        }
+        while ($commentReference = $commentReferences->item(0)) {
+            $commentReference->parentNode->parentNode->removeChild($commentReference->parentNode);
+        }
     }
     
     /**
