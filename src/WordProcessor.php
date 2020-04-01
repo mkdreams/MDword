@@ -20,7 +20,9 @@ class WordProcessor
         $this->words[++$this->wordsIndex] = $reader;
         
         $comments = $this->words[$this->wordsIndex]->parts[15][0]['DOMElement'];
-        $this->words[$this->wordsIndex]->commentsEdit = new Comments($comments);
+        $this->words[$this->wordsIndex]->commentsEdit = new Comments($this->words[$this->wordsIndex],$comments);
+        $this->words[$this->wordsIndex]->commentsEdit->partName = $this->words[$this->wordsIndex]->parts[15][0]['PartName'];
+        $this->words[$this->wordsIndex]->commentsEdit->word = $this->words[$this->wordsIndex];
         
         return $this->words[$this->wordsIndex];
     }
@@ -29,14 +31,22 @@ class WordProcessor
         $documentEdit = $this->words[$this->wordsIndex]->documentEdit;
         if(is_null($documentEdit)) {
             $document = $this->words[$this->wordsIndex]->parts[2][0]['DOMElement'];
-            $documentEdit = new Document($document,$this->words[$this->wordsIndex]->commentsEdit->blocks);
+            $documentEdit = new Document($this->words[$this->wordsIndex],$document,$this->words[$this->wordsIndex]->commentsEdit->blocks);
             $this->words[$this->wordsIndex]->documentEdit = $documentEdit;
+            $this->words[$this->wordsIndex]->documentEdit->partName = $this->words[$this->wordsIndex]->parts[2][0]['PartName'];
         }
         $documentEdit->setValue($name, $value);
     }
     
     public function setImageValue($name, $value) {
-        
+        $documentEdit = $this->words[$this->wordsIndex]->documentEdit;
+        if(is_null($documentEdit)) {
+            $document = $this->words[$this->wordsIndex]->parts[2][0]['DOMElement'];
+            $documentEdit = new Document($this->words[$this->wordsIndex],$document,$this->words[$this->wordsIndex]->commentsEdit->blocks);
+            $this->words[$this->wordsIndex]->documentEdit = $documentEdit;
+            $this->words[$this->wordsIndex]->documentEdit->partName = $this->words[$this->wordsIndex]->parts[2][0]['PartName'];
+        }
+        $documentEdit->setValue($name, $value,'image');
     }
     
     public function saveAs($fileName)

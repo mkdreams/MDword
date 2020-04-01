@@ -6,8 +6,8 @@ use MDword\Common\PartBase;
 class Comments extends PartBase
 {
     public $blocks = [];
-    public function __construct(\DOMDocument $DOMDocument) {
-        parent::__construct();
+    public function __construct($word,\DOMDocument $DOMDocument) {
+        parent::__construct($word);
         
         $this->DOMDocument = $DOMDocument;
         $this->initNameSpaces();
@@ -18,10 +18,7 @@ class Comments extends PartBase
         $beginNode = $block[0]['node'];
         $endNode = $block[1]['node'];
         
-//         var_dump($beginNode,$endNode);exit;
         $parentNode = $beginNode->parentNode;
-        
-        
         
         if(!is_null($beginNode)) {
             $parentNode->removeChild($beginNode);

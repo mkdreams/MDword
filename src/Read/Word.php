@@ -7,7 +7,7 @@ use MDword\Edit\Part\Comments;
 
 class Word 
 {
-    private $zip = null;
+    public $zip = null;
     
     private $Content_Types = null;
     
@@ -123,7 +123,7 @@ class Word
      * @param string $filename
      * @return \DOMDocument
      */
-    private function getXmlDom($filename) {
+    public function getXmlDom($filename) {
         $xml = $this->zip->getFromName($filename);
         $domDocument = new \DOMDocument();
         $domDocument->loadXML($xml);

@@ -1,16 +1,26 @@
 <?php
 namespace MDword\Common;
 
+use MDword\Read\Word;
+
 class PartBase
 {
     protected $DOMDocument;
     
     protected $rootPath;
+    /**
+     * @var Word
+     */
+    public $word;
+    
+    public $partName = null;
     
     protected $xmlns = [];
     
-    public function __construct() {
+    public function __construct($word) {
         $this->rootPath = dirname(__DIR__);
+        
+        $this->word = $word;
     }
     
     public function initNameSpaces() {
