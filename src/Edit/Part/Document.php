@@ -27,16 +27,23 @@ class Document extends PartBase
 //         var_dump($name,$value,$this->DOMDocument);exit;
     }
     
+    public function clone($name,$value,$type="clone") {
+        $blocks = $this->getBlocks();
+//         var_dump($this->commentsblocks,$blocks);exit;
+        if(isset($blocks[$name])) {
+            foreach($blocks[$name] as $block) {
+                $this->update($block,$value,$type);
+            }
+        }
+    }
+    
     private function update($block,$value,$type) {
-//         var_dump($block,$value,$type);exit;
-        
-        
         $beginNode = $block[0];
         
         $endNode = $block[1];
         
         $middleNodes = $block[2];
-//         var_dump($beginNode,$endNode,$middleNodes);exit;
+        var_dump($beginNode,$endNode,$middleNodes);exit;
         $node = null;
         $deleteNodes = [];
         switch ($type) {
@@ -79,17 +86,9 @@ class Document extends PartBase
                 if(!is_null($node)) {
                     $rid = $this->getAttr($node->getElementsByTagName('imagedata')->item(0), 'id', 'r');
                     $this->updateRef($rid,$value);
-//                     $node->getElementsByTagName('imagedata')->item(0)->nodeValue= $value;
-//                     $parentNode = $node->parentNode;
-//                     $parentNode->insertBefore($copy,$node);
                 }
-                
-                //remove comments and middle node
-//                 foreach($deleteNodes as $deleteNode) {
-//                     $deleteNode->parentNode->removeChild($deleteNode);
-//                 }
-//                 $beginNode->parentNode->removeChild($beginNode);
-//                 $endNode->parentNode->removeChild($endNode);
+                break;
+            case 'clone':
                 
                 break;
             default:
@@ -148,23 +147,65 @@ class Document extends PartBase
         }
         
         $commentRangeStartItems = $this->DOMDocument->getElementsByTagName('commentRangeStart');
-        $commentRangeEndItems = $this->DOMDocument->getElementsByTagName('commentRangeEnd');
         
         $blocks = [];
-        foreach($commentRangeStartItems as $key => $commentRangeStartItem) {
+        foreach($commentRangeStartItems as $commentRangeStartItem) {
+            $id = $this->getAttr($commentRangeStartItem, 'id');
+            $commentRangeEndItem = $this->getCommentRangeEnd($this->DOMDocument,$id);
+            
             $middleNodes = [];
             $nextSibling = $commentRangeStartItem->nextSibling;
-            $commentRangeEndItem = $commentRangeEndItems->item($key);
             
             while($nextSibling !== null && $nextSibling !== $commentRangeEndItem) {
                 $middleNodes[] = $nextSibling;
                 $nextSibling = $nextSibling->nextSibling;
             }
+            
+            //父级查找
+            if($nextSibling === null) {
+                $parentNode = $commentRangeStartItem;
+                while($parentNode = $parentNode->parentNode) {
+                    $commentRangeEndItem = $this->getCommentRangeEnd($parentNode,$id);
+                    if(is_null($commentRangeEndItem)) {
+                        $preParentNode = $parentNode;
+                    }else{
+                        break;
+                    }
+                }
+                
+                //middles
+                $nextSibling = $preParentNode->nextSibling;
+                while($this->getCommentRangeEnd($nextSibling,$id) !== null) {
+                    $middleNodes[] = $nextSibling;
+                    $nextSibling = $nextSibling->nextSibling;
+                }
+                
+                
+                var_dump($nextSibling,$preParentNode,$commentRangeEndItem);
+//                 $parentNode->getElementsByTagName('commentRangeStart');
+                
+                var_dump($this->commentsblocks,$id = $this->getAttr($commentRangeStartItem, 'id'));exit;
+            }
+            
             $id = $this->getAttr($commentRangeStartItem, 'id');
             $blocks[$this->commentsblocks[$id]][] = [$commentRangeStartItem,$commentRangeEndItem,$middleNodes];
         }
         
         
         return $blocks;
+    }
+    
+    private function getCommentRangeEnd($parentNode,$id) {
+        $commentRangeEndItems = $parentNode->getElementsByTagName('commentRangeEnd');
+        
+        foreach($commentRangeEndItems as $commentRangeEndItem) {
+            $eid = $this->getAttr($commentRangeEndItem, 'id');
+            
+            if($id === $eid) {
+                return $commentRangeEndItem;
+            }
+        }
+        
+        return null;
     }
 }

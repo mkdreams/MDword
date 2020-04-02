@@ -49,6 +49,17 @@ class WordProcessor
         $documentEdit->setValue($name, $value,'image');
     }
     
+    public function clone($name,$count=1) {
+        $documentEdit = $this->words[$this->wordsIndex]->documentEdit;
+        if(is_null($documentEdit)) {
+            $document = $this->words[$this->wordsIndex]->parts[2][0]['DOMElement'];
+            $documentEdit = new Document($this->words[$this->wordsIndex],$document,$this->words[$this->wordsIndex]->commentsEdit->blocks);
+            $this->words[$this->wordsIndex]->documentEdit = $documentEdit;
+            $this->words[$this->wordsIndex]->documentEdit->partName = $this->words[$this->wordsIndex]->parts[2][0]['PartName'];
+        }
+        $documentEdit->clone($name, $count);
+    }
+    
     public function saveAs($fileName)
     {
         $tempFileName = $this->words[$this->wordsIndex]->save();

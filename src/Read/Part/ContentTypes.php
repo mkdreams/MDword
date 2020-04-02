@@ -32,6 +32,8 @@ class ContentTypes extends PartBase
   17 => 'application/vnd.openxmlformats-officedocument.wordprocessingml.commentsIds+xml',
   18 => 'application/vnd.openxmlformats-officedocument.wordprocessingml.people+xml',
   19 => 'rels',
+  20 => 'application/vnd.openxmlformats-officedocument.wordprocessingml.footnotes+xml',
+  21 => 'application/vnd.openxmlformats-officedocument.wordprocessingml.endnotes+xml',
 )//--CONTENTTYPES--
     ;
     
