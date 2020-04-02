@@ -78,8 +78,7 @@ class Document extends PartBase
                 
                 if(!is_null($node)) {
                     $rid = $this->getAttr($node->getElementsByTagName('imagedata')->item(0), 'id', 'r');
-                    $this->updateRef($rid,$file);
-                    var_dump($rid);exit;
+                    $this->updateRef($rid,$value);
 //                     $node->getElementsByTagName('imagedata')->item(0)->nodeValue= $value;
 //                     $parentNode = $node->parentNode;
 //                     $parentNode->insertBefore($copy,$node);
@@ -99,10 +98,28 @@ class Document extends PartBase
     }
     
     private function updateRef($rid,$file) {
-        var_dump($this->partName);exit;
-//         $this->DOMDocument
-//         $this->word->getXmlDom($filename);
-//         $refXml = $this->zip;
+//         var_dump(is_file($file));exit;
+        
+        $partInfo = pathinfo($this->partName);
+        if(is_null($this->refDOMDocument)) {
+            $this->partNameRel = $partInfo['dirname'].'/_rels/'.$partInfo['basename'].'.rels';
+            $this->refDOMDocument = $this->word->getXmlDom($this->partNameRel);
+            $this->word->parts[19][] = ['PartName'=>$this->partNameRel,'DOMElement'=>$this->refDOMDocument];
+        }
+        
+        
+        $Relationships = $this->refDOMDocument->getElementsByTagName('Relationship');
+        $length = $Relationships->length;
+        foreach ($Relationships as $Relationship) {
+            if($Relationship->getAttribute('Id') === $rid) {
+                $oldValue = $partInfo['dirname'].'/'.$Relationship->getAttribute('Target');
+                $target = 'media/image'.++$length.'.png';
+                $Relationship->setAttribute('Target',$target);
+                $target = $partInfo['dirname'].'/'.$target;
+                $this->word->zip->addFromString($target, file_get_contents($file));
+                $this->word->zip->deleteName($oldValue);
+            }
+        }
     }
     
     private function deleteBlock($block) {

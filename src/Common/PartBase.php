@@ -6,6 +6,10 @@ use MDword\Read\Word;
 class PartBase
 {
     protected $DOMDocument;
+    /**
+     * @var \DOMDocument
+     */
+    protected $refDOMDocument = null;
     
     protected $rootPath;
     /**
@@ -14,6 +18,8 @@ class PartBase
     public $word;
     
     public $partName = null;
+    
+    public $partNameRel = null;
     
     protected $xmlns = [];
     
