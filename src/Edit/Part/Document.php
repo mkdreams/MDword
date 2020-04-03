@@ -16,11 +16,9 @@ class Document extends PartBase
     }
     
     public function setValue($name,$value,$type='text') {
-        $blocks = $this->getBlocks();
-        if(isset($blocks[$name])) {
-            foreach($blocks[$name] as $block) {
-                $this->update($block,$value,$type);
-            }
+        $blocks = $this->getBlocks($name);
+        foreach($blocks as $block) {
+            $this->update($block,$value,$type);
         }
         
 //         echo $this->DOMDocument->saveXML();exit;
@@ -42,12 +40,37 @@ class Document extends PartBase
         
         $endNode = $block[1];
         
-        $middleNodes = $block[2];
-        var_dump($beginNode,$endNode,$middleNodes);exit;
-        $node = null;
+        $traces = $block[2];
+        $parentNodeCount = $traces['parentNodeCount'];
+        $nextNodeCount = $traces['nextNodeCount'];
+//         var_dump($beginNode,$endNode,$middleNodes);exit;
+        $targetNode = null;
         $deleteNodes = [];
         switch ($type) {
             case 'text':
+                $parentNode = $beginNode;
+                for($i=0;$i<=$parentNodeCount;$i++) {
+                    while($nextSibling = $parentNode->nextSibling) {
+                        if($nextSibling->localName == 'r') {//is target
+                            if(is_null($targetNode)) {
+                                $targetNode = $nextSibling;
+                            }
+                        }else{//sub find target
+                            $rs = $nextSibling->getElementsByTagName('r');
+                            if($rs->length > 0 && is_null($targetNode)) {
+                                $targetNode = $rs->item(0);
+                            }
+                        }
+                    }
+                    
+                    if($i === $parentNodeCount) {//top parent
+                        
+                    }else{
+                        $parentNode = $parentNode->parentNode;
+                    }
+                    
+                }
+                var_dump($traces);exit;
                 foreach($middleNodes as $middleNode) {
                     if($middleNode->localName == 'r') {
                         $deleteNodes[] = $middleNode;
@@ -139,20 +162,20 @@ class Document extends PartBase
         
     }
     
-    private function getBlocks() {
-        static $blocks = null;
-        
-        if(!is_null($blocks)) {
-            return $blocks;
-        }
-        
+    private function getBlocks($name) {
         $commentRangeStartItems = $this->DOMDocument->getElementsByTagName('commentRangeStart');
         
         $blocks = [];
         foreach($commentRangeStartItems as $commentRangeStartItem) {
             $id = $this->getAttr($commentRangeStartItem, 'id');
+            if($this->commentsblocks[$id] !== $name) {
+                continue;
+            }
             $commentRangeEndItem = $this->getCommentRangeEnd($this->DOMDocument,$id);
             
+            $trace = $this->getRangeTrace($id,$commentRangeStartItem, $commentRangeEndItem);
+//             exit;
+            /*
             $middleNodes = [];
             $nextSibling = $commentRangeStartItem->nextSibling;
             
@@ -181,18 +204,55 @@ class Document extends PartBase
                 }
                 
                 
-                var_dump($nextSibling,$preParentNode,$commentRangeEndItem);
+//                 var_dump($nextSibling,$preParentNode,$commentRangeEndItem);
 //                 $parentNode->getElementsByTagName('commentRangeStart');
                 
-                var_dump($this->commentsblocks,$id = $this->getAttr($commentRangeStartItem, 'id'));exit;
+//                 var_dump($this->commentsblocks,$id = $this->getAttr($commentRangeStartItem, 'id'));exit;
             }
-            
-            $id = $this->getAttr($commentRangeStartItem, 'id');
-            $blocks[$this->commentsblocks[$id]][] = [$commentRangeStartItem,$commentRangeEndItem,$middleNodes];
+            */
+            $blocks[] = [$commentRangeStartItem,$commentRangeEndItem,$trace];
         }
         
+//         var_dump($blocks['table']);exit;
         
         return $blocks;
+    }
+    
+    private function getRangeTrace($id,$commentRangeStartItem,$commentRangeEndItem) {
+        $startParentNode = $parentNode = $commentRangeStartItem;
+        $parentNodeCount = 0;
+        while($parentNode = $parentNode->parentNode) {
+            $commentRangeEndItem = $this->getCommentRangeEnd($parentNode,$id);
+            if(is_null($commentRangeEndItem)) {
+                $startParentNode = $parentNode;
+            }else{
+                break;
+            }
+            $parentNodeCount++;
+        }
+        
+        $nextNodeCount = 0;
+        if($parentNodeCount === 0) {
+            $nextSibling = $commentRangeStartItem->nextSibling;
+            $nextNodeCount++;
+            while($nextSibling !== null && $nextSibling !== $commentRangeEndItem) {
+                $nextSibling = $nextSibling->nextSibling;
+                $nextNodeCount++;
+            }
+            
+            $endParentNode = $commentRangeEndItem;
+        }else{
+            $nextSibling = $startParentNode->nextSibling;
+            $nextNodeCount++;
+            while(!is_null($nextSibling) && $this->getCommentRangeEnd($nextSibling,$id) === null && $nextSibling !== $commentRangeEndItem) {
+                $nextSibling = $nextSibling->nextSibling;
+                $nextNodeCount++;
+            }
+            $endParentNode = $nextSibling;
+//             var_dump($startParentNode,$endParentNode);
+        }
+        
+        return ['parentNodeCount'=>$parentNodeCount,'nextNodeCount'=>$nextNodeCount];
     }
     
     private function getCommentRangeEnd($parentNode,$id) {
