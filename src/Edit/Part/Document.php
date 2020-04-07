@@ -46,20 +46,25 @@ class Document extends PartBase
 //         var_dump($beginNode,$endNode,$middleNodes);exit;
         $targetNode = null;
         $deleteNodes = [];
+        $middleNodes = [];
         switch ($type) {
             case 'text':
+                $middleNodes = [];
                 $parentNode = $beginNode;
                 for($i=0;$i<=$parentNodeCount;$i++) {
-                    while($nextSibling = $parentNode->nextSibling) {
-                        if($nextSibling->localName == 'r') {//is target
-                            if(is_null($targetNode)) {
+                    $nextSibling = $parentNode;
+                    while($nextSibling = $nextSibling->nextSibling) {
+                        if(is_null($targetNode)) {
+                            if($nextSibling->localName == 'r') {//is target
                                 $targetNode = $nextSibling;
+                            }else{//sub find target
+                                $rs = $nextSibling->getElementsByTagName('r');
+                                if($rs->length > 0) {
+                                    $targetNode = $rs->item(0);
+                                }
                             }
-                        }else{//sub find target
-                            $rs = $nextSibling->getElementsByTagName('r');
-                            if($rs->length > 0 && is_null($targetNode)) {
-                                $targetNode = $rs->item(0);
-                            }
+                        }else{
+                            $this->markDelete($nextSibling);
                         }
                     }
                     
@@ -70,7 +75,11 @@ class Document extends PartBase
                     }
                     
                 }
-                var_dump($traces);exit;
+                
+//                 var_dump($this->DOMDocument->getElementById('dm#2'));exit;
+                $this->deleteMarked();
+                echo $this->DOMDocument->saveXML();exit;
+//                 var_dump($traces);exit;
                 foreach($middleNodes as $middleNode) {
                     if($middleNode->localName == 'r') {
                         $deleteNodes[] = $middleNode;
@@ -80,36 +89,36 @@ class Document extends PartBase
                     }
                 }
                 
-                if(!is_null($node)) {
-                    $copy = clone $node;
-                    $copy->getElementsByTagName('t')->item(0)->nodeValue= $value;
-                    $parentNode = $node->parentNode;
-                    $parentNode->insertBefore($copy,$node);
-                }
+//                 if(!is_null($node)) {
+//                     $copy = clone $node;
+//                     $copy->getElementsByTagName('t')->item(0)->nodeValue= $value;
+//                     $parentNode = $node->parentNode;
+//                     $parentNode->insertBefore($copy,$node);
+//                 }
                 
-                //remove comments and middle node
-                foreach($deleteNodes as $deleteNode) {
-                    $deleteNode->parentNode->removeChild($deleteNode);
-                }
-                $beginNode->parentNode->removeChild($beginNode);
-                $endNode->parentNode->removeChild($endNode);
+//                 //remove comments and middle node
+//                 foreach($deleteNodes as $deleteNode) {
+//                     $deleteNode->parentNode->removeChild($deleteNode);
+//                 }
+//                 $beginNode->parentNode->removeChild($beginNode);
+//                 $endNode->parentNode->removeChild($endNode);
                 
                 break;
             case 'image':
-                foreach($middleNodes as $middleNode) {
-                    $pictNode = $middleNode->getElementsByTagName('pict')->item(0);
-                    if($pictNode) {
-                        $deleteNodes[] = $middleNode;
-                        if(is_null($node)) {
-                            $node = $pictNode;
-                        }
-                    }
-                }
+//                 foreach($middleNodes as $middleNode) {
+//                     $pictNode = $middleNode->getElementsByTagName('pict')->item(0);
+//                     if($pictNode) {
+//                         $deleteNodes[] = $middleNode;
+//                         if(is_null($node)) {
+//                             $node = $pictNode;
+//                         }
+//                     }
+//                 }
                 
-                if(!is_null($node)) {
-                    $rid = $this->getAttr($node->getElementsByTagName('imagedata')->item(0), 'id', 'r');
-                    $this->updateRef($rid,$value);
-                }
+//                 if(!is_null($node)) {
+//                     $rid = $this->getAttr($node->getElementsByTagName('imagedata')->item(0), 'id', 'r');
+//                     $this->updateRef($rid,$value);
+//                 }
                 break;
             case 'clone':
                 

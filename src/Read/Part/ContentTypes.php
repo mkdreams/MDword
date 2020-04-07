@@ -36,7 +36,9 @@ class ContentTypes extends PartBase
   21 => 'application/vnd.openxmlformats-officedocument.wordprocessingml.endnotes+xml',
 )//--CONTENTTYPES--
     ;
-    
+    /**
+     * @param \DOMDocument $DOMDocument
+     */
     public function __construct(\DOMDocument $DOMDocument) {
         parent::__construct();
         

@@ -12,6 +12,8 @@ class PartBase
     protected $refDOMDocument = null;
     
     protected $rootPath;
+    
+    private $id = 0;
     /**
      * @var Word
      */
@@ -23,7 +25,7 @@ class PartBase
     
     protected $xmlns = [];
     
-    public function __construct($word) {
+    public function __construct($word=null) {
         $this->rootPath = dirname(__DIR__);
         
         $this->word = $word;
@@ -43,5 +45,17 @@ class PartBase
     
     public function __get($name) {
         return $this->$name;
+    }
+    
+    protected function markDelete($item) {
+        $item->setAttribute('md',(++$this->id));
+    }
+    
+    protected function deleteMarked() {
+        $xpath = new \DOMXPath($this->DOMDocument);
+        $context = $this->DOMDocument->documentElement;
+        foreach( $xpath->query('//*[@md="1"]', $context) as $node ) {
+            $node->parentNode->removeChild($node);
+        }
     }
 }

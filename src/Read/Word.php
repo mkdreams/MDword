@@ -1,9 +1,9 @@
 <?php
 namespace MDword\Read;
 
-use MDword\Read\Part\ContentTypes;
 use MDword\Edit\Part\Document;
 use MDword\Edit\Part\Comments;
+use MDword\Read\Part\ContentTypes;
 
 class Word 
 {
