@@ -104,6 +104,9 @@ class Word
         //remove marked
         $this->documentEdit->deleteMarked();
         
+        //test
+//         echo $this->documentEdit->DOMDocument->saveXML();exit;
+        
         //remove comments tag
         $DOMDocument = $this->documentEdit->DOMDocument;
         $commentRangeStarts = $DOMDocument->getElementsByTagName('commentRangeStart');

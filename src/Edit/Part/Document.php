@@ -39,7 +39,7 @@ class Document extends PartBase
         $nextNodeCount = $traces['nextNodeCount'];
         switch ($type) {
             case 'text':
-                $targetNode = $this->getTarget($beginNode,$parentNodeCount);
+                $targetNode = $this->getTarget($beginNode,$endNode,$parentNodeCount);
                 if(!is_null($targetNode)) {
                     $copy = clone $targetNode;
                     $copy->getElementsByTagName('t')->item(0)->nodeValue= $value;
@@ -52,7 +52,7 @@ class Document extends PartBase
 //                 echo $this->DOMDocument->saveXML();exit;
                 break;
             case 'image':
-                $targetNode = $this->getTarget($beginNode,$parentNodeCount,'pict');
+                $targetNode = $this->getTarget($beginNode,$endNode,$parentNodeCount,'pict');
                 if(!is_null($targetNode)) {
                     $rid = $this->getAttr($targetNode->getElementsByTagName('imagedata')->item(0), 'id', 'r');
                     $this->updateRef($rid,$value);
@@ -65,6 +65,8 @@ class Document extends PartBase
                 for($i=0;$i<$parentNodeCount;$i++) {
                     $parentNode = $parentNode->parentNode;
                 }
+                
+                
                 if($this->isTc($parentNode)) {
                     $parentNode = $parentNode->parentNode;
                     $nextNodeCount = 0;
@@ -80,7 +82,7 @@ class Document extends PartBase
                 for($i=1;$i<=$value;$i++) {
                     foreach($needCloneNodes as $targetNode) {
                         $copy = clone $targetNode;
-                        $this->updateCommentsId($copy, $i);
+                        $this->updateCommentsId($copy, $i,$value);
                         if($nextSibling = $lastNode->nextSibling) {
                             $parentNode = $nextSibling->parentNode;
                             $parentNode->insertBefore($copy,$nextSibling);
@@ -110,9 +112,13 @@ class Document extends PartBase
         }
     }
     
-    private function updateCommentsId($item,$id) {
+    private function updateCommentsId($item,$id,$value='') {
         //start
-        $commentRangeStarts = $item->getElementsByTagName('commentRangeStart');
+        if($item->localName === 'commentRangeStart') {
+            $commentRangeStarts = [$item];
+        }else{
+            $commentRangeStarts = $item->getElementsByTagName('commentRangeStart');
+        }
         foreach($commentRangeStarts as $commentRangeStart) {
             $oldId = $this->getAttr($commentRangeStart, 'id');
             if($name = $this->commentsblocks[$oldId]) {
@@ -125,7 +131,11 @@ class Document extends PartBase
         }
         
         //end
-        $commentRangeEnds = $item->getElementsByTagName('commentRangeEnd');
+        if($item->localName === 'commentRangeEnd') {
+            $commentRangeEnds = [$item];
+        }else{
+            $commentRangeEnds = $item->getElementsByTagName('commentRangeEnd');
+        }
         foreach($commentRangeEnds as $commentRangeEnd) {
             $oldId = $this->getAttr($commentRangeEnd, 'id');
             if($name = $this->commentsblocks[$oldId]) {
@@ -137,12 +147,15 @@ class Document extends PartBase
         }
     }
     
-    private function getTarget($beginNode,$parentNodeCount,$type='r') {
+    private function getTarget($beginNode,$endNode,$parentNodeCount,$type='r') {
         $parentNode = $beginNode;
         $targetNode = null;
         for($i=0;$i<=$parentNodeCount;$i++) {
             $nextSibling = $parentNode;
             while($nextSibling = $nextSibling->nextSibling) {
+                if($nextSibling === $endNode) {
+                    break 2;
+                }
                 if(is_null($targetNode)) {
                     if($nextSibling->localName == $type) {//is target
                         $targetNode = $nextSibling;
@@ -166,6 +179,8 @@ class Document extends PartBase
             }
         }
         
+//         $targetNode
+        $this->removeMarkDelete($targetNode);
         return $targetNode;
     }
     

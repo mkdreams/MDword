@@ -56,6 +56,10 @@ class PartBase
         $item->setAttribute('md',(++$this->id));
     }
     
+    protected function removeMarkDelete($item) {
+        $item->removeAttribute('md');
+    }
+    
     public function deleteMarked() {
         $xpath = new \DOMXPath($this->DOMDocument);
         $context = $this->DOMDocument->documentElement;
