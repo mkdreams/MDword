@@ -29,6 +29,10 @@ class Document extends PartBase
         }
     }
     
+    public function updateToc() {
+        
+    }
+    
     private function update($block,$value,$type) {
         $beginNode = $block[0];
         

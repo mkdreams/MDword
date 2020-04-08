@@ -78,6 +78,12 @@ class Word
             throw new \Exception('Could not close zip file.');
         }
         
+        if(MDWORD_DEBUG === true) {
+            $this->zip->open($this->tempDocumentFilename);
+            $this->zip->extractTo(MDWORD_GENERATED_DIRECTORY);
+            $this->zip->close();
+        }
+        
         return $this->tempDocumentFilename;
     }
     
@@ -133,6 +139,9 @@ class Word
         $xml = $this->zip->getFromName($filename);
         $domDocument = new \DOMDocument();
         $domDocument->loadXML($xml);
+        if(MDWORD_DEBUG === true) {
+            $domDocument->formatOutput = true;
+        }
         
         return $domDocument;
     }

@@ -60,6 +60,20 @@ class WordProcessor
         $documentEdit->clone($name, $count);
     }
     
+    /**
+     * update toc
+     */
+    public function updateToc() {
+        $documentEdit = $this->words[$this->wordsIndex]->documentEdit;
+        if(is_null($documentEdit)) {
+            $document = $this->words[$this->wordsIndex]->parts[2][0]['DOMElement'];
+            $documentEdit = new Document($this->words[$this->wordsIndex],$document,$this->words[$this->wordsIndex]->commentsEdit->blocks);
+            $this->words[$this->wordsIndex]->documentEdit = $documentEdit;
+            $this->words[$this->wordsIndex]->documentEdit->partName = $this->words[$this->wordsIndex]->parts[2][0]['PartName'];
+        }
+        $documentEdit->updateToc();
+    }
+    
     public function saveAs($fileName)
     {
         $tempFileName = $this->words[$this->wordsIndex]->save();

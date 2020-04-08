@@ -2,3 +2,5 @@
 .project
 *.prefs
 *.xml
+
+tests/Output/*
