@@ -16,3 +16,6 @@ require_once('Autoloader.php');
 ```
 ## 项目进展
 - 目录随内容更改而更新
+- readme 完善
+- tests框架完善
+
