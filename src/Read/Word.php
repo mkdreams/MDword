@@ -101,6 +101,9 @@ class Word
             $this->zip->deleteName($part['PartName']);
         }
         
+        //remove marked
+        $this->documentEdit->deleteMarked();
+        
         //remove comments tag
         $DOMDocument = $this->documentEdit->DOMDocument;
         $commentRangeStarts = $DOMDocument->getElementsByTagName('commentRangeStart');

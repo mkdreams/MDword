@@ -40,8 +40,13 @@ class PartBase
     }
     
     public function getAttr($item,$name,$ns='w') {
-        return $item->getAttributeNS($this->xmlns[$ns],'id');
+        return $item->getAttributeNS($this->xmlns[$ns],$name);
     }
+    
+    public function setAttr($item,$name,$value,$ns='w') {
+        return $item->setAttributeNS($this->xmlns[$ns],$name,$value);
+    }
+    
     
     public function __get($name) {
         return $this->$name;
@@ -51,10 +56,10 @@ class PartBase
         $item->setAttribute('md',(++$this->id));
     }
     
-    protected function deleteMarked() {
+    public function deleteMarked() {
         $xpath = new \DOMXPath($this->DOMDocument);
         $context = $this->DOMDocument->documentElement;
-        foreach( $xpath->query('//*[@md="1"]', $context) as $node ) {
+        foreach( $xpath->query('//*[@md]', $context) as $node ) {
             $node->parentNode->removeChild($node);
         }
     }

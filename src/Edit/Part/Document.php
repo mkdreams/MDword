@@ -20,18 +20,12 @@ class Document extends PartBase
         foreach($blocks as $block) {
             $this->update($block,$value,$type);
         }
-        
-//         echo $this->DOMDocument->saveXML();exit;
-//         var_dump($name,$value,$this->DOMDocument);exit;
     }
     
     public function clone($name,$value,$type="clone") {
-        $blocks = $this->getBlocks();
-//         var_dump($this->commentsblocks,$blocks);exit;
-        if(isset($blocks[$name])) {
-            foreach($blocks[$name] as $block) {
-                $this->update($block,$value,$type);
-            }
+        $blocks = $this->getBlocks($name);
+        foreach($blocks as $block) {
+            $this->update($block,$value,$type);
         }
     }
     
@@ -43,94 +37,139 @@ class Document extends PartBase
         $traces = $block[2];
         $parentNodeCount = $traces['parentNodeCount'];
         $nextNodeCount = $traces['nextNodeCount'];
-//         var_dump($beginNode,$endNode,$middleNodes);exit;
-        $targetNode = null;
-        $deleteNodes = [];
-        $middleNodes = [];
         switch ($type) {
             case 'text':
-                $middleNodes = [];
-                $parentNode = $beginNode;
-                for($i=0;$i<=$parentNodeCount;$i++) {
-                    $nextSibling = $parentNode;
-                    while($nextSibling = $nextSibling->nextSibling) {
-                        if(is_null($targetNode)) {
-                            if($nextSibling->localName == 'r') {//is target
-                                $targetNode = $nextSibling;
-                            }else{//sub find target
-                                $rs = $nextSibling->getElementsByTagName('r');
-                                if($rs->length > 0) {
-                                    $targetNode = $rs->item(0);
-                                }
-                            }
-                        }else{
-                            $this->markDelete($nextSibling);
-                        }
-                    }
+                $targetNode = $this->getTarget($beginNode,$parentNodeCount);
+                if(!is_null($targetNode)) {
+                    $copy = clone $targetNode;
+                    $copy->getElementsByTagName('t')->item(0)->nodeValue= $value;
+                    $parentNode = $targetNode->parentNode;
+                    $parentNode->insertBefore($copy,$targetNode); 
                     
-                    if($i === $parentNodeCount) {//top parent
-                        
-                    }else{
-                        $parentNode = $parentNode->parentNode;
-                    }
-                    
+                    $this->markDelete($targetNode);
                 }
-                
-//                 var_dump($this->DOMDocument->getElementById('dm#2'));exit;
-                $this->deleteMarked();
-                echo $this->DOMDocument->saveXML();exit;
-//                 var_dump($traces);exit;
-                foreach($middleNodes as $middleNode) {
-                    if($middleNode->localName == 'r') {
-                        $deleteNodes[] = $middleNode;
-                        if(is_null($node)) {
-                            $node = $middleNode;
-                        }
-                    }
-                }
-                
-//                 if(!is_null($node)) {
-//                     $copy = clone $node;
-//                     $copy->getElementsByTagName('t')->item(0)->nodeValue= $value;
-//                     $parentNode = $node->parentNode;
-//                     $parentNode->insertBefore($copy,$node);
-//                 }
-                
-//                 //remove comments and middle node
-//                 foreach($deleteNodes as $deleteNode) {
-//                     $deleteNode->parentNode->removeChild($deleteNode);
-//                 }
-//                 $beginNode->parentNode->removeChild($beginNode);
-//                 $endNode->parentNode->removeChild($endNode);
-                
+//                 $this->deleteMarked();
+//                 echo $this->DOMDocument->saveXML();exit;
                 break;
             case 'image':
-//                 foreach($middleNodes as $middleNode) {
-//                     $pictNode = $middleNode->getElementsByTagName('pict')->item(0);
-//                     if($pictNode) {
-//                         $deleteNodes[] = $middleNode;
-//                         if(is_null($node)) {
-//                             $node = $pictNode;
-//                         }
-//                     }
-//                 }
-                
-//                 if(!is_null($node)) {
-//                     $rid = $this->getAttr($node->getElementsByTagName('imagedata')->item(0), 'id', 'r');
-//                     $this->updateRef($rid,$value);
-//                 }
+                $targetNode = $this->getTarget($beginNode,$parentNodeCount,'pict');
+                if(!is_null($targetNode)) {
+                    $rid = $this->getAttr($targetNode->getElementsByTagName('imagedata')->item(0), 'id', 'r');
+                    $this->updateRef($rid,$value);
+                }
                 break;
             case 'clone':
+                $parentNode = $beginNode;
+                $targetNode = null;
+                $needCloneNodes = [];
+                for($i=0;$i<$parentNodeCount;$i++) {
+                    $parentNode = $parentNode->parentNode;
+                }
+                if($this->isTc($parentNode)) {
+                    $parentNode = $parentNode->parentNode;
+                    $nextNodeCount = 0;
+                }
+                $needCloneNodes[] = $lastNode = $parentNode;
                 
+                $nextSibling = $parentNode;
+                for($i=0;$i<$nextNodeCount;$i++) {
+                    $nextSibling = $nextSibling->nextSibling;
+                    $needCloneNodes[] = $lastNode = $nextSibling;
+                }
+                
+                for($i=1;$i<=$value;$i++) {
+                    foreach($needCloneNodes as $targetNode) {
+                        $copy = clone $targetNode;
+                        $this->updateCommentsId($copy, $i);
+                        if($nextSibling = $lastNode->nextSibling) {
+                            $parentNode = $nextSibling->parentNode;
+                            $parentNode->insertBefore($copy,$nextSibling);
+                        }else{
+                            $parentNode = $lastNode->parentNode;
+                            $parentNode->appendChild($copy);
+                        }
+                        
+                        $lastNode = $copy;
+                    }
+                }
+                
+                foreach($needCloneNodes as $targetNode) {
+                    $this->updateCommentsId($targetNode, 0);
+                }
                 break;
             default:
                 break;
         }
     }
     
-    private function updateRef($rid,$file) {
-//         var_dump(is_file($file));exit;
+    private function isTc($item) {
+        if($item->localName === 'tc') {
+            return true;
+        }else{
+            return false;
+        }
+    }
+    
+    private function updateCommentsId($item,$id) {
+        //start
+        $commentRangeStarts = $item->getElementsByTagName('commentRangeStart');
+        foreach($commentRangeStarts as $commentRangeStart) {
+            $oldId = $this->getAttr($commentRangeStart, 'id');
+            if($name = $this->commentsblocks[$oldId]) {
+                $name .= '#'.$id;
+            }else{
+                $name = 'TEMP#'.$id;
+            }
+            $this->commentsblocks[$name] = $name;
+            $this->setAttr($commentRangeStart, 'id', $name);
+        }
         
+        //end
+        $commentRangeEnds = $item->getElementsByTagName('commentRangeEnd');
+        foreach($commentRangeEnds as $commentRangeEnd) {
+            $oldId = $this->getAttr($commentRangeEnd, 'id');
+            if($name = $this->commentsblocks[$oldId]) {
+                $name .= '#'.$id;
+            }else{
+                $name = 'TEMP#'.$id;
+            }
+            $this->setAttr($commentRangeEnd, 'id', $name);
+        }
+    }
+    
+    private function getTarget($beginNode,$parentNodeCount,$type='r') {
+        $parentNode = $beginNode;
+        $targetNode = null;
+        for($i=0;$i<=$parentNodeCount;$i++) {
+            $nextSibling = $parentNode;
+            while($nextSibling = $nextSibling->nextSibling) {
+                if(is_null($targetNode)) {
+                    if($nextSibling->localName == $type) {//is target
+                        $targetNode = $nextSibling;
+                    }else{//sub find target
+                        $rs = $nextSibling->getElementsByTagName($type);
+                        if($rs->length > 0) {
+                            $targetNode = $rs->item(0);
+                        }else{
+                            $this->markDelete($nextSibling);
+                        }
+                    }
+                }else{
+                    $this->markDelete($nextSibling);
+                }
+            }
+            
+            if($i === $parentNodeCount) {//top parent
+                
+            }else{
+                $parentNode = $parentNode->parentNode;
+            }
+        }
+        
+        return $targetNode;
+    }
+    
+    private function updateRef($rid,$file) {
         $partInfo = pathinfo($this->partName);
         if(is_null($this->refDOMDocument)) {
             $this->partNameRel = $partInfo['dirname'].'/_rels/'.$partInfo['basename'].'.rels';
@@ -157,7 +196,6 @@ class Document extends PartBase
         $beginNode = $block[0]['node'];
         $endNode = $block[1]['node'];
         
-//         var_dump($beginNode,$endNode);exit;
         $parentNode = $beginNode->parentNode;
         
         if(!is_null($beginNode)) {
@@ -166,9 +204,6 @@ class Document extends PartBase
         if(!is_null($endNode)) {
             $parentNode->removeChild($endNode);
         }
-        
-        
-        
     }
     
     private function getBlocks($name) {
@@ -183,46 +218,8 @@ class Document extends PartBase
             $commentRangeEndItem = $this->getCommentRangeEnd($this->DOMDocument,$id);
             
             $trace = $this->getRangeTrace($id,$commentRangeStartItem, $commentRangeEndItem);
-//             exit;
-            /*
-            $middleNodes = [];
-            $nextSibling = $commentRangeStartItem->nextSibling;
-            
-            while($nextSibling !== null && $nextSibling !== $commentRangeEndItem) {
-                $middleNodes[] = $nextSibling;
-                $nextSibling = $nextSibling->nextSibling;
-            }
-            
-            //父级查找
-            if($nextSibling === null) {
-                $parentNode = $commentRangeStartItem;
-                while($parentNode = $parentNode->parentNode) {
-                    $commentRangeEndItem = $this->getCommentRangeEnd($parentNode,$id);
-                    if(is_null($commentRangeEndItem)) {
-                        $preParentNode = $parentNode;
-                    }else{
-                        break;
-                    }
-                }
-                
-                //middles
-                $nextSibling = $preParentNode->nextSibling;
-                while($this->getCommentRangeEnd($nextSibling,$id) !== null) {
-                    $middleNodes[] = $nextSibling;
-                    $nextSibling = $nextSibling->nextSibling;
-                }
-                
-                
-//                 var_dump($nextSibling,$preParentNode,$commentRangeEndItem);
-//                 $parentNode->getElementsByTagName('commentRangeStart');
-                
-//                 var_dump($this->commentsblocks,$id = $this->getAttr($commentRangeStartItem, 'id'));exit;
-            }
-            */
             $blocks[] = [$commentRangeStartItem,$commentRangeEndItem,$trace];
         }
-        
-//         var_dump($blocks['table']);exit;
         
         return $blocks;
     }
@@ -258,7 +255,6 @@ class Document extends PartBase
                 $nextNodeCount++;
             }
             $endParentNode = $nextSibling;
-//             var_dump($startParentNode,$endParentNode);
         }
         
         return ['parentNodeCount'=>$parentNodeCount,'nextNodeCount'=>$nextNodeCount];
