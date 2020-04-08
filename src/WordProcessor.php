@@ -28,42 +28,41 @@ class WordProcessor
     }
     
     public function setValue($name, $value) {
-        $documentEdit = $this->words[$this->wordsIndex]->documentEdit;
-        if(is_null($documentEdit)) {
-            $document = $this->words[$this->wordsIndex]->parts[2][0]['DOMElement'];
-            $documentEdit = new Document($this->words[$this->wordsIndex],$document,$this->words[$this->wordsIndex]->commentsEdit->blocks);
-            $this->words[$this->wordsIndex]->documentEdit = $documentEdit;
-            $this->words[$this->wordsIndex]->documentEdit->partName = $this->words[$this->wordsIndex]->parts[2][0]['PartName'];
-        }
+        $documentEdit = $this->getDocumentEdit();
         $documentEdit->setValue($name, $value);
     }
     
     public function setImageValue($name, $value) {
-        $documentEdit = $this->words[$this->wordsIndex]->documentEdit;
-        if(is_null($documentEdit)) {
-            $document = $this->words[$this->wordsIndex]->parts[2][0]['DOMElement'];
-            $documentEdit = new Document($this->words[$this->wordsIndex],$document,$this->words[$this->wordsIndex]->commentsEdit->blocks);
-            $this->words[$this->wordsIndex]->documentEdit = $documentEdit;
-            $this->words[$this->wordsIndex]->documentEdit->partName = $this->words[$this->wordsIndex]->parts[2][0]['PartName'];
-        }
+        $documentEdit = $this->getDocumentEdit();
         $documentEdit->setValue($name, $value,'image');
     }
     
+    /**
+     * @param string $name
+     * @param array $datas
+     * change value ['A1',9,'set']
+     * extention range ['$A$1:$A$5','$A$1:$A$10','ext']
+     */
+    public function setExcelValue($name='',$datas=[]) {
+        $documentEdit = $this->getDocumentEdit();
+        $documentEdit->setValue($name, $datas, 'excel');
+    }
+    
     public function clone($name,$count=1) {
-        $documentEdit = $this->words[$this->wordsIndex]->documentEdit;
-        if(is_null($documentEdit)) {
-            $document = $this->words[$this->wordsIndex]->parts[2][0]['DOMElement'];
-            $documentEdit = new Document($this->words[$this->wordsIndex],$document,$this->words[$this->wordsIndex]->commentsEdit->blocks);
-            $this->words[$this->wordsIndex]->documentEdit = $documentEdit;
-            $this->words[$this->wordsIndex]->documentEdit->partName = $this->words[$this->wordsIndex]->parts[2][0]['PartName'];
-        }
-        $documentEdit->clone($name, $count);
+        $documentEdit = $this->getDocumentEdit();
+        $documentEdit->setValue($name, $count, 'clone');
     }
     
     /**
      * update toc
      */
     public function updateToc() {
+        $documentEdit = $this->getDocumentEdit();
+        $documentEdit->updateToc();
+    }
+    
+    
+    private function getDocumentEdit() {
         $documentEdit = $this->words[$this->wordsIndex]->documentEdit;
         if(is_null($documentEdit)) {
             $document = $this->words[$this->wordsIndex]->parts[2][0]['DOMElement'];
@@ -71,7 +70,7 @@ class WordProcessor
             $this->words[$this->wordsIndex]->documentEdit = $documentEdit;
             $this->words[$this->wordsIndex]->documentEdit->partName = $this->words[$this->wordsIndex]->parts[2][0]['PartName'];
         }
-        $documentEdit->updateToc();
+        return $documentEdit;
     }
     
     public function saveAs($fileName)

@@ -22,13 +22,6 @@ class Document extends PartBase
         }
     }
     
-    public function clone($name,$value,$type="clone") {
-        $blocks = $this->getBlocks($name);
-        foreach($blocks as $block) {
-            $this->update($block,$value,$type);
-        }
-    }
-    
     public function updateToc() {
         
     }
@@ -60,6 +53,14 @@ class Document extends PartBase
                 if(!is_null($targetNode)) {
                     $rid = $this->getAttr($targetNode->getElementsByTagName('imagedata')->item(0), 'id', 'r');
                     $this->updateRef($rid,$value);
+                }
+                break;
+            case 'excel':
+                $targetNode = $this->getTarget($beginNode,$endNode,$parentNodeCount,'drawing');
+                if(!is_null($targetNode)) {
+                    $rid = $this->getAttr($targetNode->getElementsByTagName('chart')->item(0), 'id', 'r');
+                    $this->getExcelPath($rid);
+                    var_dump($targetNode);exit;
                 }
                 break;
             case 'clone':
@@ -186,6 +187,26 @@ class Document extends PartBase
 //         $targetNode
         $this->removeMarkDelete($targetNode);
         return $targetNode;
+    }
+    
+    private function getExcelPath($rid='') {
+//         var_dump($rid);exit;
+        $partInfo = pathinfo($this->partName);
+        if(is_null($this->refDOMDocument)) {
+            $this->partNameRel = $partInfo['dirname'].'/_rels/'.$partInfo['basename'].'.rels';
+            $this->refDOMDocument = $this->word->getXmlDom($this->partNameRel);
+            $this->word->parts[19][] = ['PartName'=>$this->partNameRel,'DOMElement'=>$this->refDOMDocument];
+        }
+        
+        
+        $Relationships = $this->refDOMDocument->getElementsByTagName('Relationship');
+        $length = $Relationships->length;
+        foreach ($Relationships as $Relationship) {
+            if($Relationship->getAttribute('Id') === $rid) {
+                $Target = $partInfo['dirname'].'/'.$Relationship->getAttribute('Target');
+                var_dump($Target);exit;
+            }
+        }
     }
     
     private function updateRef($rid,$file) {
