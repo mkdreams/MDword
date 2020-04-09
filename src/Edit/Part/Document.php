@@ -23,7 +23,102 @@ class Document extends PartBase
     }
     
     public function updateToc() {
+        //get title levels
+        $levels = $this->getTocLevels();
         
+        $titles = $this->getTitles($levels);
+        
+        if(empty($titles)) {
+            return ;
+        }
+        $sdtContent = $this->DOMDocument->getElementsByTagName('sdtContent')->item(0);
+        $hyperlinks = $sdtContent->getElementsByTagName('hyperlink');
+        
+        $hyperlinkArr = [];
+        foreach($hyperlinks as $hyperlink) {
+            $hyperlinkArr[$this->getAttr($hyperlink, 'anchor')] = $hyperlink;
+        }
+        
+        $index = 0;
+        foreach($titles as $anchor => $title) {
+            $anchorOrg = $title['orgname'];
+            
+            if(isset($hyperlinkArr[$anchorOrg])) {
+                $index++;
+                $p = $hyperlinkArr[$anchorOrg]->parentNode;
+                $copy = clone $p;
+                $copy->getElementsByTagName('t')->item(0)->nodeValue= $title['text'];
+                $hyperlink = $copy->getElementsByTagName('hyperlink')->item(0);
+                $this->setAttr($hyperlink, 'anchor', $anchor);
+                
+                $instrTexts = $copy->getElementsByTagName('instrText');
+                if($instrTexts.length > 1) {
+                    if($index !== 1) {
+                        $this->markDelete($instrTexts->item(0)->parentNode);
+                    }
+                    $instrTexts->item(1)->nodeValue = str_replace($anchorOrg, $anchor, $instrTexts->item(1)->nodeValue);
+                }else{
+                    $instrTexts->item(0)->nodeValue = str_replace($anchorOrg, $anchor, $instrTexts->item(0)->nodeValue);
+                }
+                
+                $sdtContent->insertBefore($copy,$sdtContent->lastChild);
+            }
+        }
+        
+        
+        foreach($hyperlinkArr as $hyperlink) {
+            $this->markDelete($hyperlink->parentNode);
+        }
+    }
+    
+    private function getTitles($levels=[]) {
+        $pPrs = $this->DOMDocument->getElementsByTagName('pPr');
+        
+        $titles = [];
+        foreach ($pPrs as $pPr) {
+            $pStyle = $pPr->getElementsByTagName('pStyle');
+            if($pStyle->length > 0) {
+                $pStyle = $pStyle->item(0);
+                $val = intval($this->getAttr($pStyle, 'val'));
+                if(in_array($val, $levels)) {
+                    $bookmarkStarts = $pPr->parentNode->getElementsByTagName('bookmarkStart');
+                    foreach($bookmarkStarts as $bookmarkStart) {
+                        $name = $this->getAttr($bookmarkStart, 'name');
+                        $id = $this->getAttr($bookmarkStart, 'id');
+                        $orgname = $this->getAttr($bookmarkStart, 'orgname');
+                        if($orgname == '') {
+                            $orgname = $name;
+                        }
+                        $titles[$name] = ['id'=>$id,'orgname'=>$orgname,'text'=>$pPr->parentNode->textContent];
+                    }
+                }
+            }
+        }
+        
+        return $titles;
+    }
+    
+    private function getTocLevels() {
+        $instrText = $this->DOMDocument->getElementsByTagName('instrText');
+        if(!$instrText->length) {
+           return []; 
+        }
+        
+        $instrText = $instrText->item(0);
+        $nodeValue = $instrText->nodeValue;
+        preg_match('/TOC[\s\S]+?"(\d+)\-(\d+)\"/i', $nodeValue,$match);
+        
+        $begin = intval($match[1]);
+        $end = intval($match[2]);
+        
+        $levels = [];
+        if($begin > 0 && $end > 0 && $end > $begin) {
+            for($begin;$begin<=$end;$begin++) {
+                $levels[] = $begin;
+            }
+        }
+        
+        return $levels;
     }
     
     private function update($block,$value,$type) {
@@ -117,7 +212,43 @@ class Document extends PartBase
         }
     }
     
+    private function updateBookMark($item,$id,$value='') {
+        static $maxId = 10000;
+        //start
+        if($item->localName === 'bookmarkStart') {
+            $bookmarkStarts = [$item];
+        }else{
+            $bookmarkStarts = $item->getElementsByTagName('bookmarkStart');
+        }
+        
+        $ids = [];
+        foreach($bookmarkStarts as $key => $bookmarkStart) {
+            $maxId = $maxId+1;
+            $name = '_Toc'.$maxId;
+            $ids[$key] = $maxId;
+            $this->setAttr($bookmarkStart, 'id', $maxId);
+            $this->setAttr($bookmarkStart, 'orgname', $this->getAttr($bookmarkStart, 'name'));
+            $this->setAttr($bookmarkStart, 'name', $name);
+        }
+        
+        //end
+        if($item->localName === 'bookmarkEnd') {
+            $bookmarkEnds = [$item];
+        }else{
+            $bookmarkEnds = $item->getElementsByTagName('bookmarkEnd');
+        }
+        foreach($bookmarkEnds as $key => $bookmarkEnd) {
+            $this->setAttr($bookmarkEnd, 'id', $ids[$key]);
+        }
+    }
+    
+    
     private function updateCommentsId($item,$id,$value='') {
+        //org clone not change bookmark's id and name
+        if($id != 0) {
+            $this->updateBookMark($item, $id, $value);
+        }
+        
         //start
         if($item->localName === 'commentRangeStart') {
             $commentRangeStarts = [$item];

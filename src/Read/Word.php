@@ -66,6 +66,12 @@ class Word
     {
         $this->deleteComments();
         
+        //update Toc
+        $this->documentEdit->updateToc();
+        
+        //delete again
+        $this->deleteComments();
+        
         foreach($this->parts as $list ) {
             foreach($list as $part) {
                 if(is_object($part['DOMElement'])) {
