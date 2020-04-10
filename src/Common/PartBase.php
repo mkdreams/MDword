@@ -2,14 +2,16 @@
 namespace MDword\Common;
 
 use MDword\Read\Word;
+use MDword\Edit\Part\Rels;
 
 class PartBase
 {
-    protected $DOMDocument;
     /**
      * @var \DOMDocument
      */
-    protected $refDOMDocument = null;
+    protected $DOMDocument;
+    
+    public $rels = null;
     
     protected $rootPath;
     
@@ -20,8 +22,6 @@ class PartBase
     public $word;
     
     public $partName = null;
-    
-    public $partNameRel = null;
     
     protected $xmlns = [];
     
@@ -66,5 +66,14 @@ class PartBase
         foreach( $xpath->query('//*[@md]', $context) as $node ) {
             $node->parentNode->removeChild($node);
         }
+    }
+    
+    protected function getRels($xmlType=19) {
+        $partInfo = pathinfo($this->partName);
+        $partNameRel = $partInfo['dirname'].'/_rels/'.$partInfo['basename'].'.rels';
+        $this->rels = new Rels($this->word, $this->word->getXmlDom($partNameRel));
+        $this->rels->partName = $partNameRel;
+        $this->rels->partInfo = $partInfo;
+        $this->word->parts[$xmlType][] = ['PartName'=>$this->rels->partName,'DOMElement'=>$this->rels->DOMDocument];
     }
 }

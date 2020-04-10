@@ -321,42 +321,34 @@ class Document extends PartBase
     }
     
     private function getExcelPath($rid='') {
-//         var_dump($rid);exit;
-        $partInfo = pathinfo($this->partName);
-        if(is_null($this->refDOMDocument)) {
-            $this->partNameRel = $partInfo['dirname'].'/_rels/'.$partInfo['basename'].'.rels';
-            $this->refDOMDocument = $this->word->getXmlDom($this->partNameRel);
-            $this->word->parts[19][] = ['PartName'=>$this->partNameRel,'DOMElement'=>$this->refDOMDocument];
+        if(is_null($this->rels)) {
+            $this->getRels();
         }
         
         
-        $Relationships = $this->refDOMDocument->getElementsByTagName('Relationship');
+        $Relationships = $this->rels->DOMDocument->getElementsByTagName('Relationship');
         $length = $Relationships->length;
         foreach ($Relationships as $Relationship) {
             if($Relationship->getAttribute('Id') === $rid) {
-                $Target = $partInfo['dirname'].'/'.$Relationship->getAttribute('Target');
+                $Target = $this->rels->partInfo['dirname'].'/'.$Relationship->getAttribute('Target');
                 var_dump($Target);exit;
             }
         }
     }
     
     private function updateRef($rid,$file) {
-        $partInfo = pathinfo($this->partName);
-        if(is_null($this->refDOMDocument)) {
-            $this->partNameRel = $partInfo['dirname'].'/_rels/'.$partInfo['basename'].'.rels';
-            $this->refDOMDocument = $this->word->getXmlDom($this->partNameRel);
-            $this->word->parts[19][] = ['PartName'=>$this->partNameRel,'DOMElement'=>$this->refDOMDocument];
+        if(is_null($this->rels)) {
+            $this->getRels();
         }
         
-        
-        $Relationships = $this->refDOMDocument->getElementsByTagName('Relationship');
+        $Relationships = $this->rels->DOMDocument->getElementsByTagName('Relationship');
         $length = $Relationships->length;
         foreach ($Relationships as $Relationship) {
             if($Relationship->getAttribute('Id') === $rid) {
-                $oldValue = $partInfo['dirname'].'/'.$Relationship->getAttribute('Target');
+                $oldValue = $this->rels->partInfo['dirname'].'/'.$Relationship->getAttribute('Target');
                 $target = 'media/image'.++$length.'.png';
                 $Relationship->setAttribute('Target',$target);
-                $target = $partInfo['dirname'].'/'.$target;
+                $target = $this->rels->partInfo['dirname'].'/'.$target;
                 $this->word->zip->addFromString($target, file_get_contents($file));
                 $this->word->zip->deleteName($oldValue);
             }
