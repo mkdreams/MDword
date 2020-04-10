@@ -68,7 +68,7 @@ class PartBase
         }
     }
     
-    protected function getRels($xmlType=19) {
+    protected function initRels($xmlType=19) {
         $partInfo = pathinfo($this->partName);
         $partNameRel = $partInfo['dirname'].'/_rels/'.$partInfo['basename'].'.rels';
         $this->rels = new Rels($this->word, $this->word->getXmlDom($partNameRel));

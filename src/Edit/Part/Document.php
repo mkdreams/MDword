@@ -322,7 +322,7 @@ class Document extends PartBase
     
     private function getExcelPath($rid='') {
         if(is_null($this->rels)) {
-            $this->getRels();
+            $this->initRels();
         }
         
         
@@ -338,7 +338,7 @@ class Document extends PartBase
     
     private function updateRef($rid,$file) {
         if(is_null($this->rels)) {
-            $this->getRels();
+            $this->initRels();
         }
         
         $Relationships = $this->rels->DOMDocument->getElementsByTagName('Relationship');
