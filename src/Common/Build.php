@@ -16,6 +16,10 @@ class Build
      * @throws \Exception
      */
     public function replace($name,$value,$file) {
+        if(!is_string($value)) {
+            $value = var_export($value,true);
+        }
+        
         if(!is_file($file)) {
             throw new \Exception('Not a valid file : '.$file);
         }

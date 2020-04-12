@@ -40,7 +40,11 @@ class PartBase
     }
     
     public function getAttr($item,$name,$ns='w') {
-        return $item->getAttributeNS($this->xmlns[$ns],$name);
+        if(isset($this->xmlns[$ns])) {
+            return $item->getAttributeNS($this->xmlns[$ns],$name);
+        }else{
+            return $item->getAttribute($name);
+        }
     }
     
     public function setAttr($item,$name,$value,$ns='w') {

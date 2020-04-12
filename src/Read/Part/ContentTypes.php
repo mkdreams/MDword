@@ -54,9 +54,8 @@ class ContentTypes extends PartBase
         }
         
         if(MDWORD_DEBUG) {
-            $contentTypesStr = var_export($this->contentTypes,true);
             $build = new Build();
-            $build->replace('CONTENTTYPES', $contentTypesStr, __FILE__);
+            $build->replace('CONTENTTYPES', $this->contentTypes, __FILE__);
         }
     }
     

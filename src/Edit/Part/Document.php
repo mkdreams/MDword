@@ -154,8 +154,8 @@ class Document extends PartBase
                 $targetNode = $this->getTarget($beginNode,$endNode,$parentNodeCount,'drawing');
                 if(!is_null($targetNode)) {
                     $rid = $this->getAttr($targetNode->getElementsByTagName('chart')->item(0), 'id', 'r');
-                    $this->getExcelPath($rid);
-                    var_dump($targetNode);exit;
+                    $excel = $this->getExcelPath($rid);
+                    var_dump($excel);exit;
                 }
                 break;
             case 'clone':
@@ -325,15 +325,7 @@ class Document extends PartBase
             $this->initRels();
         }
         
-        
-        $Relationships = $this->rels->DOMDocument->getElementsByTagName('Relationship');
-        $length = $Relationships->length;
-        foreach ($Relationships as $Relationship) {
-            if($Relationship->getAttribute('Id') === $rid) {
-                $Target = $this->rels->partInfo['dirname'].'/'.$Relationship->getAttribute('Target');
-                var_dump($Target);exit;
-            }
-        }
+        return $this->rels->getTarget($rid);
     }
     
     private function updateRef($rid,$file) {
@@ -341,18 +333,7 @@ class Document extends PartBase
             $this->initRels();
         }
         
-        $Relationships = $this->rels->DOMDocument->getElementsByTagName('Relationship');
-        $length = $Relationships->length;
-        foreach ($Relationships as $Relationship) {
-            if($Relationship->getAttribute('Id') === $rid) {
-                $oldValue = $this->rels->partInfo['dirname'].'/'.$Relationship->getAttribute('Target');
-                $target = 'media/image'.++$length.'.png';
-                $Relationship->setAttribute('Target',$target);
-                $target = $this->rels->partInfo['dirname'].'/'.$target;
-                $this->word->zip->addFromString($target, file_get_contents($file));
-                $this->word->zip->deleteName($oldValue);
-            }
-        }
+        $this->rels->replace($rid,$file);
     }
     
     private function deleteBlock($block) {
