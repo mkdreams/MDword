@@ -17,6 +17,22 @@ class Document extends PartBase
         $this->initNameSpaces();
     }
     
+    /**
+     * 
+     * @param string $name
+     * @param string|array $value 例如：
+     * [
+            [
+            'text'=>'value blue',
+            'style'=>'blue'
+            ],
+            [
+            'text'=>'value red',
+            'style'=>'red'
+            ],
+        ];
+     * @param string $type
+     */
     public function setValue($name,$value,$type='text') {
         $blocks = $this->getBlocks($name);
         foreach($blocks as $block) {
@@ -49,7 +65,12 @@ class Document extends PartBase
                 $index++;
                 $p = $hyperlinkArr[$anchorOrg]->parentNode;
                 $copy = clone $p;
-                $copy->getElementsByTagName('t')->item(0)->nodeValue= $title['text'];
+                $copy->getElementsByTagName('t')->item(0)->nodeValue = $title['text'];
+                
+                if($tItme = $copy->getElementsByTagName('t')->item(1)) {
+                    $tItme->nodeValue = '';
+                }
+//                 var_dump($copy->getElementsByTagName('t')->item(1));exit;
                 $hyperlink = $copy->getElementsByTagName('hyperlink')->item(0);
                 $this->setAttr($hyperlink, 'anchor', $anchor);
                 
@@ -123,9 +144,30 @@ class Document extends PartBase
         return $levels;
     }
     
+    private function getStyle($name='') {
+        $blocks = $this->getBlocks($name);
+        if(!isset($blocks[0])) {
+            return null;
+        }
+        
+        $block = $blocks[0];
+        $beginNode = $block[0];
+        $endNode = $block[1];
+        
+        $traces = $block[2];
+        $parentNodeCount = $traces['parentNodeCount'];
+        $nextNodeCount = $traces['nextNodeCount'];
+        
+        $targetNode = $this->getTarget($beginNode,$endNode,$parentNodeCount,'r');
+        if($rPrs = $targetNode->getElementsByTagName('rPr')) {
+            $rPr = $rPrs->item(0);
+        }
+        
+        return $rPr;
+    }
+    
     private function update($block,$value,$type) {
         $beginNode = $block[0];
-        
         $endNode = $block[1];
         
         $traces = $block[2];
@@ -133,12 +175,37 @@ class Document extends PartBase
         $nextNodeCount = $traces['nextNodeCount'];
         switch ($type) {
             case 'text':
-                $targetNode = $this->getTarget($beginNode,$endNode,$parentNodeCount);
+                $targetNode = $this->getTarget($beginNode,$endNode,$parentNodeCount,'r');
                 if(!is_null($targetNode)) {
-                    $copy = clone $targetNode;
-                    $copy->getElementsByTagName('t')->item(0)->nodeValue= $value;
-                    $parentNode = $targetNode->parentNode;
-                    $parentNode->insertBefore($copy,$targetNode); 
+                    if(is_array($value)) {
+                        foreach($value as $valueArr) {
+                            $copy = clone $targetNode;
+                            $rPr = $this->getStyle($valueArr['style']);
+                            if(!is_null($rPr)) {
+                                $rPrCopy = clone $rPr;
+                                $rPrOrg = $copy->getElementsByTagName('rPr')->item(0);
+                                
+//                                 $rPrOrgParentNode = $rPrOrg->parentNode;
+//                                 $rPrOrgParentNode->insertBefore($rPrCopy,$rPrOrg);
+                                $this->insertBefore($rPrCopy, $rPrOrg);
+                                
+                                $this->markDelete($rPrOrg);
+                            }
+                            
+                            $copy->getElementsByTagName('t')->item(0)->nodeValue= $valueArr['text'];
+                            $this->insertBefore($copy, $targetNode);
+//                             $parentNode = $targetNode->parentNode;
+//                             $parentNode->insertBefore($copy,$targetNode);
+                        }
+                        
+//                         var_dump($value);exit;
+                    }else{
+                        $copy = clone $targetNode;
+                        $copy->getElementsByTagName('t')->item(0)->nodeValue= $value;
+                        $this->insertBefore($copy, $targetNode);
+//                         $parentNode = $targetNode->parentNode;
+//                         $parentNode->insertBefore($copy,$targetNode); 
+                    }
                     
                     $this->markDelete($targetNode);
                 }
@@ -161,7 +228,6 @@ class Document extends PartBase
                     $this->charts[$rid]->excel->changeExcelValues($value);
                     $this->charts[$rid]->chartRelUpdateByType($value,'str');
                     $this->charts[$rid]->chartRelUpdateByType($value,'num');
-//                     echo $this->charts[$rid]->DOMDocument->saveXml();exit;
                 }
                 break;
             case 'clone':
@@ -321,6 +387,12 @@ class Document extends PartBase
             }
         }
         
+        if(is_null($targetNode)) {
+            $targetNodesTemp = $beginNode->parentNode->getElementsByTagName($type);
+            if($targetNodesTemp->length > 0) {
+                $targetNode = $targetNodesTemp->item(0);
+            }
+        }
 //         $targetNode
         $this->removeMarkDelete($targetNode);
         return $targetNode;
@@ -338,7 +410,6 @@ class Document extends PartBase
             foreach($this->word->parts[13] as $chart) {
                 if($chart['PartName'] === $target) {
                     $dom = $chart['DOMElement'];
-//                     var_dump($chart,$target);exit;
                 }
                 
             }
@@ -444,4 +515,6 @@ class Document extends PartBase
         
         return null;
     }
+    
+    
 }

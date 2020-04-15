@@ -61,7 +61,9 @@ class PartBase
     }
     
     protected function removeMarkDelete($item) {
-        $item->removeAttribute('md');
+        if(!is_null($item)) {
+            $item->removeAttribute('md');
+        }
     }
     
     public function deleteMarked() {
@@ -70,6 +72,11 @@ class PartBase
         foreach( $xpath->query('//*[@md]', $context) as $node ) {
             $node->parentNode->removeChild($node);
         }
+    }
+    
+    public function insertBefore($copy,$targetNode) {
+        $parentNode = $targetNode->parentNode;
+        $parentNode->insertBefore($copy,$targetNode);
     }
     
     function pathRelToAbs($RelUrl, $PrefixUrl = '', $SuffixUrl = '')
