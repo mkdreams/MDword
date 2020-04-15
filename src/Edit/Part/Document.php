@@ -6,6 +6,8 @@ use MDword\Common\PartBase;
 class Document extends PartBase
 {
     public $commentsblocks;
+    public $charts = [];
+    
     public function __construct($word,\DOMDocument $DOMDocument,$blocks = []) {
         parent::__construct($word);
         
@@ -154,8 +156,12 @@ class Document extends PartBase
                 $targetNode = $this->getTarget($beginNode,$endNode,$parentNodeCount,'drawing');
                 if(!is_null($targetNode)) {
                     $rid = $this->getAttr($targetNode->getElementsByTagName('chart')->item(0), 'id', 'r');
-                    $excel = $this->getExcelPath($rid);
-                    var_dump($excel);exit;
+                    $this->initChart($rid);
+                    $value = $this->charts[$rid]->excel->preDealDatas($value);
+                    $this->charts[$rid]->excel->changeExcelValues($value);
+                    $this->charts[$rid]->chartRelUpdateByType($value,'str');
+                    $this->charts[$rid]->chartRelUpdateByType($value,'num');
+//                     echo $this->charts[$rid]->DOMDocument->saveXml();exit;
                 }
                 break;
             case 'clone':
@@ -320,12 +326,33 @@ class Document extends PartBase
         return $targetNode;
     }
     
-    private function getExcelPath($rid='') {
+    private function initChart($rid='') {
         if(is_null($this->rels)) {
             $this->initRels();
         }
         
-        return $this->rels->getTarget($rid);
+        if(!isset($this->charts[$rid])) {
+            $target = $this->rels->getTarget($rid);
+            
+            $dom = null;
+            foreach($this->word->parts[13] as $chart) {
+                if($chart['PartName'] === $target) {
+                    $dom = $chart['DOMElement'];
+//                     var_dump($chart,$target);exit;
+                }
+                
+            }
+            
+            if(is_null($dom)) {
+                $this->charts[$rid] = new Charts($this->word, $this->word->getXmlDom($target));
+            }else{
+                $this->charts[$rid] = new Charts($this->word, $dom);
+            }
+            $this->charts[$rid]->partName = $target;
+            $this->charts[$rid]->initRels(13);
+            
+            $this->charts[$rid]->excel = new Excel($this->word,$this->charts[$rid]->rels->getTarget());
+        }
     }
     
     private function updateRef($rid,$file) {

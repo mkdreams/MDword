@@ -23,6 +23,8 @@ class Word
     
     public $parts = [];
     
+    public $files = [];
+    
     private function read() {
         $this->Content_Types = new ContentTypes($this->getXmlDom('[Content_Types].xml'));
         foreach ($this->Content_Types->overrides as $part) {
@@ -79,6 +81,15 @@ class Word
                 }
             }
         }
+        
+        foreach($this->files as $part) {
+            if(isset($part['this'])) {
+                $this->zip->addFromString($part['PartName'], $part['this']->getContent());
+            }else{
+                $this->zip->deleteName($part['PartName']);
+            }
+        }
+        
         
         if (false === $this->zip->close()) {
             throw new \Exception('Could not close zip file.');

@@ -72,6 +72,72 @@ class PartBase
         }
     }
     
+    function pathRelToAbs($RelUrl, $PrefixUrl = '', $SuffixUrl = '')
+    {
+        $RelUrlRep = str_replace('\\', '/', $RelUrl);
+        
+        $UrlArr = explode('/', $RelUrlRep);
+        
+        $NewUrlArr = array();
+        
+        foreach ($UrlArr as $value) {
+            
+            if ($value == '..' && ! empty($NewUrlArr)) {
+                
+                array_pop($NewUrlArr);
+            } else if ($value != '..' && $value != '.' && $value != '') {
+                
+                $NewUrlArr[] = $value;
+            }
+        }
+        
+        $UrlStr = ! empty($NewUrlArr) ? implode('/', $NewUrlArr) : '/';
+        
+        return $PrefixUrl . $UrlStr . $SuffixUrl;
+    }
+    
+    public static function getTempDir()
+    {
+        $tempDir = sys_get_temp_dir();
+        
+        if (!empty(self::$tempDir)) {
+            $tempDir = self::$tempDir;
+        }
+        
+        return $tempDir;
+    }
+    
+    protected function parserRange($range) {
+        $rangeArr = preg_split('/\!|\:/', $range);
+        $count = count($rangeArr);
+        $rangInfo = [];
+        $match = [];
+        if($count == 2) {
+            $rangInfo[0] = $rangeArr[0];
+            preg_match('/([a-z]+?)[\$]*?([0-9]+?)/i', $rangeArr[1],$match);
+            $rangInfo[1] = [];
+            $rangInfo[2] = [];
+            $rangInfo[1][0] = $match[1];
+            $rangInfo[2][0] = $match[2];
+        }elseif($count == 3) {
+            $rangInfo[0] = $rangeArr[0];
+            preg_match('/([a-z]+?)[\$]*?([0-9]+?)/i', $rangeArr[1],$match);
+            $rangInfo[1] = [];
+            $rangInfo[2] = [];
+            $rangInfo[1][0] = $match[1];
+            $rangInfo[2][0] = $match[2];
+            
+            preg_match('/([a-z]+?)[\$]*?([0-9]+?)/i', $rangeArr[2],$match);
+            $rangInfo[1][1] = $match[1];
+            $rangInfo[2][1] = $match[2];
+        }else{
+            var_dump('parserRange 数量不对！');
+        }
+        
+        $rangInfo[3] = $range;
+        return $rangInfo;
+    }
+    
     protected function initRels($xmlType=19) {
         $partInfo = pathinfo($this->partName);
         $partNameRel = $partInfo['dirname'].'/_rels/'.$partInfo['basename'].'.rels';

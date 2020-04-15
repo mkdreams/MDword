@@ -21,6 +21,11 @@ class Rels extends PartBase
   8 => 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/comments',
   9 => 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/fontTable',
   10 => 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/webSettings',
+  11 => 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/endnotes',
+  12 => 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/customXml',
+  13 => 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/footnotes',
+  14 => 'http://schemas.microsoft.com/office/2016/09/relationships/commentsIds',
+  15 => 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/package',
 )//--RELATIONSHIPTYPES--
     ;
     
@@ -64,9 +69,13 @@ class Rels extends PartBase
         }
     }
     
-    public function getTarget($rid) {
+    public function getTarget($rid=null) {
         $Relationships = $this->DOMDocument->getElementsByTagName('Relationship');
         foreach ($Relationships as $Relationship) {
+            if(is_null($rid)) {
+                return $this->partInfo['dirname'].'/'.$Relationship->getAttribute('Target');
+            }
+            
             if($Relationship->getAttribute('Id') === $rid) {
                 return $this->partInfo['dirname'].'/'.$Relationship->getAttribute('Target');
             }

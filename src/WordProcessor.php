@@ -43,7 +43,7 @@ class WordProcessor
      * change value ['A1',9,'set']
      * extention range ['$A$1:$A$5','$A$1:$A$10','ext']
      */
-    public function setExcelValue($name='',$datas=[]) {
+    public function setExcelValues($name='',$datas=[]) {
         $documentEdit = $this->getDocumentEdit();
         $documentEdit->setValue($name, $datas, 'excel');
     }
