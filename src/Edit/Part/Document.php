@@ -238,7 +238,6 @@ class Document extends PartBase
                     $parentNode = $parentNode->parentNode;
                 }
                 
-                $targetNode = $this->getTarget($beginNode,$endNode,$parentNodeCount,'r');
                 
                 if($this->isTc($parentNode)) {
                     $parentNode = $parentNode->parentNode;
