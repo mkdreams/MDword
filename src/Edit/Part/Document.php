@@ -238,6 +238,7 @@ class Document extends PartBase
                     $parentNode = $parentNode->parentNode;
                 }
                 
+                $targetNode = $this->getTarget($beginNode,$endNode,$parentNodeCount,'r');
                 
                 if($this->isTc($parentNode)) {
                     $parentNode = $parentNode->parentNode;
@@ -270,6 +271,14 @@ class Document extends PartBase
                 foreach($needCloneNodes as $targetNode) {
                     $this->updateCommentsId($targetNode, 0);
                 }
+                break;
+            case 'delete':
+                if($value == 'p') {
+                    $p = $this->getParentToNode($beginNode,'p');
+                }else{
+                    
+                }
+                $this->markDelete($p);
                 break;
             default:
                 break;
@@ -396,6 +405,15 @@ class Document extends PartBase
 //         $targetNode
         $this->removeMarkDelete($targetNode);
         return $targetNode;
+    }
+    
+    private function getParentToNode($beginNode,$type='p') {
+        $parentNode = $beginNode;
+        while($parentNode->localName != $type && !is_null($parentNode)) {
+            $parentNode = $parentNode->parentNode;
+        }
+        
+        return $parentNode;
     }
     
     private function initChart($rid='') {

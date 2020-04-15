@@ -32,6 +32,24 @@ class WordProcessor
         $documentEdit->setValue($name, $value);
     }
     
+    /**
+     * delete p at block 
+     * @param string $name
+     */
+    public function deleteP(string $name) {
+        $documentEdit = $this->getDocumentEdit();
+        $documentEdit->setValue($name, 'p','delete');
+    }
+    
+    /**
+     * delete block
+     * @param string $name
+     */
+    public function delete(string $name) {
+        $documentEdit = $this->getDocumentEdit();
+        $documentEdit->setValue($name, '','text');
+    }
+    
     public function setImageValue($name, $value) {
         $documentEdit = $this->getDocumentEdit();
         $documentEdit->setValue($name, $value,'image');
