@@ -27,4 +27,5 @@ require_once('Autoloader.php');
 - [ ] 支持XML赋值
 - [x] 删除区块  （2020/04/16 完成）
 - [ ] 复制支持换行符&分页符
+- [ ] 克隆支持段落（cloneP） 
 
