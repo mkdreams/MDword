@@ -153,4 +153,28 @@ class PartBase
         $this->rels->partInfo = $partInfo;
         $this->word->parts[$xmlType][] = ['PartName'=>$this->rels->partName,'DOMElement'=>$this->rels->DOMDocument];
     }
+    
+    protected function creatNodeByXml($xml) {
+        //$xml = '<w:r><w:br w:type="page"/></w:r>';
+        $r = $this->DOMDocument->createElementNS($this->xmlns['w'],'r');
+        $br = $this->DOMDocument->createElementNS($this->xmlns['w'],'br');
+        $br->setAttributeNS($this->xmlns['w'], 'type', 'page');
+        $r->appendChild($br);
+        
+        return $r;
+        
+        $domDocument = clone $this->DOMDocument;
+        $domDocument->formatOutput = false;
+        $topParent = $domDocument->childNodes->item(0);
+        while ($child = $topParent->childNodes->item(0)) {
+            $topParent->removeChild($child);
+        }
+        
+        $topParent->appendChild($domDocument->createElement('placeholder'));
+        
+        $xml = str_replace('<placeholder/>', $xml, $domDocument->saveXML());
+        $domDocument->loadXML($xml);
+        
+        return $domDocument->childNodes->item(0)->childNodes->item(0);
+    }
 }

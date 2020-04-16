@@ -185,8 +185,6 @@ class Document extends PartBase
                                 $rPrCopy = clone $rPr;
                                 $rPrOrg = $copy->getElementsByTagName('rPr')->item(0);
                                 
-//                                 $rPrOrgParentNode = $rPrOrg->parentNode;
-//                                 $rPrOrgParentNode->insertBefore($rPrCopy,$rPrOrg);
                                 $this->insertBefore($rPrCopy, $rPrOrg);
                                 
                                 $this->markDelete($rPrOrg);
@@ -194,23 +192,16 @@ class Document extends PartBase
                             
                             $copy->getElementsByTagName('t')->item(0)->nodeValue= $valueArr['text'];
                             $this->insertBefore($copy, $targetNode);
-//                             $parentNode = $targetNode->parentNode;
-//                             $parentNode->insertBefore($copy,$targetNode);
                         }
                         
-//                         var_dump($value);exit;
                     }else{
                         $copy = clone $targetNode;
                         $copy->getElementsByTagName('t')->item(0)->nodeValue= $value;
                         $this->insertBefore($copy, $targetNode);
-//                         $parentNode = $targetNode->parentNode;
-//                         $parentNode->insertBefore($copy,$targetNode); 
                     }
                     
                     $this->markDelete($targetNode);
                 }
-//                 $this->deleteMarked();
-//                 echo $this->DOMDocument->saveXML();exit;
                 break;
             case 'image':
                 $targetNode = $this->getTarget($beginNode,$endNode,$parentNodeCount,'pict');
@@ -228,6 +219,28 @@ class Document extends PartBase
                     $this->charts[$rid]->excel->changeExcelValues($value);
                     $this->charts[$rid]->chartRelUpdateByType($value,'str');
                     $this->charts[$rid]->chartRelUpdateByType($value,'num');
+                }
+                break;
+            case 'cloneP':
+                $p = $lastNode = $this->getParentToNode($beginNode,'p');
+                $needCloneNodes = [$p];
+                for($i=1;$i<=$value;$i++) {
+                    foreach($needCloneNodes as $targetNode) {
+                        $copy = clone $targetNode;
+                        $this->updateCommentsId($copy, $i, $value);
+                        if($nextSibling = $lastNode->nextSibling) {
+                            $this->insertBefore($copy, $nextSibling);
+                        }else{
+                            $parentNode = $lastNode->parentNode;
+                            $parentNode->appendChild($copy);
+                        }
+                        
+                        $lastNode = $copy;
+                    }
+                }
+                
+                foreach($needCloneNodes as $targetNode) {
+                    $this->updateCommentsId($targetNode, 0);
                 }
                 break;
             case 'clone':
@@ -274,10 +287,70 @@ class Document extends PartBase
             case 'delete':
                 if($value == 'p') {
                     $p = $this->getParentToNode($beginNode,'p');
-                }else{
+                    $this->markDelete($p);
+                }else{//to-do
                     
                 }
-                $this->markDelete($p);
+                break;
+            case 'break':
+                $p = $lastNode = $this->getParentToNode($beginNode,'p');
+                $childNodes = $p->childNodes;
+                foreach($childNodes as $childNode) {
+                    if($childNode->localName != 'pPr') {
+                        $this->markDelete($childNode);
+                    }
+                }
+                
+                $needCloneNodes = [$p];
+                
+                for($i=1;$i<=$value;$i++) {
+                    foreach($needCloneNodes as $targetNode) {
+                        $copy = clone $targetNode;
+                        $this->updateCommentsId($copy, $i,$value);
+                        if($nextSibling = $lastNode->nextSibling) {
+                            $this->insertBefore($copy,$nextSibling);
+                        }else{
+                            $parentNode = $lastNode->parentNode;
+                            $parentNode->appendChild($copy);
+                        }
+                        
+                        $lastNode = $copy;
+                    }
+                }
+                
+                foreach($needCloneNodes as $targetNode) {
+                    $this->updateCommentsId($targetNode, 0);
+                }
+                break;
+            case 'breakpage':
+                $p = $lastNode = $this->getParentToNode($beginNode,'p');
+                $childNodes = $p->childNodes;
+                foreach($childNodes as $childNode) {
+                    $this->markDelete($childNode);
+                }
+                
+                $needCloneNodes = [$p];
+                
+                $xml = '<w:r><w:br w:type="page"/></w:r>';
+                $breakpage = $this->creatNodeByXml($xml);
+                
+                for($i=1;$i<=$value;$i++) {
+                    foreach($needCloneNodes as $targetNode) {
+                        $copy = clone $targetNode;
+//                         var_dump($copy,$breakpage);exit;
+                        $copy->appendChild($breakpage);
+                        $this->updateCommentsId($copy, $i, $value);
+                        if($nextSibling = $lastNode->nextSibling) {
+                            $this->insertBefore($copy,$nextSibling);
+                        }else{
+                            $parentNode = $lastNode->parentNode;
+                            $parentNode->appendChild($copy);
+                        }
+                        
+                        $lastNode = $copy;
+                    }
+                }
+                
                 break;
             default:
                 break;

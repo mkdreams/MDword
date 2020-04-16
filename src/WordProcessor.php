@@ -33,7 +33,7 @@ class WordProcessor
     }
     
     /**
-     * delete p at block 
+     * delete p include the block 
      * @param string $name
      */
     public function deleteP(string $name) {
@@ -66,9 +66,34 @@ class WordProcessor
         $documentEdit->setValue($name, $datas, 'excel');
     }
     
+    /**
+     * clone p
+     * @param string $name
+     * @param int $count
+     */
+    public function cloneP($name,$count=1) {
+        $documentEdit = $this->getDocumentEdit();
+        $documentEdit->setValue($name, $count, 'cloneP');
+    }
+    /**
+     * clone
+     * @param string $name
+     * @param int $count
+     */
     public function clone($name,$count=1) {
         $documentEdit = $this->getDocumentEdit();
         $documentEdit->setValue($name, $count, 'clone');
+    }
+    
+    public function setBreakValue($name, $value) {
+        $documentEdit = $this->getDocumentEdit();
+        $documentEdit->setValue($name, $value,'break');
+    }
+    
+    
+    public function setBreakPageValue($name, $value=1) {
+        $documentEdit = $this->getDocumentEdit();
+        $documentEdit->setValue($name, $value,'breakpage');
     }
     
     /**
