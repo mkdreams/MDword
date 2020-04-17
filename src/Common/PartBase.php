@@ -154,27 +154,32 @@ class PartBase
         $this->word->parts[$xmlType][] = ['PartName'=>$this->rels->partName,'DOMElement'=>$this->rels->DOMDocument];
     }
     
-    protected function creatNodeByXml($xml) {
-        //$xml = '<w:r><w:br w:type="page"/></w:r>';
-        $r = $this->DOMDocument->createElementNS($this->xmlns['w'],'r');
-        $br = $this->DOMDocument->createElementNS($this->xmlns['w'],'br');
-        $br->setAttributeNS($this->xmlns['w'], 'type', 'page');
-        $r->appendChild($br);
-        
-        return $r;
-        
-        $domDocument = clone $this->DOMDocument;
-        $domDocument->formatOutput = false;
-        $topParent = $domDocument->childNodes->item(0);
-        while ($child = $topParent->childNodes->item(0)) {
-            $topParent->removeChild($child);
+    public function creatNode($mixed=[], \DOMElement $domElement = null)
+    {
+        foreach ($mixed as $tagName => $nodeInfo) {
+            $node = $this->DOMDocument->createElementNS($this->xmlns['w'],$tagName);
+            foreach($nodeInfo as $attrName => $attr) {
+                if($attrName === 'childs') {
+                    $this->creatNode($attr,$node);
+                }elseif($attrName === 'text'){
+                    $node->nodeValue = $attr;
+                }else{
+                    if(strpos($attrName, ':') > 0) {
+                        $attrNameArr = explode(':', $attrName,2);
+                        $node->setAttributeNS($this->xmlns[$attrNameArr[0]], $attrNameArr[1], $attr);
+                    }else{
+                        $node->setAttributeNS($this->xmlns['w'], $attrName, $attr);
+                    }
+                }
+            }
+            
+            if(!is_null($domElement)) {
+                $domElement->appendChild($node);
+            }
         }
         
-        $topParent->appendChild($domDocument->createElement('placeholder'));
-        
-        $xml = str_replace('<placeholder/>', $xml, $domDocument->saveXML());
-        $domDocument->loadXML($xml);
-        
-        return $domDocument->childNodes->item(0)->childNodes->item(0);
+        return $node;
     }
+    
+    
 }

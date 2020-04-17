@@ -331,9 +331,17 @@ class Document extends PartBase
                 
                 $needCloneNodes = [$p];
                 
-                $xml = '<w:r><w:br w:type="page"/></w:r>';
-                $breakpage = $this->creatNodeByXml($xml);
-                
+                $mixed = [
+                    'r'=>[
+                        'childs'=>[
+                            'br'=>[
+                                'type'=>'page',
+//                                 'xmlns:default'=>null,
+                            ]
+                        ],
+                    ]
+                ];
+                $breakpage = $this->creatNode($mixed);
                 for($i=1;$i<=$value;$i++) {
                     foreach($needCloneNodes as $targetNode) {
                         $copy = clone $targetNode;
@@ -350,7 +358,58 @@ class Document extends PartBase
                         $lastNode = $copy;
                     }
                 }
+                break;
+            case 'link':
+                $mixed = [
+                    'r'=>[
+                        'childs'=>[
+                            'fldChar'=>[
+                                'fldCharType'=>'begin',
+//                                 'text'=>'12',
+                            ]
+                        ],
+                    ],
+                ];
+                $hyperlinkNodeBegin = $this->creatNode($mixed);
                 
+                $mixed = [
+                    'r'=>[
+                        'childs'=>[
+                            'instrText'=>[
+                                'xml:space'=>'preserve',
+                                'text'=>' HYPERLINK "https://www.baidu.com" '
+                            ]
+                        ],
+                    ],
+                ];
+                $hyperlinkNodePreserve = $this->creatNode($mixed);
+                
+                $mixed = [
+                    'r'=>[
+                        'childs'=>[
+                            'fldChar'=>[
+                                'fldCharType'=>'separate',
+                            ]
+                        ],
+                    ],
+                ];
+                $hyperlinkNodeSeparate = $this->creatNode($mixed);
+                
+                $mixed = [
+                    'r'=>[
+                        'childs'=>[
+                            'fldChar'=>[
+                                'fldCharType'=>'end'
+                            ]
+                        ],
+                    ],
+                ];
+                $hyperlinkNodeEnd = $this->creatNode($mixed);
+                
+                $this->insertBefore($hyperlinkNodeBegin, $beginNode);
+                $this->insertBefore($hyperlinkNodePreserve, $beginNode);
+                $this->insertBefore($hyperlinkNodeSeparate, $beginNode);
+                $this->insertBefore($hyperlinkNodeEnd, $endNode);
                 break;
             default:
                 break;
