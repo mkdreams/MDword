@@ -123,28 +123,16 @@ class Word
         foreach($parts as $part) {
             $this->zip->deleteName($part['PartName']);
         }
+
         
         //remove marked
-        $this->documentEdit->deleteMarked();
+//         $this->documentEdit->deleteMarked();
         
         //test
 //         echo $this->documentEdit->DOMDocument->saveXML();exit;
         
         //remove comments tag
-        $DOMDocument = $this->documentEdit->DOMDocument;
-        $commentRangeStarts = $DOMDocument->getElementsByTagName('commentRangeStart');
-        $commentRangeEnds = $DOMDocument->getElementsByTagName('commentRangeEnd');
-        $commentReferences = $DOMDocument->getElementsByTagName('commentReference');
-        
-        while ($commentRangeStart = $commentRangeStarts->item(0)) {
-            $commentRangeStart->parentNode->removeChild($commentRangeStart);
-        }
-        while ($commentRangeEnd = $commentRangeEnds->item(0)) {
-            $commentRangeEnd->parentNode->removeChild($commentRangeEnd);
-        }
-        while ($commentReference = $commentReferences->item(0)) {
-            $commentReference->parentNode->parentNode->removeChild($commentReference->parentNode);
-        }
+        $this->documentEdit->deleteByXpath('//w:commentRangeStart|//w:commentRangeEnd|//w:commentReference/..');
     }
     
     /**

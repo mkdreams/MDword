@@ -67,12 +67,21 @@ class PartBase
     }
     
     public function deleteMarked() {
-        $xpath = new \DOMXPath($this->DOMDocument);
+        $this->deleteByXpath('//*[@md]');
+    }
+    
+    
+    public function deleteByXpath($xpath) {
+        $DOMXPath = new \DOMXPath($this->DOMDocument);
         $context = $this->DOMDocument->documentElement;
-        foreach( $xpath->query('//*[@md]', $context) as $node ) {
+        $DOMXPath->registerNamespace('w', $this->xmlns['w']);
+        $nodes = $DOMXPath->query($xpath, $context);
+        foreach( $nodes as $node ) {
             $node->parentNode->removeChild($node);
         }
     }
+    
+    
     
     public function insertBefore($copy,$targetNode) {
         $parentNode = $targetNode->parentNode;

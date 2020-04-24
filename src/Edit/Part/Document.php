@@ -7,6 +7,7 @@ class Document extends PartBase
 {
     public $commentsblocks;
     public $charts = [];
+    public $blocks = [];
     
     public function __construct($word,\DOMDocument $DOMDocument,$blocks = []) {
         parent::__construct($word);
@@ -52,18 +53,19 @@ class Document extends PartBase
         $sdtContent = $this->DOMDocument->getElementsByTagName('sdtContent')->item(0);
         $hyperlinks = $sdtContent->getElementsByTagName('hyperlink');
         
-        $hyperlinkArr = [];
-        foreach($hyperlinks as $hyperlink) {
-            $hyperlinkArr[$this->getAttr($hyperlink, 'anchor')] = $hyperlink;
+        $hyperlinkParentNodeArr = [];
+        foreach($hyperlinks as $key => $hyperlink) {
+            $parentNode = $hyperlink->parentNode;
+            $hyperlinkParentNodeArr[$this->getAttr($hyperlink, 'anchor')] = $parentNode;
         }
         
         $index = 0;
         foreach($titles as $anchor => $title) {
             $anchorOrg = $title['orgname'];
             
-            if(isset($hyperlinkArr[$anchorOrg])) {
+            if(isset($hyperlinkParentNodeArr[$anchorOrg])) {
                 $index++;
-                $p = $hyperlinkArr[$anchorOrg]->parentNode;
+                $p = $hyperlinkParentNodeArr[$anchorOrg];
                 $copy = clone $p;
                 $copy->getElementsByTagName('t')->item(0)->nodeValue = $title['text'];
                 
@@ -88,9 +90,23 @@ class Document extends PartBase
             }
         }
         
+        if(!empty($copy)) {
+            $mixed = [
+                'r'=>[
+                    'childs'=>[
+                        'fldChar'=>[
+                            'fldCharType'=>'end',
+                        ]
+                    ],
+                ]
+            ];
+            $fldCharEnd = $this->creatNode($mixed);
+            $copy->appendChild($fldCharEnd);
+        }
         
-        foreach($hyperlinkArr as $hyperlink) {
-            $this->markDelete($hyperlink->parentNode);
+        
+        foreach($hyperlinkParentNodeArr as $hyperlinkParentNode) {
+            $this->markDelete($hyperlinkParentNode);
         }
     }
     
@@ -175,6 +191,7 @@ class Document extends PartBase
         $nextNodeCount = $traces['nextNodeCount'];
         switch ($type) {
             case 'text':
+//                 return ;
                 $targetNode = $this->getTarget($beginNode,$endNode,$parentNodeCount,'r');
                 if(!is_null($targetNode)) {
                     if(is_array($value)) {
@@ -283,6 +300,8 @@ class Document extends PartBase
                 foreach($needCloneNodes as $targetNode) {
                     $this->updateCommentsId($targetNode, 0);
                 }
+                
+//                 var_dump($this->blocks);exit;
                 break;
             case 'delete':
                 if($value == 'p') {
@@ -475,6 +494,8 @@ class Document extends PartBase
                 $name = 'TEMP#'.$id;
             }
             $this->commentsblocks[$name] = $name;
+            $this->blocks[$name] = $this->blocks[$this->commentsblocks[$oldId]];
+            $this->blocks[$name][0][0] = $commentRangeStart;
             $this->setAttr($commentRangeStart, 'id', $name);
         }
         
@@ -491,6 +512,7 @@ class Document extends PartBase
             }else{
                 $name = 'TEMP#'.$id;
             }
+            $this->blocks[$name][0][1] = $commentRangeEnd;
             $this->setAttr($commentRangeEnd, 'id', $name);
         }
     }
@@ -598,21 +620,21 @@ class Document extends PartBase
     }
     
     private function getBlocks($name) {
-        $commentRangeStartItems = $this->DOMDocument->getElementsByTagName('commentRangeStart');
-        
-        $blocks = [];
-        foreach($commentRangeStartItems as $commentRangeStartItem) {
-            $id = $this->getAttr($commentRangeStartItem, 'id');
-            if($this->commentsblocks[$id] !== $name) {
-                continue;
-            }
-            $commentRangeEndItem = $this->getCommentRangeEnd($this->DOMDocument,$id);
-            
-            $trace = $this->getRangeTrace($id,$commentRangeStartItem, $commentRangeEndItem);
-            $blocks[] = [$commentRangeStartItem,$commentRangeEndItem,$trace];
+        if(isset($this->blocks[$name])) {
+            return $this->blocks[$name];
         }
         
-        return $blocks;
+        $this->blocks[$name] = [];
+        $commentRangeStartItems = $this->DOMDocument->getElementsByTagName('commentRangeStart');
+        foreach($commentRangeStartItems as $commentRangeStartItem) {
+            $id = $this->getAttr($commentRangeStartItem, 'id');
+            $nameTemp = $this->commentsblocks[$id];
+            $commentRangeEndItem = $this->getCommentRangeEnd($this->DOMDocument,$id);
+            $trace = $this->getRangeTrace($id,$commentRangeStartItem, $commentRangeEndItem);
+            $this->blocks[$nameTemp][] = [$commentRangeStartItem,$commentRangeEndItem,$trace];
+        }
+        
+        return $this->blocks[$name];
     }
     
     private function getRangeTrace($id,$commentRangeStartItem,$commentRangeEndItem) {
@@ -636,8 +658,6 @@ class Document extends PartBase
                 $nextSibling = $nextSibling->nextSibling;
                 $nextNodeCount++;
             }
-            
-            $endParentNode = $commentRangeEndItem;
         }else{
             $nextSibling = $startParentNode->nextSibling;
             $nextNodeCount++;
@@ -645,7 +665,6 @@ class Document extends PartBase
                 $nextSibling = $nextSibling->nextSibling;
                 $nextNodeCount++;
             }
-            $endParentNode = $nextSibling;
         }
         
         return ['parentNodeCount'=>$parentNodeCount,'nextNodeCount'=>$nextNodeCount];
