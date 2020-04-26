@@ -31,6 +31,7 @@ class Document extends PartBase
             'text'=>'value red',
             'style'=>'red'
             ],
+            'value plain'
         ];
      * @param string $type
      */
@@ -174,7 +175,7 @@ class Document extends PartBase
         $parentNodeCount = $traces['parentNodeCount'];
         $nextNodeCount = $traces['nextNodeCount'];
         
-        $targetNode = $this->getTarget($beginNode,$endNode,$parentNodeCount,'r');
+        $targetNode = $this->getTarget($beginNode,$endNode,$parentNodeCount,$nextNodeCount,'r');
         if($rPrs = $targetNode->getElementsByTagName('rPr')) {
             $rPr = $rPrs->item(0);
         }
@@ -191,22 +192,34 @@ class Document extends PartBase
         $nextNodeCount = $traces['nextNodeCount'];
         switch ($type) {
             case 'text':
-                $targetNode = $this->getTarget($beginNode,$endNode,$parentNodeCount,'r');
+                $targetNode = $this->getTarget($beginNode,$endNode,$parentNodeCount,$nextNodeCount,'r');
+//                 if($value === 123456) {
+//                     var_dump(111);exit;
+//                 }
                 if(!is_null($targetNode)) {
                     if(is_array($value)) {
                         foreach($value as $valueArr) {
                             $copy = clone $targetNode;
-                            $rPr = $this->getStyle($valueArr['style']);
-                            if(!is_null($rPr)) {
-                                $rPrCopy = clone $rPr;
-                                $rPrOrg = $copy->getElementsByTagName('rPr')->item(0);
+                            if(is_array($valueArr)) {
+                                $rPr = $this->getStyle($valueArr['style']);
+                                if(!is_null($rPr)) {
+                                    $rPrCopy = clone $rPr;
+                                    $rPrOrg = $copy->getElementsByTagName('rPr')->item(0);
+                                    if(is_null($rPrOrg)) {// rPr insert before t
+                                        $rPrOrg = $copy->getElementsByTagName('t')->item(0);
+                                        $this->insertBefore($rPrCopy, $rPrOrg);
+                                    }else{
+                                        $this->insertBefore($rPrCopy, $rPrOrg);
+                                        $this->markDelete($rPrOrg);
+                                    }
+                                }
                                 
-                                $this->insertBefore($rPrCopy, $rPrOrg);
-                                
-                                $this->markDelete($rPrOrg);
+                                $text = $valueArr['text'];
+                            }else{
+                                $text = $valueArr;
                             }
                             
-                            $copy->getElementsByTagName('t')->item(0)->nodeValue= $valueArr['text'];
+                            $copy->getElementsByTagName('t')->item(0)->nodeValue= $text;
                             $this->insertBefore($copy, $targetNode);
                         }
                         
@@ -220,14 +233,14 @@ class Document extends PartBase
                 }
                 break;
             case 'image':
-                $targetNode = $this->getTarget($beginNode,$endNode,$parentNodeCount,'pict');
+                $targetNode = $this->getTarget($beginNode,$endNode,$parentNodeCount,$nextNodeCount,'pict');
                 if(!is_null($targetNode)) {
                     $rid = $this->getAttr($targetNode->getElementsByTagName('imagedata')->item(0), 'id', 'r');
                     $this->updateRef($rid,$value);
                 }
                 break;
             case 'excel':
-                $targetNode = $this->getTarget($beginNode,$endNode,$parentNodeCount,'drawing');
+                $targetNode = $this->getTarget($beginNode,$endNode,$parentNodeCount,$nextNodeCount,'drawing');
                 if(!is_null($targetNode)) {
                     $rid = $this->getAttr($targetNode->getElementsByTagName('chart')->item(0), 'id', 'r');
                     $this->initChart($rid);
@@ -518,15 +531,28 @@ class Document extends PartBase
         }
     }
     
-    private function getTarget($beginNode,$endNode,$parentNodeCount,$type='r') {
+    private function getTarget($beginNode,$endNode,$parentNodeCount,$nextNodeCount,$type='r') {
         $parentNode = $beginNode;
         $targetNode = null;
         for($i=0;$i<=$parentNodeCount;$i++) {
             $nextSibling = $parentNode;
+            
+            if($i === $parentNodeCount) {//top parent
+                $maxNext = $nextNodeCount;
+            }else{
+                $parentNode = $parentNode->parentNode;
+                $maxNext = 0;
+            }
+            
+            $j = 0;
             while($nextSibling = $nextSibling->nextSibling) {
-                if($nextSibling === $endNode) {
+//                 $this->markDelete($nextSibling);
+                if($maxNext > 0 && ++$j > $maxNext) {
                     break 2;
                 }
+//                 if($nextSibling === $endNode) {
+//                     break 2;
+//                 }
                 if(is_null($targetNode)) {
                     if($nextSibling->localName == $type) {//is target
                         $targetNode = $nextSibling;
@@ -534,20 +560,17 @@ class Document extends PartBase
                         $rs = $nextSibling->getElementsByTagName($type);
                         if($rs->length > 0) {
                             $targetNode = $rs->item(0);
-                        }else{
+                        }
+                        else{
                             $this->markDelete($nextSibling);
                         }
                     }
-                }else{
+                }
+                else{
                     $this->markDelete($nextSibling);
                 }
             }
             
-            if($i === $parentNodeCount) {//top parent
-                
-            }else{
-                $parentNode = $parentNode->parentNode;
-            }
         }
         
         if(is_null($targetNode)) {

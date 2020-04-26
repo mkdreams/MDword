@@ -50,7 +50,7 @@ class Bind
             }
         }else{
             if(!is_null($callback)) {
-                $data = $callback($data);
+                $data = $callback($data,$this->data);
             }
             $this->wordProcessor->setValue($name.$this->pre,$data);
         }
