@@ -191,7 +191,6 @@ class Document extends PartBase
         $nextNodeCount = $traces['nextNodeCount'];
         switch ($type) {
             case 'text':
-//                 return ;
                 $targetNode = $this->getTarget($beginNode,$endNode,$parentNodeCount,'r');
                 if(!is_null($targetNode)) {
                     if(is_array($value)) {
@@ -284,7 +283,7 @@ class Document extends PartBase
                 for($i=1;$i<=$value;$i++) {
                     foreach($needCloneNodes as $targetNode) {
                         $copy = clone $targetNode;
-                        $this->updateCommentsId($copy, $i,$value);
+                        $this->updateCommentsId($copy, $i, $value);
                         if($nextSibling = $lastNode->nextSibling) {
                             $parentNode = $nextSibling->parentNode;
                             $parentNode->insertBefore($copy,$nextSibling);
@@ -458,7 +457,9 @@ class Document extends PartBase
             $name = '_Toc'.$maxId;
             $ids[$key] = $maxId;
             $this->setAttr($bookmarkStart, 'id', $maxId);
-            $this->setAttr($bookmarkStart, 'orgname', $this->getAttr($bookmarkStart, 'name'));
+            if(!$this->hasAttr($bookmarkStart, 'orgname')) {
+                $this->setAttr($bookmarkStart, 'orgname', $this->getAttr($bookmarkStart, 'name'));
+            }
             $this->setAttr($bookmarkStart, 'name', $name);
         }
         

@@ -126,7 +126,7 @@ class Word
 
         
         //remove marked
-//         $this->documentEdit->deleteMarked();
+        $this->documentEdit->deleteMarked();
         
         //test
 //         echo $this->documentEdit->DOMDocument->saveXML();exit;

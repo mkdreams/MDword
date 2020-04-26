@@ -51,6 +51,10 @@ class PartBase
         return $item->setAttributeNS($this->xmlns[$ns],$name,$value);
     }
     
+    public function hasAttr($item,$name,$ns='w') {
+        return $item->hasAttributeNS($this->xmlns[$ns],$name);
+    }
+    
     
     public function __get($name) {
         return $this->$name;

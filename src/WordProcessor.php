@@ -113,37 +113,6 @@ class WordProcessor
         $documentEdit->setValue($name, $count-1, 'clone');
     }
     
-    public function cloneAndSetValues($names,$counts=1,$values=[]) {
-        if(is_array($names)) {
-            $index = 0;
-            foreach($names as $cloneName => $cloneType) {
-                $cloneFun = 'clone'.$cloneType;
-                
-                $count = $counts[$index];
-                
-                if(is_array($count)) {
-                    foreach($count as $key => $cloneCount) {
-                        $this->$cloneFun($cloneName.'#'.$key, $cloneCount);
-                    }
-                }else{
-                    if($count >= 2) {
-                        $this->$cloneFun($cloneName, $count);
-                        $this->setValues($values[$index][$cloneName]);
-                    }
-                }
-                
-                $index++;
-            }
-            
-            $this->setValues($values);
-        }else{
-            if($counts >= 2) {
-                $documentEdit = $this->getDocumentEdit();
-                $documentEdit->setValue($names, $counts, 'clone');
-            }
-            $this->setValues($values);
-        }
-    }
     
     public function setBreakValue($name, $value) {
         $documentEdit = $this->getDocumentEdit();
