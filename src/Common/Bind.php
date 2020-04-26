@@ -21,13 +21,13 @@ class Bind
         $this->pre = $pre;
     }
     
-    public function bindValue($name,$keyList,$pBindName=null) {
+    public function bindValue($name,$keyList,$pBindName=null,$callback=null) {
         static $binds = [];
         
         //loop
         if(!is_null($pBindName) && isset($binds[$pBindName])) {
             foreach($binds[$pBindName] as $bind) {
-                $bind->bindValue($name,$keyList);
+                $bind->bindValue($name,$keyList,null,$callback);
             }
             
             return $this;
@@ -46,9 +46,12 @@ class Bind
 //                 if($name == 'news') {
 //                     var_dump($name.$this->pre,$subData);
 //                 }
-                $binds[$name][] = new Bind($this->wordProcessor, $subData, $this->pre.'#'.$i++);
+                $binds[$name][] = new Bind($this->wordProcessor, $subData, $this->pre.'#'.$i++,$callback);
             }
         }else{
+            if(!is_null($callback)) {
+                $data = $callback($data);
+            }
             $this->wordProcessor->setValue($name.$this->pre,$data);
         }
         
