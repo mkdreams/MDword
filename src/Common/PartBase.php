@@ -87,6 +87,18 @@ class PartBase
     
     
     
+    public function insertAfter($copy,$targetNode) {
+        if($nextSibling = $targetNode->nextSibling) {
+            if($parentNode = $nextSibling->parentNode) {
+                $parentNode->insertBefore($copy,$nextSibling);
+            }
+        }else{
+            if($parentNode = $targetNode->parentNode) {
+                $parentNode->appendChild($copy);
+            }
+        }
+    }
+    
     public function insertBefore($copy,$targetNode) {
         $parentNode = $targetNode->parentNode;
         $parentNode->insertBefore($copy,$targetNode);

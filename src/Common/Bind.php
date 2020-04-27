@@ -43,10 +43,7 @@ class Bind
             $this->wordProcessor->clone($name.$this->pre,$count);
             $i = 0;
             foreach($data as $subData) {
-//                 if($name == 'news') {
-//                     var_dump($name.$this->pre,$subData);
-//                 }
-                $binds[$name][] = new Bind($this->wordProcessor, $subData, $this->pre.'#'.$i++,$callback);
+                $binds[$name][] = new Bind($this->wordProcessor, $subData, $this->pre.'#'.$i++);
             }
         }else{
             if(!is_null($callback)) {

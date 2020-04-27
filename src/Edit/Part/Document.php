@@ -24,12 +24,18 @@ class Document extends PartBase
      * @param string|array $value 例如：
      * [
             [
+            'text'=>1,
+            'type'=>MDWORD_BREAK,
+            ],
+            [
             'text'=>'value blue',
-            'style'=>'blue'
+            'style'=>'blue',
+            'type'=>MDWORD_TEXT,
             ],
             [
             'text'=>'value red',
-            'style'=>'red'
+            'style'=>'red',
+            'type'=>MDWORD_TEXT,
             ],
             'value plain'
         ];
@@ -193,51 +199,67 @@ class Document extends PartBase
         switch ($type) {
             case 'text':
                 $targetNode = $this->getTarget($beginNode,$endNode,$parentNodeCount,$nextNodeCount,'r');
-//                 if($value === 123456) {
-//                     var_dump(111);exit;
-//                 }
-                if(!is_null($targetNode)) {
-                    if(is_array($value)) {
-                        foreach($value as $valueArr) {
-                            $copy = clone $targetNode;
-                            if(is_array($valueArr)) {
-                                $rPr = $this->getStyle($valueArr['style']);
-                                if(!is_null($rPr)) {
-                                    $rPrCopy = clone $rPr;
-                                    $rPrOrg = $copy->getElementsByTagName('rPr')->item(0);
-                                    if(is_null($rPrOrg)) {// rPr insert before t
-                                        $rPrOrg = $copy->getElementsByTagName('t')->item(0);
-                                        $this->insertBefore($rPrCopy, $rPrOrg);
-                                    }else{
-                                        $this->insertBefore($rPrCopy, $rPrOrg);
-                                        $this->markDelete($rPrOrg);
+                if(is_null($targetNode)) {
+                    break;
+                }
+                
+                if(is_array($value)) {
+                    $orgp = $targetNode->parentNode;
+                    $copyOrgP = clone $orgp;
+                    foreach($value as $valueArr) {
+                        $copy = clone $targetNode;
+                        if(is_array($valueArr)) {
+                            switch ($valueArr['type']){
+                                case MDWORD_BREAK:
+                                    $valueArr['text'] = intval($valueArr['text']);
+                                    for($i=0;$i<$valueArr['text'];$i++) {
+                                        $copyP = clone $copyOrgP;
+                                        $this->insertAfter($copyP, $targetNode->parentNode);
+                                        $this->markDelete($targetNode);
+                                        $targetNode = $copyP->getElementsByTagName('r')->item(0);
                                     }
-                                }
-                                
-                                $text = $valueArr['text'];
-                            }else{
-                                $text = $valueArr;
+                                    break;
+                                case MDWORD_PAGE_BREAK:
+                                    break;
+                                default:
+                                    $rPr = $this->getStyle($valueArr['style']);
+                                    if(!is_null($rPr)) {
+                                        $rPrCopy = clone $rPr;
+                                        $rPrOrg = $copy->getElementsByTagName('rPr')->item(0);
+                                        if(is_null($rPrOrg)) {// rPr insert before t
+                                            $rPrOrg = $copy->getElementsByTagName('t')->item(0);
+                                            $this->insertBefore($rPrCopy, $rPrOrg);
+                                        }else{
+                                            $this->insertBefore($rPrCopy, $rPrOrg);
+                                            $this->markDelete($rPrOrg);
+                                        }
+                                    }
+                                    $copy->getElementsByTagName('t')->item(0)->nodeValue= $valueArr['text'];
+                                    $this->insertBefore($copy, $targetNode);
+                                    break;
                             }
-                            
-                            $copy->getElementsByTagName('t')->item(0)->nodeValue= $text;
+                        }else{
+                            $copy->getElementsByTagName('t')->item(0)->nodeValue= $valueArr;
                             $this->insertBefore($copy, $targetNode);
                         }
                         
-                    }else{
-                        $copy = clone $targetNode;
-                        $copy->getElementsByTagName('t')->item(0)->nodeValue= $value;
-                        $this->insertBefore($copy, $targetNode);
                     }
                     
-                    $this->markDelete($targetNode);
+                }else{
+                    $copy = clone $targetNode;
+                    $copy->getElementsByTagName('t')->item(0)->nodeValue= $value;
+                    $this->insertBefore($copy, $targetNode);
                 }
+                
+                $this->markDelete($targetNode);
                 break;
             case 'image':
                 $targetNode = $this->getTarget($beginNode,$endNode,$parentNodeCount,$nextNodeCount,'pict');
-                if(!is_null($targetNode)) {
-                    $rid = $this->getAttr($targetNode->getElementsByTagName('imagedata')->item(0), 'id', 'r');
-                    $this->updateRef($rid,$value);
+                if(is_null($targetNode)) {
+                    break;
                 }
+                $rid = $this->getAttr($targetNode->getElementsByTagName('imagedata')->item(0), 'id', 'r');
+                $this->updateRef($rid,$value);
                 break;
             case 'excel':
                 $targetNode = $this->getTarget($beginNode,$endNode,$parentNodeCount,$nextNodeCount,'drawing');
@@ -532,6 +554,7 @@ class Document extends PartBase
     }
     
     private function getTarget($beginNode,$endNode,$parentNodeCount,$nextNodeCount,$type='r') {
+        $keepTags = ['bookmarkEnd'=>1,'bookmarkStart'=>1];
         $parentNode = $beginNode;
         $targetNode = null;
         for($i=0;$i<=$parentNodeCount;$i++) {
@@ -562,12 +585,16 @@ class Document extends PartBase
                             $targetNode = $rs->item(0);
                         }
                         else{
-                            $this->markDelete($nextSibling);
+                            if(!isset($keepTags[$nextSibling->localName])) {
+                                $this->markDelete($nextSibling);
+                            }
                         }
                     }
                 }
                 else{
-                    $this->markDelete($nextSibling);
+                    if(!isset($keepTags[$nextSibling->localName])) {
+                        $this->markDelete($nextSibling);
+                    }
                 }
             }
             
