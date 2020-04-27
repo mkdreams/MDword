@@ -29,4 +29,5 @@ require_once('Autoloader.php');
 - [ ] 复制支持换行符&分页符
 - [x] 克隆支持段落（cloneP） 
 - [x] 速度优化 (第一轮)
+- [x] 添加bind数据类（简化克隆和赋值操作）
 
