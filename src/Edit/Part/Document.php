@@ -198,28 +198,37 @@ class Document extends PartBase
         $nextNodeCount = $traces['nextNodeCount'];
         switch ($type) {
             case 'text':
-                $targetNode = $this->getTarget($beginNode,$endNode,$parentNodeCount,$nextNodeCount,'r');
+                $targetNode = $this->getTarget($beginNode,$endNode,$parentNodeCount,$nextNodeCount,'r',function($node) {
+                    $t = $node->getElementsByTagName('t');
+                    if($t->length > 0) {
+                        return true;
+                    }else{
+                        return false;
+                    }
+                });
                 if(is_null($targetNode)) {
                     break;
                 }
                 
                 if(is_array($value)) {
-                    $orgp = $targetNode->parentNode;
-                    $copyOrgP = clone $orgp;
                     foreach($value as $valueArr) {
                         $copy = clone $targetNode;
                         if(is_array($valueArr)) {
                             switch ($valueArr['type']){
                                 case MDWORD_BREAK:
                                     $valueArr['text'] = intval($valueArr['text']);
-                                    for($i=0;$i<$valueArr['text'];$i++) {
-                                        $copyP = clone $copyOrgP;
-                                        $this->insertAfter($copyP, $targetNode->parentNode);
-                                        $this->markDelete($targetNode);
-                                        $targetNode = $copyP->getElementsByTagName('r')->item(0);
-                                    }
+                                    $copyP = $this->updateMDWORD_BREAK($targetNode->parentNode,$valueArr['text'],false);
+                                    $this->markDelete($targetNode);
+                                    $targetNode = $copyP->getElementsByTagName('r')->item(0);
+                                    $this->removeMarkDelete($targetNode);
                                     break;
                                 case MDWORD_PAGE_BREAK:
+                                    break;
+                                case MDWORD_LINK:
+                                    $copy->getElementsByTagName('t')->item(0)->nodeValue= $valueArr['text'];
+                                    $this->insertBefore($copy, $targetNode);
+                                    $this->markDelete($targetNode);
+                                    $this->updateMDWORD_LINK($copy, $copy, $valueArr['link']);
                                     break;
                                 default:
                                     $rPr = $this->getStyle($valueArr['style']);
@@ -347,33 +356,7 @@ class Document extends PartBase
                 break;
             case 'break':
                 $p = $lastNode = $this->getParentToNode($beginNode,'p');
-                $childNodes = $p->childNodes;
-                foreach($childNodes as $childNode) {
-                    if($childNode->localName != 'pPr') {
-                        $this->markDelete($childNode);
-                    }
-                }
-                
-                $needCloneNodes = [$p];
-                
-                for($i=1;$i<=$value;$i++) {
-                    foreach($needCloneNodes as $targetNode) {
-                        $copy = clone $targetNode;
-                        $this->updateCommentsId($copy, $i,$value);
-                        if($nextSibling = $lastNode->nextSibling) {
-                            $this->insertBefore($copy,$nextSibling);
-                        }else{
-                            $parentNode = $lastNode->parentNode;
-                            $parentNode->appendChild($copy);
-                        }
-                        
-                        $lastNode = $copy;
-                    }
-                }
-                
-                foreach($needCloneNodes as $targetNode) {
-                    $this->updateCommentsId($targetNode, 0);
-                }
+                $this->updateMDWORD_BREAK($p,$value,true);
                 break;
             case 'breakpage':
                 $p = $lastNode = $this->getParentToNode($beginNode,'p');
@@ -413,56 +396,7 @@ class Document extends PartBase
                 }
                 break;
             case 'link':
-                $mixed = [
-                    'r'=>[
-                        'childs'=>[
-                            'fldChar'=>[
-                                'fldCharType'=>'begin',
-//                                 'text'=>'12',
-                            ]
-                        ],
-                    ],
-                ];
-                $hyperlinkNodeBegin = $this->creatNode($mixed);
-                
-                $mixed = [
-                    'r'=>[
-                        'childs'=>[
-                            'instrText'=>[
-                                'xml:space'=>'preserve',
-                                'text'=>' HYPERLINK "https://www.baidu.com" '
-                            ]
-                        ],
-                    ],
-                ];
-                $hyperlinkNodePreserve = $this->creatNode($mixed);
-                
-                $mixed = [
-                    'r'=>[
-                        'childs'=>[
-                            'fldChar'=>[
-                                'fldCharType'=>'separate',
-                            ]
-                        ],
-                    ],
-                ];
-                $hyperlinkNodeSeparate = $this->creatNode($mixed);
-                
-                $mixed = [
-                    'r'=>[
-                        'childs'=>[
-                            'fldChar'=>[
-                                'fldCharType'=>'end'
-                            ]
-                        ],
-                    ],
-                ];
-                $hyperlinkNodeEnd = $this->creatNode($mixed);
-                
-                $this->insertBefore($hyperlinkNodeBegin, $beginNode);
-                $this->insertBefore($hyperlinkNodePreserve, $beginNode);
-                $this->insertBefore($hyperlinkNodeSeparate, $beginNode);
-                $this->insertBefore($hyperlinkNodeEnd, $endNode);
+                $this->updateMDWORD_LINK($beginNode, $endNode, $value);
                 break;
             default:
                 break;
@@ -553,8 +487,8 @@ class Document extends PartBase
         }
     }
     
-    private function getTarget($beginNode,$endNode,$parentNodeCount,$nextNodeCount,$type='r') {
-        $keepTags = ['bookmarkEnd'=>1,'bookmarkStart'=>1];
+    private function getTarget($beginNode,$endNode,$parentNodeCount,$nextNodeCount,$type='r',$checkCallBack = null) {
+        $keepTags = ['bookmarkEnd'=>1,'bookmarkStart'=>1,'rPr'=>1];
         $parentNode = $beginNode;
         $targetNode = null;
         for($i=0;$i<=$parentNodeCount;$i++) {
@@ -577,18 +511,35 @@ class Document extends PartBase
 //                     break 2;
 //                 }
                 if(is_null($targetNode)) {
-                    if($nextSibling->localName == $type) {//is target
+                    if($nextSibling->localName == $type && (is_null($checkCallBack) || $checkCallBack($nextSibling))) {//is target
                         $targetNode = $nextSibling;
                     }else{//sub find target
                         $rs = $nextSibling->getElementsByTagName($type);
-                        if($rs->length > 0) {
-                            $targetNode = $rs->item(0);
+                        foreach($rs as $r) {
+                            if(is_null($targetNode) && (is_null($checkCallBack) || $checkCallBack($r))) {
+                                $targetNode = $r;
+                            }
                         }
-                        else{
+                        
+                        if(is_null($targetNode)){
                             if(!isset($keepTags[$nextSibling->localName])) {
                                 $this->markDelete($nextSibling);
                             }
+                        }else{//delete sub pre node
+                            foreach($targetNode->parentNode->childNodes as $item) {
+                                if($endNode === $item) {
+                                    break 2;
+                                }
+                                
+                                if($targetNode !== $item && !isset($keepTags[$item->localName])) {
+//                                     var_dump($item);
+                                    $this->markDelete($item);
+                                }
+                            }
+//                             var_dump($targetNode->parentNode,$targetNode->parentNode->childNodes);exit;
                         }
+                        
+                        
                     }
                 }
                 else{
@@ -735,5 +686,80 @@ class Document extends PartBase
         return null;
     }
     
+    private function updateMDWORD_BREAK($p,$count=1,$replace=true) {
+        if($replace === true) {
+            $count -= 1;
+            $copyP = $p;
+        }else{
+            $copyP = clone $p;
+        }
+        
+        $childNodes = $copyP->childNodes;
+        foreach($childNodes as $childNode) {
+            if($childNode->localName != 'pPr') {
+                $this->markDelete($childNode);
+            }
+        }
+        
+        for($i=0;$i<$count;$i++) {
+            $copy = clone $copyP;
+            $this->insertAfter($copy, $p);
+            $p = $copy;
+        }
+        
+        return $p;
+    }
     
+    private function updateMDWORD_LINK($beginNode,$endNode,$link) {
+        $mixed = [
+            'r'=>[
+                'childs'=>[
+                    'fldChar'=>[
+                        'fldCharType'=>'begin',
+                        //                                 'text'=>'12',
+                    ]
+                ],
+            ],
+        ];
+        $hyperlinkNodeBegin = $this->creatNode($mixed);
+        
+        $mixed = [
+            'r'=>[
+                'childs'=>[
+                    'instrText'=>[
+                        'xml:space'=>'preserve',
+                        'text'=>' HYPERLINK "'.$link.'" '
+                    ]
+                ],
+            ],
+        ];
+        $hyperlinkNodePreserve = $this->creatNode($mixed);
+        
+        $mixed = [
+            'r'=>[
+                'childs'=>[
+                    'fldChar'=>[
+                        'fldCharType'=>'separate',
+                    ]
+                ],
+            ],
+        ];
+        $hyperlinkNodeSeparate = $this->creatNode($mixed);
+        
+        $mixed = [
+            'r'=>[
+                'childs'=>[
+                    'fldChar'=>[
+                        'fldCharType'=>'end'
+                    ]
+                ],
+            ],
+        ];
+        $hyperlinkNodeEnd = $this->creatNode($mixed);
+        
+        $this->insertBefore($hyperlinkNodeBegin, $beginNode);
+        $this->insertBefore($hyperlinkNodePreserve, $beginNode);
+        $this->insertBefore($hyperlinkNodeSeparate, $beginNode);
+        $this->insertAfter($hyperlinkNodeEnd, $endNode);
+    }
 }

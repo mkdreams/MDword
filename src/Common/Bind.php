@@ -26,6 +26,9 @@ class Bind
         
         //loop
         if(!is_null($pBindName) && isset($binds[$pBindName])) {
+//             if($name == 'link2') {
+//                 var_dump($binds[$pBindName]);exit;
+//             }
             foreach($binds[$pBindName] as $bind) {
                 $bind->bindValue($name,$keyList,null,$callback);
             }

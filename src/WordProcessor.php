@@ -78,9 +78,16 @@ class WordProcessor
         $documentEdit->setValue($name, $value,'image');
     }
     
+    /**
+     * @param string $name
+     * ['text','link']
+     * @param array $value
+     */
     public function setLinkValue($name, $value) {
         $documentEdit = $this->getDocumentEdit();
-        $documentEdit->setValue($name, $value,'link');
+        
+        $documentEdit->setValue($name, $value[0],'text');
+        $documentEdit->setValue($name, $value[1],'link');
     }
     
     /**
