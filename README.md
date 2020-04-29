@@ -31,4 +31,4 @@ require_once('Autoloader.php');
 - [x] 速度优化 (第一轮)
 - [x] 添加bind数据类（简化克隆和赋值操作）
 - [ ] 赋值支持图片
-
+- [ ] API
