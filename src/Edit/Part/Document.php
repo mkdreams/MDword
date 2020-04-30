@@ -167,7 +167,15 @@ class Document extends PartBase
         return $levels;
     }
     
-    private function getStyle($name='') {
+    private function getStyle($name='',$type=MDWORD_TEXT) {
+        static $styles = [];
+        
+        $stylekey = $name.$type;
+        
+        if(isset($styles[$stylekey])) {
+            return $styles[$stylekey];
+        }
+        
         $blocks = $this->getBlocks($name);
         if(!isset($blocks[0])) {
             return null;
@@ -181,12 +189,22 @@ class Document extends PartBase
         $parentNodeCount = $traces['parentNodeCount'];
         $nextNodeCount = $traces['nextNodeCount'];
         
-        $targetNode = $this->getTarget($beginNode,$endNode,$parentNodeCount,$nextNodeCount,'r');
-        if($rPrs = $targetNode->getElementsByTagName('rPr')) {
-            $rPr = $rPrs->item(0);
-        }
         
-        return $rPr;
+        switch ($type) {
+            case MDWORD_TEXT:
+                $targetNode = $this->getTarget($beginNode,$endNode,$parentNodeCount,$nextNodeCount,'r');
+                if($rPrs = $targetNode->getElementsByTagName('rPr')) {
+                    $rPr = $rPrs->item(0);
+                }
+                
+                $styles[$stylekey] = $rPr;
+                return $rPr;
+                break;
+            case MDWORD_IMG:
+                $targetNode = $this->getTarget($beginNode,$endNode,$parentNodeCount,$nextNodeCount,'drawing');
+                $styles[$stylekey] = $targetNode;
+                return $targetNode;
+        }
     }
     
     private function update($block,$value,$type) {
@@ -229,6 +247,41 @@ class Document extends PartBase
                                     $this->insertBefore($copy, $targetNode);
                                     $this->markDelete($targetNode);
                                     $this->updateMDWORD_LINK($copy, $copy, $valueArr['link']);
+                                    break;
+                                case MDWORD_IMG:
+                                    $drawing = $this->getStyle($valueArr['style'],MDWORD_IMG);
+                                    $copyDrawing = clone $drawing;
+                                    
+                                    $refInfo = $this->updateRef($valueArr['text'],null,MDWORD_IMG);
+                                    $rId = $refInfo['rId'];
+                                    $imageInfo = $refInfo['imageInfo'];
+                                    
+                                    $blip = $copyDrawing->getElementsByTagName('blip')->item(0);
+                                    $this->setAttr($blip, 'embed', $rId,'r');
+                                    
+                                    $orgCx = intval($imageInfo[0]*9530);
+                                    $orgCy = intval($imageInfo[1]*9530);
+                                    
+                                    $extents = $copyDrawing->getElementsByTagName('extent');
+                                    foreach($extents as $extent) {
+                                        $this->setAttr($extent, 'cx', $orgCx, null);
+                                        $this->setAttr($extent, 'cy', $orgCy, null);
+                                    }
+                                    
+                                    if($spPr = $copyDrawing->getElementsByTagName('spPr')->item(0)) {
+                                        $exts = $spPr->getElementsByTagName('ext');
+                                        foreach($exts as $extent) {
+                                            $this->setAttr($extent, 'cx', $orgCx, null);
+                                            $this->setAttr($extent, 'cy', $orgCy, null);
+                                        }
+                                    }
+                                    
+                                    $targetNode->getElementsByTagName('t')->item(0)->nodeValue= '';
+                                    $targetNode->appendChild($copyDrawing);
+                                    
+                                    $copyP = $this->updateMDWORD_BREAK($targetNode->parentNode,1,false,['drawing']);
+                                    $targetNode = $copyP->getElementsByTagName('r')->item(0);
+                                    $this->removeMarkDelete($targetNode);
                                     break;
                                 default:
                                     $rPr = $this->getStyle($valueArr['style']);
@@ -599,12 +652,16 @@ class Document extends PartBase
         }
     }
     
-    private function updateRef($rid,$file) {
+    private function updateRef($file,$rid=null,$type=MDWORD_IMG) {
         if(is_null($this->rels)) {
             $this->initRels();
         }
         
-        $this->rels->replace($rid,$file);
+        if(is_null($rid)) {
+            return $this->rels->insert($file,$type);
+        }else{
+            return $this->rels->replace($rid,$file);
+        }
     }
     
     private function deleteBlock($block) {
@@ -686,7 +743,7 @@ class Document extends PartBase
         return null;
     }
     
-    private function updateMDWORD_BREAK($p,$count=1,$replace=true) {
+    private function updateMDWORD_BREAK($p,$count=1,$replace=true,$needDelTags = []) {
         if($replace === true) {
             $count -= 1;
             $copyP = $p;
@@ -696,8 +753,17 @@ class Document extends PartBase
         
         $childNodes = $copyP->childNodes;
         foreach($childNodes as $childNode) {
-            if($childNode->localName != 'pPr') {
-                $this->markDelete($childNode);
+            if($childNode->localName === 'pPr') {
+                continue;
+            }
+            
+            $this->markDelete($childNode);
+        }
+        
+        foreach($needDelTags as $needDelTag) {
+            $nodes = $copyP->getElementsByTagName($needDelTag);
+            foreach($nodes as $node) {
+                $node->parentNode->removeChild($node);
             }
         }
         
@@ -761,5 +827,48 @@ class Document extends PartBase
         $this->insertBefore($hyperlinkNodePreserve, $beginNode);
         $this->insertBefore($hyperlinkNodeSeparate, $beginNode);
         $this->insertAfter($hyperlinkNodeEnd, $endNode);
+    }
+
+    public function setChartRel($relArr){
+        $this->initChartRels($relArr);
+    }
+
+    public function getDocumentChart(){
+        $chartsP = $this->DOMDocument->getElementsByTagName('p');
+        foreach($chartsP as $chart){
+            $length = $chart->getElementsByTagName('chart')->length;
+            if($length>0){
+                $documentChart[] = $chart;
+            }
+        }
+        return $documentChart;
+    }
+
+    public function setDocumentChart($name,$documentChart){
+        if(is_null($this->rels)) {
+            $this->initRels();
+        }
+        $chartRidArr = $this->rels->setNewChartRels(count($documentChart));
+        $blocks = $this->getBlocks($name);
+        foreach($blocks as $block){
+            $beginNode = $block[0];
+            $endNode = $block[1];
+       
+            $traces = $block[2];
+            $parentNodeCount = $traces['parentNodeCount'];
+            $nextNodeCount = $traces['nextNodeCount'];
+
+            $targetNode = $this->getParentToNode($beginNode,'p');
+
+            foreach($documentChart as $key=>$chart){
+                $this->setAttr($chart->getElementsByTagName('chart')->item(0), 'id', 'rId'.$chartRidArr[$key],'r');
+                if($res = $this->DOMDocument->importNode($chart,true)){
+                    $this->insertBefore($res,$targetNode);
+                 }
+            }
+        }
+        if(!is_null($targetNode->parentNode)){
+            $targetNode->parentNode->removeChild($targetNode); 
+        }
     }
 }

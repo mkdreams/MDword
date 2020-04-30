@@ -36,6 +36,10 @@ class ContentTypes extends PartBase
   21 => 'application/vnd.openxmlformats-officedocument.wordprocessingml.endnotes+xml',
   22 => 'application/vnd.openxmlformats-officedocument.wordprocessingml.header+xml',
   23 => 'application/vnd.openxmlformats-officedocument.wordprocessingml.footer+xml',
+  24 => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  25 => 'application/vnd.ms-office.chartstyle+xml',
+  26 => 'application/vnd.ms-office.chartcolorstyle+xml',
+  27 => 'image/jpeg',
 )//--CONTENTTYPES--
     ;
     /**
@@ -82,6 +86,25 @@ class ContentTypes extends PartBase
                 $this->overrides[] = ['PartName'=>$PartName,'ContentType'=>$pos];
                 $this->partNames[] = $PartName;
                 break;
+        }
+    }
+
+    public function setContent_types($newOverrides){
+        $this->overrides = array_merge($this->overrides,$newOverrides);
+        foreach($newOverrides as $overrides){
+            $this->partNames[] = $overrides['PartName'];
+        }
+        $xlsDefault = ['Extension' => 'xlsx','ContentType' =>11];
+        foreach($this->defaults as $default){
+            $defaultArr[] = $default['Extension'];
+        }
+        if(!array_search('xlsx',$defaultArr)){
+            $this->defaults[] = $xlsDefault;
+            $defaults = $this->DOMDocument->getElementsByTagName('Default');
+            $copy = clone $defaults[0];
+            $copy->setAttribute('Extension',$xlsDefault['Extension']);
+            $copy->setAttribute('ContentType',$this->contentTypes[$xlsDefault['ContentType']]);
+            $defaults[0]->parentNode->appendChild($copy);
         }
     }
 }

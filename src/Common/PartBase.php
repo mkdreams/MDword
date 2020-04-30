@@ -48,11 +48,19 @@ class PartBase
     }
     
     public function setAttr($item,$name,$value,$ns='w') {
-        return $item->setAttributeNS($this->xmlns[$ns],$name,$value);
+        if(isset($this->xmlns[$ns])) {
+            return $item->setAttributeNS($this->xmlns[$ns],$name,$value);
+        }else{
+            return $item->setAttribute($name,$value);
+        }
     }
     
     public function hasAttr($item,$name,$ns='w') {
         return $item->hasAttributeNS($this->xmlns[$ns],$name);
+    }
+    
+    public function removeAttr($item,$name) {
+        $item->removeAttribute($name);
     }
     
     
@@ -204,6 +212,15 @@ class PartBase
         }
         
         return $node;
+    }
+
+    protected function initChartRels($relArr) {
+        $partInfo = pathinfo($relArr['PartName']);
+        $this->rels = new Rels($this->word, $relArr['dom']);
+        $this->rels->partName = $relArr['relName'];
+        $this->rels->partInfo = $partInfo;
+
+        $this->word->parts[19][] = ['PartName'=>$this->rels->partName,'DOMElement'=>$this->rels->DOMDocument];
     }
     
     

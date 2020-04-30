@@ -172,5 +172,147 @@ class Word
         
         return $pathIndx;
     }
+   
+    public function getChartParts(){
+        if(isset($this->parts[13])){
+            $chartPartsArr[13] = $this->getPartsDetail($this->parts[13]);
+        }
+        if(isset($this->parts[25])){
+            $chartPartsArr[25] = $this->parts[25];
+        }
+        if(isset($this->parts[26])){
+            $chartPartsArr[26] = $this->parts[26];
+        }
+        return $chartPartsArr;
+    }
+
+    public function getPartsDetail($parts){
+        foreach($parts as &$part){
+            $partInfo = pathinfo($part['PartName']);
+            $partNameRel = $partInfo['dirname'].'/_rels/'.$partInfo['basename'].'.rels';
+            $chartRelDom = $this->getXmlDom($partNameRel);
+            if(!empty($chartRelDom)){
+                $part['chartRelDom'] = $chartRelDom;         
+            }
+            $Relationships = $chartRelDom->getElementsByTagName('Relationship');
+            foreach($Relationships as $Relationship){
+                $target = $Relationship->getAttribute('Target');
+                if(strpos($target,'xlsx') != false){
+                    $part['embeddings']['xml'] = $this->zip->getFromName(str_replace('../','word/',$target));
+                    preg_match('/embeddings\/([\s\S]+)/',$target,$match);
+                    $part['embeddings']['name'] = $match[1];
+                }
+            }
+        }
+        return $parts;
+    }
+
+    public function setChartParts($chartparts){
+        foreach($chartparts as $key=>&$part){
+            if($key==13){
+                if(!empty($this->parts[13])){
+                    foreach($this->parts[13] as $keypart){
+                        $partName = $keypart['PartName'];
+                        preg_match('/(\d+)/',$partName,$match);
+                        $chartKey = $match[1];
+                    }
+                    foreach($part as &$p){
+                        $chartKey++;
+                        preg_match('/(\d+)/',$p['PartName'],$partmatch);
+                        $p['PartName'] = str_replace($partmatch[1],$chartKey,$p['PartName']);
+                        $styleKey[$partmatch[1]] = $chartKey;              
+                    }
+                    foreach($chartparts[25] as &$stylepart){
+                        preg_match('/(\d+)/',$stylepart['PartName'],$styleMatch);
+                        $stylepart['PartName'] = str_replace($styleMatch[1],$styleKey[$styleMatch[1]],$stylepart['PartName']);
+                    }   
+                    foreach($chartparts[26] as &$colorepart){
+                        preg_match('/(\d+)/',$colorepart['PartName'],$colorMatch);
+                        $colorepart['PartName'] = str_replace($colorMatch[1],$styleKey[$colorMatch[1]],$colorepart['PartName']);
+                    }   
+                    $this->parts[13] = array_merge($this->parts[13],$chartparts[13]);
+                }else{
+                    $this->parts[13] = $chartparts[13];
+                }
+            }else{
+                $this->parts[$key] = empty($this->parts[$key])?$chartparts[$key]:array_merge($this->parts[$key],$chartparts[$key]);
+            }
+        }
+    }
+
+    public function getContentTypes(){
+        $contentTypes = $this->Content_Types->overrides;
+
+        return $contentTypes;
+    }
+
+    public function getChartEmbeddings(){
+        $fileList = $this->getZipFiles();
+        $relArr = $fileList['word']['charts']['_rels'];
+        $embeddingsList = $fileList['word']['embeddings'];
+        //$this->documentEdit->setChartRelValue($relArr);
+        foreach($embeddingsList as $embeddingKey=>$val){
+            $embeddingsXml[$embeddingKey] = $this->zip->getFromName('word/embeddings/'.$embeddingKey);
+        }
+        return $embeddingsXml;
+    }
+
+    public function setContentTypes(){
+        foreach($this->parts[13] as $part){
+            $partArr['PartName'] = $part['PartName'];
+            $partArr['ContentType'] = 13;
+            if(array_search($partArr,$this->Content_Types->overrides) === false){
+                $newOverrides[] = $partArr;
+            }
+        }
+        foreach($this->parts[25] as $part){
+            $partArr['PartName'] = $part['PartName'];
+            $partArr['ContentType'] = 25;
+            if(array_search($partArr,$this->Content_Types->overrides) === false){
+                $newOverrides[] = $partArr;
+            }
+        }
+        foreach($this->parts[26] as $part){
+            $partArr['PartName'] = $part['PartName'];
+            $partArr['ContentType'] = 26;
+            if(array_search($partArr,$this->Content_Types->overrides) === false){
+                $newOverrides[] = $partArr;
+            }
+        }
+        $this->Content_Types->setContent_types($newOverrides);
+        $this->writeContentTypeXml();
+
+    }
+
+    public function writeContentTypeXml(){
+        $Relationships = $this->Content_Types->DOMDocument->getElementsByTagName('Override');
+        foreach($this->Content_Types->overrides as $key=>$overrides){
+            if(!isset($Relationships[$key])){
+                $copy = clone $Relationships[0];
+                $copy->setAttribute('PartName','/'.$overrides['PartName']);
+                $copy->setAttribute('ContentType',$this->Content_Types->contentTypes[$overrides['ContentType']]);
+                $Relationships[0]->parentNode->appendChild($copy);
+            }
+        }
+        $this->zip->addFromString('[Content_Types].xml', $this->Content_Types->DOMDocument->saveXML());
+    }
+
     
+    public function updateChartRel(){
+        foreach($this->parts[13] as $part){
+            if(isset($part['chartRelDom'])){
+                $Relationships = $part['chartRelDom']->getElementsByTagName('Relationship');
+                preg_match('/chart(\d+)/',$part['PartName'],$match);
+                foreach($Relationships as $Relationship){
+                    $target = $Relationship->getAttribute('Target');
+                    $Relationship->setAttribute('Target',preg_replace('/(\d+)/',$match[1],$target));
+                }
+                $relArr['PartName'] =  $part['PartName'];
+                $relArr['relName'] =  'word/charts/_rels/'.$match[0].'.xml.rels';
+                $relArr['dom'] =  $part['chartRelDom'];
+
+                $this->documentEdit->setChartRel($relArr);
+            }
+        }
+    }
 }

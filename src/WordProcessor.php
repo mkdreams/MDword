@@ -163,4 +163,36 @@ class WordProcessor
         copy($tempFileName, $fileName);
         unlink($tempFileName);
     }
+    
+    public function setChartValue($name='',$fileName)
+    {
+        $reader = new Word();
+        $reader->load($fileName);
+        $this->words[++$this->wordsIndex] = $reader;
+        $documentEdit = $this->getDocumentEdit();
+
+        $documentChart = $documentEdit->getDocumentChart();
+
+        $chartparts = $this->words[$this->wordsIndex]->getChartParts();
+        $embeddings = $this->words[$this->wordsIndex]->getChartEmbeddings();
+
+        $this->words[--$this->wordsIndex]->setChartParts($chartparts);
+        $documentEdit = $this->getDocumentEdit();
+        $documentEdit->setDocumentChart($name,$documentChart);
+        $this->words[$this->wordsIndex]->updateChartRel();
+        $this->words[$this->wordsIndex]->setContentTypes();
+        $this->setEmbeddings();
+   
+    }
+
+    public function setEmbeddings(){
+        $this->words[$this->wordsIndex]->parts[13];
+        foreach($this->words[$this->wordsIndex]->parts[13] as $part){
+            if(!empty($part['embeddings'])){
+                preg_match('/(\d+)/',$part['PartName'],$match);
+                $fileName = preg_replace('/(\d+)/',$match[1],$part['embeddings']['name']);
+                $this->words[$this->wordsIndex]->zip->addFromString('word/embeddings/'.$fileName, $part['embeddings']['xml']);
+            }
+        }
+    }
 }
