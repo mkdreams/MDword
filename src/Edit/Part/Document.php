@@ -8,6 +8,8 @@ class Document extends PartBase
     public $commentsblocks;
     public $charts = [];
     public $blocks = [];
+    private $anchors = [];
+    private $hyperlinkParentNodeArr = [];
     
     public function __construct($word,\DOMDocument $DOMDocument,$blocks = []) {
         parent::__construct($word);
@@ -16,6 +18,68 @@ class Document extends PartBase
         $this->commentsblocks = $blocks;
         
         $this->initNameSpaces();
+        $this->initLevelToAnchor();
+    }
+    
+    private function initLevelToAnchor() {
+        $sdtContent = $this->DOMDocument->getElementsByTagName('sdtContent')->item(0);
+        $hyperlinks = $sdtContent->getElementsByTagName('hyperlink');
+        $this->hyperlinkParentNodeArr = [];
+        foreach($hyperlinks as $hyperlink) {
+            $parentNode = $hyperlink->parentNode;
+            $this->hyperlinkParentNodeArr[$this->getAttr($hyperlink, 'anchor')] = $parentNode;
+        }
+        
+        
+        $pPrs = $this->DOMDocument->getElementsByTagName('pPr');
+        
+        foreach ($pPrs as $pPr) {
+            $pStyle = $pPr->getElementsByTagName('pStyle');
+            if($pStyle->length > 0) {
+                $pStyle = $pStyle->item(0);
+                $val = intval($this->getAttr($pStyle, 'val'));
+                if(isset($this->anchors[$val])) {
+                    continue;
+                }
+                
+                $bookmarkStarts = $pPr->parentNode->getElementsByTagName('bookmarkStart');
+                foreach($bookmarkStarts as $bookmarkStart) {
+                    if(isset($this->anchors[$val])) {
+                        continue;
+                    }
+                    $name = $this->getAttr($bookmarkStart, 'name');
+                    if(isset($this->hyperlinkParentNodeArr[$name])) {
+                        $hyperlinkParentNode = $this->hyperlinkParentNodeArr[$name];
+                        $copy = clone $hyperlinkParentNode;
+                        $fldChars = $copy->getElementsByTagName('fldChar');
+                        foreach($fldChars as $fldChar) {
+                            $r = $fldChar->parentNode;
+                            $p = $r->parentNode;
+                            
+                            if($p->localName === 'hyperlink') {
+                                continue;
+                            }
+                            
+                            $this->markDelete($r);
+                        }
+                        
+                        $instrTexts = $copy->getElementsByTagName('instrText');
+                        foreach($instrTexts as $instrText) {
+                            $r = $instrText->parentNode;
+                            $p = $r->parentNode;
+                            
+                            if($p->localName === 'hyperlink') {
+                                continue;
+                            }
+                            
+                            $this->markDelete($r);
+                        }
+                        
+                        $this->anchors[$val] = $copy;
+                    }
+                }
+            }
+        }
     }
     
     /**
@@ -49,55 +113,82 @@ class Document extends PartBase
     }
     
     public function updateToc() {
-        //get title levels
-        $levels = $this->getTocLevels();
-        
-        $titles = $this->getTitles($levels);
-        
+        $titles = $this->getTitles();
         if(empty($titles)) {
             return ;
         }
         $sdtContent = $this->DOMDocument->getElementsByTagName('sdtContent')->item(0);
-        $hyperlinks = $sdtContent->getElementsByTagName('hyperlink');
-        
-        $hyperlinkParentNodeArr = [];
-        foreach($hyperlinks as $key => $hyperlink) {
-            $parentNode = $hyperlink->parentNode;
-            $hyperlinkParentNodeArr[$this->getAttr($hyperlink, 'anchor')] = $parentNode;
+        if(is_null($sdtContent)) {
+            return ;
         }
         
-        $index = 0;
-        foreach($titles as $anchor => $title) {
-            $anchorOrg = $title['orgname'];
+        foreach($titles as $index => $title) {
+            $anchor = $title['anchor'][0]['name'];
+            $copy = $title['copy'];
+            $copy->getElementsByTagName('t')->item(0)->nodeValue = $title['text'];
             
-            if(isset($hyperlinkParentNodeArr[$anchorOrg])) {
-                $index++;
-                $p = $hyperlinkParentNodeArr[$anchorOrg];
-                $copy = clone $p;
-                $copy->getElementsByTagName('t')->item(0)->nodeValue = $title['text'];
+            if($tItme = $copy->getElementsByTagName('t')->item(1)) {
+                $tItme->nodeValue = '';
+            }
+            $hyperlink = $copy->getElementsByTagName('hyperlink')->item(0);
+            $this->setAttr($hyperlink, 'anchor', $title['anchor'][0]['name']);
+            
+            $instrTexts = $copy->getElementsByTagName('instrText');
+            $instrTexts->item(0)->nodeValue = " PAGEREF $anchor \h ";
+            
+            if($index === 0) {//first add specail node
+                $mixed = [
+                    'r'=>[
+                        'childs'=>[
+                            'fldChar'=>[
+                                'fldCharType'=>'begin',
+                            ]
+                        ],
+                    ]
+                ];
+                $fldCharBegin = $this->creatNode($mixed);
+                $this->insertBefore($fldCharBegin, $hyperlink);
                 
-                if($tItme = $copy->getElementsByTagName('t')->item(1)) {
-                    $tItme->nodeValue = '';
-                }
-//                 var_dump($copy->getElementsByTagName('t')->item(1));exit;
-                $hyperlink = $copy->getElementsByTagName('hyperlink')->item(0);
-                $this->setAttr($hyperlink, 'anchor', $anchor);
+                $mixed = [
+                    'r'=>[
+                        'childs'=>[
+                            'instrText'=>[
+                                'xml:space'=>'preserve',
+                                'text'=>' TOC \o "1-3" \h \z \u ',
+                            ]
+                        ],
+                    ]
+                ];
+                $fldCharPreserve = $this->creatNode($mixed);
+                $this->insertBefore($fldCharPreserve, $hyperlink);
                 
-                $instrTexts = $copy->getElementsByTagName('instrText');
-                if($instrTexts.length > 1) {
-                    if($index !== 1) {
-                        $this->markDelete($instrTexts->item(0)->parentNode);
-                    }
-                    $instrTexts->item(1)->nodeValue = str_replace($anchorOrg, $anchor, $instrTexts->item(1)->nodeValue);
-                }else{
-                    $instrTexts->item(0)->nodeValue = str_replace($anchorOrg, $anchor, $instrTexts->item(0)->nodeValue);
-                }
-                
-                $sdtContent->insertBefore($copy,$sdtContent->lastChild);
+                $mixed = [
+                    'r'=>[
+                        'childs'=>[
+                            'fldChar'=>[
+                                'fldCharType'=>'separate',
+                            ]
+                        ],
+                    ]
+                ];
+                $fldCharSeparate = $this->creatNode($mixed);
+                $this->insertBefore($fldCharSeparate, $hyperlink);
+            }
+            
+            
+            $sdtContent->insertBefore($copy,$sdtContent->lastChild);
+        }
+        
+        $fldChars = $sdtContent->getElementsByTagName('fldChar');
+        $fldCharsCount = [];
+        foreach($fldChars as $fldChar) {
+            $fldCharType = $this->getAttr($fldChar, 'fldCharType');
+            if(empty($this->getAttr($fldChar->parentNode, 'md',null))) {
+                $fldCharsCount[$fldCharType]++;
             }
         }
         
-        if(!empty($copy)) {
+        if($fldCharsCount['begin'] > $fldCharsCount['end']) {
             $mixed = [
                 'r'=>[
                     'childs'=>[
@@ -112,12 +203,12 @@ class Document extends PartBase
         }
         
         
-        foreach($hyperlinkParentNodeArr as $hyperlinkParentNode) {
+        foreach($this->hyperlinkParentNodeArr as $hyperlinkParentNode) {
             $this->markDelete($hyperlinkParentNode);
         }
     }
     
-    private function getTitles($levels=[]) {
+    private function getTitles() {
         $pPrs = $this->DOMDocument->getElementsByTagName('pPr');
         
         $titles = [];
@@ -126,17 +217,12 @@ class Document extends PartBase
             if($pStyle->length > 0) {
                 $pStyle = $pStyle->item(0);
                 $val = intval($this->getAttr($pStyle, 'val'));
-                if(in_array($val, $levels)) {
-                    $bookmarkStarts = $pPr->parentNode->getElementsByTagName('bookmarkStart');
-                    foreach($bookmarkStarts as $bookmarkStart) {
-                        $name = $this->getAttr($bookmarkStart, 'name');
-                        $id = $this->getAttr($bookmarkStart, 'id');
-                        $orgname = $this->getAttr($bookmarkStart, 'orgname');
-                        if($orgname == '') {
-                            $orgname = $name;
-                        }
-                        $titles[$name] = ['id'=>$id,'orgname'=>$orgname,'text'=>$pPr->parentNode->textContent];
-                    }
+                if(isset($this->anchors[$val])) {
+                    $anchorInfo = $this->updateBookMark($pPr->parentNode);
+                    $anchorNode = $this->anchors[$val];
+                    $copy = clone $anchorNode;
+                    
+                    $titles[] = ['copy'=>$copy,'anchor'=>$anchorInfo,'text'=>$pPr->parentNode->textContent];
                 }
             }
         }
@@ -356,6 +442,30 @@ class Document extends PartBase
                     $this->updateCommentsId($targetNode, 0);
                 }
                 break;
+            case 'cloneTo':
+                $parentNode = $beginNode;
+                for($i=0;$i<$parentNodeCount;$i++) {
+                    $parentNode = $parentNode->parentNode;
+                }
+                
+                $p = $this->getParentToNode($parentNode,'p');
+                $blocks = $this->getBlocks($value);
+                
+                foreach($blocks as $block) {
+                    $start = $block[0];
+                    $startP = $this->getParentToNode($start,'p');
+                    $copy = clone $startP;
+                    $this->insertBefore($copy, $p);
+                    $this->updateCommentsId($copy, 0);
+//                     $this->updateBookMark($copy, 0,'');
+//                     echo $this->DOMDocument->saveXML($copy);exit;
+                }
+//                 $copy = clone ;
+                
+//                 var_dump($blocks,$p);exit;
+                
+//                 var_dump($value);exit;
+                break;
             case 'clone':
                 $parentNode = $beginNode;
                 $targetNode = null;
@@ -363,7 +473,6 @@ class Document extends PartBase
                 for($i=0;$i<$parentNodeCount;$i++) {
                     $parentNode = $parentNode->parentNode;
                 }
-                
                 
                 if($this->isTc($parentNode)) {
                     $parentNode = $parentNode->parentNode;
@@ -397,12 +506,40 @@ class Document extends PartBase
                     $this->updateCommentsId($targetNode, 0);
                 }
                 
+                if($value < 0) {//delete
+                    $this->update($block,'p','delete');
+                    return;
+                }
 //                 var_dump($this->blocks);exit;
                 break;
             case 'delete':
                 if($value == 'p') {
-                    $p = $this->getParentToNode($beginNode,'p');
-                    $this->markDelete($p);
+                    $parentNode = $beginNode;
+                    $needMidNodes = [];
+                    for($i=0;$i<$parentNodeCount;$i++) {
+                        $parentNode = $parentNode->parentNode;
+                    }
+                    
+                    if($this->isTc($parentNode)) {
+                        $parentNode = $parentNode->parentNode;
+                        $nextNodeCount = 0;
+                    }
+                    $needMidNodes[] = $parentNode;
+                    
+                    $nextSibling = $parentNode;
+                    for($i=0;$i<$nextNodeCount;$i++) {
+                        $nextSibling = $nextSibling->nextSibling;
+                        $needMidNodes[] = $nextSibling;
+                    }
+                    
+                    foreach($needMidNodes as $needMidNode) {
+                        $p = $this->getParentToNode($needMidNode,'p');
+                        if(!is_null($p)) {
+                            $this->markDelete($p);
+                        }
+                    }
+//                     var_dump($needMidNodes);exit;
+                    
                 }else{//to-do
                     
                 }
@@ -464,7 +601,7 @@ class Document extends PartBase
         }
     }
     
-    private function updateBookMark($item,$id,$value='') {
+    private function updateBookMark($item) {
         static $maxId = 10000;
         //start
         if($item->localName === 'bookmarkStart') {
@@ -474,15 +611,14 @@ class Document extends PartBase
         }
         
         $ids = [];
+        $infos = [];
         foreach($bookmarkStarts as $key => $bookmarkStart) {
             $maxId = $maxId+1;
             $name = '_Toc'.$maxId;
             $ids[$key] = $maxId;
             $this->setAttr($bookmarkStart, 'id', $maxId);
-            if(!$this->hasAttr($bookmarkStart, 'orgname')) {
-                $this->setAttr($bookmarkStart, 'orgname', $this->getAttr($bookmarkStart, 'name'));
-            }
             $this->setAttr($bookmarkStart, 'name', $name);
+            $infos[] = ['id'=>$maxId,'name'=>$name];
         }
         
         //end
@@ -494,14 +630,43 @@ class Document extends PartBase
         foreach($bookmarkEnds as $key => $bookmarkEnd) {
             $this->setAttr($bookmarkEnd, 'id', $ids[$key]);
         }
+        
+        
+        if(empty($infos)) {//no include book market,insert one
+            $rs = $item->getElementsByTagName('r');
+            if($rs->length > 0) {
+                $maxId = $maxId+1;
+                $name = '_Toc'.$maxId;
+                $mixed = [
+                    'bookmarkStart'=>[
+                        'id'=>$maxId,
+                        'name'=>$name,
+                    ],
+                ];
+                $bookmarkStart = $this->creatNode($mixed);
+                $this->insertBefore($bookmarkStart, $rs->item(0));
+                
+                $mixed = [
+                    'bookmarkEnd'=>[
+                        'id'=>$maxId
+                    ],
+                ];
+                $bookmarkEnd = $this->creatNode($mixed);
+                $this->insertAfter($bookmarkStart, $rs->item($rs->length-1));
+                
+                $infos[] = ['id'=>$maxId,'name'=>$name];
+            }
+        }
+        
+        return $infos;
     }
     
     
     private function updateCommentsId($item,$id,$value='') {
         //org clone not change bookmark's id and name
-        if($id != 0) {
-            $this->updateBookMark($item, $id, $value);
-        }
+//         if($id != 0) {
+//             $this->updateBookMark($item, $id, $value);
+//         }
         
         //start
         if($item->localName === 'commentRangeStart') {

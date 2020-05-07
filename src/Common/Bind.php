@@ -21,7 +21,7 @@ class Bind
         $this->pre = $pre;
     }
     
-    public function bindValue($name,$keyList,$pBindName=null,$callback=null) {
+    public function bindValue($name,$keyList,$pBindName=null,$callback=null,$emptyCallBack=null) {
         static $binds = [];
         
         //loop
@@ -30,7 +30,7 @@ class Bind
 //                 var_dump($binds[$pBindName]);exit;
 //             }
             foreach($binds[$pBindName] as $bind) {
-                $bind->bindValue($name,$keyList,null,$callback);
+                $bind->bindValue($name,$keyList,null,$callback,$emptyCallBack);
             }
             
             return $this;
@@ -47,6 +47,10 @@ class Bind
             $i = 0;
             foreach($data as $subData) {
                 $binds[$name][] = new Bind($this->wordProcessor, $subData, $this->pre.'#'.$i++);
+            }
+            
+            if($count === 0 && !is_null($emptyCallBack)) {
+                $this->wordProcessor->cloneTo($emptyCallBack($data,$this->data),$name.$this->pre,$count);
             }
         }else{
             if(!is_null($callback)) {

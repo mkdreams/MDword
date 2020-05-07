@@ -112,6 +112,11 @@ class PartBase
         $parentNode->insertBefore($copy,$targetNode);
     }
     
+    public function removeChild($item) {
+        $parentNode = $item->parentNode;
+        $parentNode->removeChild($item);
+    }
+    
     function pathRelToAbs($RelUrl, $PrefixUrl = '', $SuffixUrl = '')
     {
         $RelUrlRep = str_replace('\\', '/', $RelUrl);

@@ -119,6 +119,15 @@ class WordProcessor
         $documentEdit = $this->getDocumentEdit();
         $documentEdit->setValue($name, $count-1, 'clone');
     }
+    /**
+     * clone
+     * @param string $name
+     * @param int $count
+     */
+    public function cloneTo($name,$nameTo) {
+        $documentEdit = $this->getDocumentEdit();
+        $documentEdit->setValue($nameTo, $name, 'cloneTo');
+    }
     
     
     public function setBreakValue($name, $value) {
