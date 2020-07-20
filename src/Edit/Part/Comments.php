@@ -30,6 +30,7 @@ class Comments extends PartBase
     
     private function getBlocks() {
         $items = $this->DOMDocument->getElementsByTagName('comment');
+//         var_dump($items);exit;
         
         $preIsDollar = 0;
         $beginNode = null;

@@ -23,6 +23,10 @@ class PartBase
     
     public $partName = null;
     
+    protected $domList = [];
+    protected $domIdxToName = [];
+    protected $idxExtendIdxs = [];
+    
     protected $xmlns = [];
     
     public function __construct($word=null) {
@@ -218,15 +222,155 @@ class PartBase
         
         return $node;
     }
-
+    
     protected function initChartRels($relArr) {
         $partInfo = pathinfo($relArr['PartName']);
         $this->rels = new Rels($this->word, $relArr['dom']);
         $this->rels->partName = $relArr['relName'];
         $this->rels->partInfo = $partInfo;
-
+        
         $this->word->parts[19][] = ['PartName'=>$this->rels->partName,'DOMElement'=>$this->rels->DOMDocument];
     }
     
     
+    protected function initCommentRange() {
+        $this->treeToList($this->DOMDocument->documentElement);
+        
+        $commentRangeStartItems = $this->DOMDocument->getElementsByTagName('commentRangeStart');
+        $tempBlocks = [];
+        foreach($commentRangeStartItems as $commentRangeStartItem) {
+            $id = $this->getAttr($commentRangeStartItem, 'id');
+            $commentRangeEndItem = $this->getCommentRangeEnd($this->DOMDocument,$id);
+            $name = $this->commentsblocks[$id];
+            $traces = $this->getRangeTrace($id,$commentRangeStartItem, $commentRangeEndItem);
+            if(!isset($tempBlocks[$name])) {
+                $tempBlocks[$name] = [];
+                $size = 0;
+            }else{
+                $size = sizeof($tempBlocks[$name])+1;
+            }
+            $tempBlocks[$name][] = array_map(function($trace) use ($name,$size) {
+                $this->domIdxToName[$trace->idxBegin][] = [$size,$name];
+                return $trace->idxBegin;
+            }, $traces);
+        }
+        
+        return $tempBlocks;
+    }
+    
+    protected function treeToList($node) {
+        static $index = 0;
+        
+        if(is_null($node)) {
+            return $index;
+        }
+        $node->idxBegin = $index;
+        $this->domList[$index++] = $node;
+        if(($node->hasChildNodes())) {
+            foreach($node->childNodes as $childNode) {
+                if($childNode->nodeType !== 3) {
+                    $this->treeToList($childNode);
+                }
+            }
+            
+        }
+        
+        $node->idxEnd = $index-1;
+    }
+    
+    protected function getCommentRangeEnd($parentNode,$id) {
+        $commentRangeEndItems = $parentNode->getElementsByTagName('commentRangeEnd');
+        
+        foreach($commentRangeEndItems as $commentRangeEndItem) {
+            $eid = $this->getAttr($commentRangeEndItem, 'id');
+            
+            if($id === $eid) {
+                return $commentRangeEndItem;
+            }
+        }
+        
+        return null;
+    }
+    
+    protected function getRangeTrace($id,$commentRangeStartItem,$commentRangeEndItem) {
+        $delTags = ['commentRangeStart'=>0];
+        $traces = [];
+        $startParentNode = $parentNode = $commentRangeStartItem;
+        $parentNodeCount = 0;
+        while($parentNode = $parentNode->parentNode) {
+            $commentRangeEndItem = $this->getCommentRangeEnd($parentNode,$id);
+            if(is_null($commentRangeEndItem)) {
+                $startParentNode = $parentNode;
+            }else{
+                break;
+            }
+            $parentNodeCount++;
+        }
+        
+        $traces[] = $startParentNode;
+        
+        $nextNodeCount = 0;
+        $nextSibling = $startParentNode->nextSibling;
+        $nextNodeCount++;
+        while(true) {
+            if(is_null($nextSibling)) {
+                break;
+            }
+            
+            if($nextSibling === $commentRangeEndItem) {
+                break;
+            }
+            
+            if($this->getCommentRangeEnd($nextSibling,$id) !== null) {
+                $childNodes = $nextSibling->childNodes;
+                $find = false;
+                $preCount = 0;
+                $endCount = 0;
+                foreach ($childNodes as $childNode) {
+                    if($find === false && ($childNode === $commentRangeEndItem || $this->getCommentRangeEnd($childNode,$id) !== null)) {
+                        $find = true;
+                        continue;
+                    }
+                    
+                    if($this->isNeedSpace($childNode)) {
+                        if($find) {
+                            $endCount++;
+                        }else{
+                            $preCount++;
+                        }
+                    }
+                }
+                
+                if($endCount === 0) {
+                    $traces[] = $nextSibling;
+                }
+                
+                break;
+            }else{
+                $traces[] = $nextSibling;
+            }
+            
+            $nextSibling = $nextSibling->nextSibling;
+            $nextNodeCount++;
+        }
+        
+        foreach($traces as $key => $trace) {
+            $tagName = $trace->localName;
+            if(isset($delTags[$tagName])) {
+                unset($traces[$key]);
+                continue;
+            }
+        }
+        
+        return array_values($traces);
+    }
+    
+    protected function isNeedSpace($node) {
+        $ts = $node->getElementsByTagName('t');
+        if($ts->length > 0) {
+            return true;
+        }else{
+            return false;
+        }
+    }
 }

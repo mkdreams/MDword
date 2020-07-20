@@ -20,10 +20,18 @@ class WordProcessor
         $reader->load($zip);
         $this->words[++$this->wordsIndex] = $reader;
         
-        $comments = $this->words[$this->wordsIndex]->parts[15][0]['DOMElement'];
-        $this->words[$this->wordsIndex]->commentsEdit = new Comments($this->words[$this->wordsIndex],$comments);
-        $this->words[$this->wordsIndex]->commentsEdit->partName = $this->words[$this->wordsIndex]->parts[15][0]['PartName'];
-        $this->words[$this->wordsIndex]->commentsEdit->word = $this->words[$this->wordsIndex];
+        $this->words[$this->wordsIndex]->commentsEdit = [];
+        foreach ($this->words[$this->wordsIndex]->parts[15] as $part15) {
+            $comments = $part15['DOMElement'];
+            $Comment = new Comments($this->words[$this->wordsIndex],$comments);
+            $Comment->partName = $part15['PartName'];
+            $Comment->word = $this->words[$this->wordsIndex];
+            $this->words[$this->wordsIndex]->commentsEdit[] = $Comment;
+        }
+//         $comments = $this->words[$this->wordsIndex]->parts[15][0]['DOMElement'];
+//         $this->words[$this->wordsIndex]->commentsEdit = new Comments($this->words[$this->wordsIndex],$comments);
+//         $this->words[$this->wordsIndex]->commentsEdit->partName = $this->words[$this->wordsIndex]->parts[15][0]['PartName'];
+//         $this->words[$this->wordsIndex]->commentsEdit->word = $this->words[$this->wordsIndex];
         
         $this->getDocumentEdit();
         
@@ -108,7 +116,7 @@ class WordProcessor
      */
     public function cloneP($name,$count=1) {
         $documentEdit = $this->getDocumentEdit();
-        $documentEdit->setValue($name, $count-1, 'cloneP');
+        $documentEdit->setValue($name, $count, 'cloneP');
     }
     /**
      * clone
@@ -117,7 +125,7 @@ class WordProcessor
      */
     public function clone($name,$count=1) {
         $documentEdit = $this->getDocumentEdit();
-        $documentEdit->setValue($name, $count-1, 'clone');
+        $documentEdit->setValue($name, $count, 'clone');
     }
     /**
      * clone
@@ -154,7 +162,13 @@ class WordProcessor
         $documentEdit = $this->words[$this->wordsIndex]->documentEdit;
         if(is_null($documentEdit)) {
             $document = $this->words[$this->wordsIndex]->parts[2][0]['DOMElement'];
-            $documentEdit = new Document($this->words[$this->wordsIndex],$document,$this->words[$this->wordsIndex]->commentsEdit->blocks);
+            $blocks = [];
+            foreach($this->words[$this->wordsIndex]->commentsEdit as $coments) {
+                if($coments->partName === 'word/comments.xml') {
+                    $blocks = $coments->blocks;
+                }
+            }
+            $documentEdit = new Document($this->words[$this->wordsIndex],$document,$blocks);
             $this->words[$this->wordsIndex]->documentEdit = $documentEdit;
             $this->words[$this->wordsIndex]->documentEdit->partName = $this->words[$this->wordsIndex]->parts[2][0]['PartName'];
         }

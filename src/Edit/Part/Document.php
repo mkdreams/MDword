@@ -19,10 +19,14 @@ class Document extends PartBase
         
         $this->initNameSpaces();
         $this->initLevelToAnchor();
+        $this->blocks = $this->initCommentRange();
     }
     
     private function initLevelToAnchor() {
         $sdtContent = $this->DOMDocument->getElementsByTagName('sdtContent')->item(0);
+        if(is_null($sdtContent)) {
+            $sdtContent = $this->DOMDocument;
+        }
         $hyperlinks = $sdtContent->getElementsByTagName('hyperlink');
         $this->hyperlinkParentNodeArr = [];
         foreach($hyperlinks as $hyperlink) {
@@ -107,8 +111,9 @@ class Document extends PartBase
      */
     public function setValue($name,$value,$type='text') {
         $blocks = $this->getBlocks($name);
+//         var_dump($type,$name,$value,$blocks);exit;
         foreach($blocks as $block) {
-            $this->update($block,$value,$type);
+            $this->update($block,$name,$value,$type);
         }
     }
     
@@ -262,23 +267,16 @@ class Document extends PartBase
             return $styles[$stylekey];
         }
         
-        $blocks = $this->getBlocks($name);
-        if(!isset($blocks[0])) {
+        $nodeIdxs = $this->getBlocks($name);
+        if(!isset($nodeIdxs[0])) {
             return null;
         }
         
-        $block = $blocks[0];
-        $beginNode = $block[0];
-        $endNode = $block[1];
-        
-        $traces = $block[2];
-        $parentNodeCount = $traces['parentNodeCount'];
-        $nextNodeCount = $traces['nextNodeCount'];
-        
+        $nodeIdxs = $nodeIdxs[0];
         
         switch ($type) {
             case MDWORD_TEXT:
-                $targetNode = $this->getTarget($beginNode,$endNode,$parentNodeCount,$nextNodeCount,'r');
+                $targetNode = $this->getTarget($nodeIdxs,'r');
                 if($rPrs = $targetNode->getElementsByTagName('rPr')) {
                     $rPr = $rPrs->item(0);
                 }
@@ -293,16 +291,15 @@ class Document extends PartBase
         }
     }
     
-    private function update($block,$value,$type) {
-        $beginNode = $block[0];
-        $endNode = $block[1];
-        
-        $traces = $block[2];
-        $parentNodeCount = $traces['parentNodeCount'];
-        $nextNodeCount = $traces['nextNodeCount'];
+    private function update($nodeIdxs,$name,$value,$type) {
+        static $count = 0;
+        $count++;
+        if($name === 'content') {
+            var_dump($nodeIdxs);exit;
+        }
         switch ($type) {
             case 'text':
-                $targetNode = $this->getTarget($beginNode,$endNode,$parentNodeCount,$nextNodeCount,'r',function($node) {
+                $targetNode = $this->getTarget($nodeIdxs,'r',function($node) {
                     $t = $node->getElementsByTagName('t');
                     if($t->length > 0) {
                         return true;
@@ -323,13 +320,27 @@ class Document extends PartBase
                                     $valueArr['text'] = intval($valueArr['text']);
                                     $copyP = $this->updateMDWORD_BREAK($targetNode->parentNode,$valueArr['text'],false);
                                     $this->markDelete($targetNode);
-                                    $targetNode = $copyP->getElementsByTagName('r')->item(0);
+                                    
+                                    //get first r include t
+                                    $rs  = $copyP->getElementsByTagName('r');
+                                    foreach($rs as $r) {
+                                        $t = $r->getElementsByTagName('t');
+                                        if($t->length > 0) {
+                                            $targetNode = $r;
+                                            break;
+                                        }
+                                    }
+                                    
                                     $this->removeMarkDelete($targetNode);
                                     break;
                                 case MDWORD_PAGE_BREAK:
                                     break;
                                 case MDWORD_LINK:
-                                    $copy->getElementsByTagName('t')->item(0)->nodeValue= $valueArr['text'];
+//                                     echo $this->DOMDocument->saveXML($copy);exit;
+//                                     var_dump($copy);exit;
+                                    if(!is_null($valueArr['text'])) {
+                                        $copy->getElementsByTagName('t')->item(0)->nodeValue= $valueArr['text'];
+                                    }
                                     $this->insertBefore($copy, $targetNode);
                                     $this->markDelete($targetNode);
                                     $this->updateMDWORD_LINK($copy, $copy, $valueArr['link']);
@@ -457,95 +468,36 @@ class Document extends PartBase
                     $copy = clone $startP;
                     $this->insertBefore($copy, $p);
                     $this->updateCommentsId($copy, 0);
-//                     $this->updateBookMark($copy, 0,'');
-//                     echo $this->DOMDocument->saveXML($copy);exit;
                 }
-//                 $copy = clone ;
-                
-//                 var_dump($blocks,$p);exit;
-                
-//                 var_dump($value);exit;
                 break;
             case 'clone':
-                $parentNode = $beginNode;
-                $targetNode = null;
-                $needCloneNodes = [];
-                for($i=0;$i<$parentNodeCount;$i++) {
-                    $parentNode = $parentNode->parentNode;
-                }
-                
-                if($this->isTc($parentNode)) {
-                    $parentNode = $parentNode->parentNode;
-                    $nextNodeCount = 0;
-                }
-                $needCloneNodes[] = $lastNode = $parentNode;
-                
-                $nextSibling = $parentNode;
-                for($i=0;$i<$nextNodeCount;$i++) {
-                    $nextSibling = $nextSibling->nextSibling;
-                    $needCloneNodes[] = $lastNode = $nextSibling;
-                }
-                
-                for($i=1;$i<=$value;$i++) {
-                    foreach($needCloneNodes as $targetNode) {
-                        $copy = clone $targetNode;
-                        $this->updateCommentsId($copy, $i, $value);
-                        if($nextSibling = $lastNode->nextSibling) {
-                            $parentNode = $nextSibling->parentNode;
-                            $parentNode->insertBefore($copy,$nextSibling);
-                        }else{
-                            $parentNode = $lastNode->parentNode;
-                            $parentNode->appendChild($copy);
-                        }
-                        
-                        $lastNode = $copy;
+                for($i=1;$i<$value;$i++) {
+                    $lastNodeIdx = end($nodeIdxs);
+                    foreach($nodeIdxs as $nodeIdx) {
+                        $lastNodeIdx = $this->cloneNode($nodeIdx,$lastNodeIdx,$name,$i);
                     }
                 }
                 
-                foreach($needCloneNodes as $targetNode) {
-                    $this->updateCommentsId($targetNode, 0);
+                //刷新被克隆对象
+                foreach($nodeIdxs as $nodeIdx) {
+                    $lastNodeIdx = $this->cloneNode($nodeIdx,$lastNodeIdx,$name,0);
                 }
-                
-                if($value < 0) {//delete
-                    $this->update($block,'p','delete');
-                    return;
-                }
-//                 var_dump($this->blocks);exit;
                 break;
             case 'delete':
                 if($value == 'p') {
-                    $parentNode = $beginNode;
-                    $needMidNodes = [];
-                    for($i=0;$i<$parentNodeCount;$i++) {
-                        $parentNode = $parentNode->parentNode;
-                    }
-                    
-                    if($this->isTc($parentNode)) {
-                        $parentNode = $parentNode->parentNode;
-                        $nextNodeCount = 0;
-                    }
-                    $needMidNodes[] = $parentNode;
-                    
-                    $nextSibling = $parentNode;
-                    for($i=0;$i<$nextNodeCount;$i++) {
-                        $nextSibling = $nextSibling->nextSibling;
-                        $needMidNodes[] = $nextSibling;
-                    }
-                    
-                    foreach($needMidNodes as $needMidNode) {
-                        $p = $this->getParentToNode($needMidNode,'p');
+                    foreach($nodeIdxs as $nodeIdx) {
+                        $p = $this->getParentToNode($nodeIdx,'p');
                         if(!is_null($p)) {
                             $this->markDelete($p);
                         }
                     }
-//                     var_dump($needMidNodes);exit;
-                    
                 }else{//to-do
                     
                 }
                 break;
             case 'break':
-                $p = $lastNode = $this->getParentToNode($beginNode,'p');
+                $p = $lastNode = $this->getParentToNode($nodeIdxs[0],'p');
+//                 var_dump($p);exit;
                 $this->updateMDWORD_BREAK($p,$value,true);
                 break;
             case 'breakpage':
@@ -590,6 +542,53 @@ class Document extends PartBase
                 break;
             default:
                 break;
+        }
+    }
+    
+    private function cloneNode($nodeIdx,$endNodeIdx,$name,$idx) {
+        $node = $this->domList[$nodeIdx];
+        if($idx === 0) {
+            $begin = $node->idxBegin;
+            $end = $node->idxEnd;
+            $offset = 0;
+            for($i = $begin; $i <= $end; $i++) {
+                if(isset($this->domIdxToName[$i])) {
+                    $cloneNodeIdx = $i+$offset;
+                    $nameTemps = $this->domIdxToName[$i];
+                    foreach($nameTemps as $key => $nameTemp) {
+                        $newName = $nameTemp[1].'#'.$idx;
+                        $nameTemps[$key] = [$nameTemp[0],$newName];
+                        $this->blocks[$newName][$nameTemp[0]][] = $cloneNodeIdx;
+                    }
+                    $this->domIdxToName[$cloneNodeIdx] = $nameTemps;
+                }
+            }
+            
+            return $node->idxBegin;
+        }else{
+            $cloneNode = clone $node;
+            $begin = $node->idxBegin;
+            $end = $node->idxEnd;
+            $baseIndex = $this->treeToList(null);
+            $this->treeToList($cloneNode);
+            $offset = $baseIndex - $begin;
+            
+            for($i = $begin; $i <= $end; $i++) {
+                if(isset($this->domIdxToName[$i])) {
+                    $cloneNodeIdx = $i+$offset;
+                    $nameTemps = $this->domIdxToName[$i];
+                    foreach($nameTemps as $key => $nameTemp) {
+                        $newName = $nameTemp[1].'#'.$idx;
+                        $nameTemps[$key] = [$nameTemp[0],$newName];
+                        $this->blocks[$newName][$nameTemp[0]][] = $cloneNodeIdx;
+                    }
+                    $this->domIdxToName[$cloneNodeIdx] = $nameTemps;
+                }
+            }
+            
+            
+            $this->insertAfter($cloneNode, $this->domList[$endNodeIdx]);
+            return $baseIndex;
         }
     }
     
@@ -663,11 +662,6 @@ class Document extends PartBase
     
     
     private function updateCommentsId($item,$id,$value='') {
-        //org clone not change bookmark's id and name
-//         if($id != 0) {
-//             $this->updateBookMark($item, $id, $value);
-//         }
-        
         //start
         if($item->localName === 'commentRangeStart') {
             $commentRangeStarts = [$item];
@@ -705,83 +699,40 @@ class Document extends PartBase
         }
     }
     
-    private function getTarget($beginNode,$endNode,$parentNodeCount,$nextNodeCount,$type='r',$checkCallBack = null) {
-        $keepTags = ['bookmarkEnd'=>1,'bookmarkStart'=>1,'rPr'=>1];
-        $parentNode = $beginNode;
-        $targetNode = null;
-        for($i=0;$i<=$parentNodeCount;$i++) {
-            $nextSibling = $parentNode;
-            
-            if($i === $parentNodeCount) {//top parent
-                $maxNext = $nextNodeCount;
-            }else{
-                $parentNode = $parentNode->parentNode;
-                $maxNext = 0;
+    private function getTarget($nodeIdxs,$type='r' ,$checkCallBack = null) {
+        $find = false;
+        foreach($nodeIdxs as $nodeIdx) {
+            $node = $this->domList[$nodeIdx];
+            $this->markDelete($node);
+            if($find) {
+                continue;
             }
             
-            $j = 0;
-            while($nextSibling = $nextSibling->nextSibling) {
-//                 $this->markDelete($nextSibling);
-                if($maxNext > 0 && ++$j > $maxNext) {
-                    break 2;
-                }
-//                 if($nextSibling === $endNode) {
-//                     break 2;
-//                 }
-                if(is_null($targetNode)) {
-                    if($nextSibling->localName == $type && (is_null($checkCallBack) || $checkCallBack($nextSibling))) {//is target
-                        $targetNode = $nextSibling;
-                    }else{//sub find target
-                        $rs = $nextSibling->getElementsByTagName($type);
-                        foreach($rs as $r) {
-                            if(is_null($targetNode) && (is_null($checkCallBack) || $checkCallBack($r))) {
-                                $targetNode = $r;
-                            }
+            if($node->localName === $type && (is_null($checkCallBack) || $checkCallBack($node))) {
+                $targetNode = $node;
+                $find = true;
+            }else{//todo
+                $rs = $node->getElementsByTagName($type);
+                foreach($rs as $r) {
+                    if(is_null($targetNode) && (is_null($checkCallBack) || $checkCallBack($r))) {
+                        $targetNode = $r;
+                        $this->removeMarkDelete($node);
+                    }else{//delete sub pre node
+                        foreach($targetNode->parentNode->childNodes as $item) {
+                            $this->markDelete($item);
                         }
-                        
-                        if(is_null($targetNode)){
-                            if(!isset($keepTags[$nextSibling->localName])) {
-                                $this->markDelete($nextSibling);
-                            }
-                        }else{//delete sub pre node
-                            foreach($targetNode->parentNode->childNodes as $item) {
-                                if($endNode === $item) {
-                                    break 2;
-                                }
-                                
-                                if($targetNode !== $item && !isset($keepTags[$item->localName])) {
-//                                     var_dump($item);
-                                    $this->markDelete($item);
-                                }
-                            }
-//                             var_dump($targetNode->parentNode,$targetNode->parentNode->childNodes);exit;
-                        }
-                        
-                        
-                    }
-                }
-                else{
-                    if(!isset($keepTags[$nextSibling->localName])) {
-                        $this->markDelete($nextSibling);
                     }
                 }
             }
-            
         }
         
-        if(is_null($targetNode)) {
-            $targetNodesTemp = $beginNode->parentNode->getElementsByTagName($type);
-            if($targetNodesTemp->length > 0) {
-                $targetNode = $targetNodesTemp->item(0);
-            }
-        }
-//         $targetNode
         $this->removeMarkDelete($targetNode);
+        
         return $targetNode;
     }
     
-    private function getParentToNode($beginNode,$type='p') {
-        $parentNode = $beginNode;
+    private function getParentToNode($beginNodeIndex,$type='p') {
+        $parentNode = $this->domList[$beginNodeIndex];
         while($parentNode->localName != $type && !is_null($parentNode)) {
             $parentNode = $parentNode->parentNode;
         }
@@ -844,69 +795,26 @@ class Document extends PartBase
     }
     
     private function getBlocks($name) {
-        if(isset($this->blocks[$name])) {
-            return $this->blocks[$name];
+        if(!isset($this->blocks[$name])) {
+            return [];
         }
         
-        $this->blocks[$name] = [];
-        $commentRangeStartItems = $this->DOMDocument->getElementsByTagName('commentRangeStart');
-        foreach($commentRangeStartItems as $commentRangeStartItem) {
-            $id = $this->getAttr($commentRangeStartItem, 'id');
-            $nameTemp = $this->commentsblocks[$id];
-            $commentRangeEndItem = $this->getCommentRangeEnd($this->DOMDocument,$id);
-            $trace = $this->getRangeTrace($id,$commentRangeStartItem, $commentRangeEndItem);
-            $this->blocks[$nameTemp][] = [$commentRangeStartItem,$commentRangeEndItem,$trace];
+        $blocks = [];
+        foreach($this->blocks[$name] as $key => $indexs) {
+            $blocks[$key] = [];
+            foreach($indexs as $index) {
+                $blocks[$key][] = $index;
+                if(isset($this->idxExtendIdxs[$index])) {
+                    foreach($this->idxExtendIdxs[$index] as $index2) {
+                        $blocks[$key][] = $index2;
+                    }
+                }
+            }
         }
         
-        return $this->blocks[$name];
+        return $blocks;
     }
     
-    private function getRangeTrace($id,$commentRangeStartItem,$commentRangeEndItem) {
-        $startParentNode = $parentNode = $commentRangeStartItem;
-        $parentNodeCount = 0;
-        while($parentNode = $parentNode->parentNode) {
-            $commentRangeEndItem = $this->getCommentRangeEnd($parentNode,$id);
-            if(is_null($commentRangeEndItem)) {
-                $startParentNode = $parentNode;
-            }else{
-                break;
-            }
-            $parentNodeCount++;
-        }
-        
-        $nextNodeCount = 0;
-        if($parentNodeCount === 0) {
-            $nextSibling = $commentRangeStartItem->nextSibling;
-            $nextNodeCount++;
-            while($nextSibling !== null && $nextSibling !== $commentRangeEndItem) {
-                $nextSibling = $nextSibling->nextSibling;
-                $nextNodeCount++;
-            }
-        }else{
-            $nextSibling = $startParentNode->nextSibling;
-            $nextNodeCount++;
-            while(!is_null($nextSibling) && $this->getCommentRangeEnd($nextSibling,$id) === null && $nextSibling !== $commentRangeEndItem) {
-                $nextSibling = $nextSibling->nextSibling;
-                $nextNodeCount++;
-            }
-        }
-        
-        return ['parentNodeCount'=>$parentNodeCount,'nextNodeCount'=>$nextNodeCount];
-    }
-    
-    private function getCommentRangeEnd($parentNode,$id) {
-        $commentRangeEndItems = $parentNode->getElementsByTagName('commentRangeEnd');
-        
-        foreach($commentRangeEndItems as $commentRangeEndItem) {
-            $eid = $this->getAttr($commentRangeEndItem, 'id');
-            
-            if($id === $eid) {
-                return $commentRangeEndItem;
-            }
-        }
-        
-        return null;
-    }
     
     private function updateMDWORD_BREAK($p,$count=1,$replace=true,$needDelTags = []) {
         if($replace === true) {
@@ -932,11 +840,18 @@ class Document extends PartBase
             }
         }
         
+        $indexs = [];
         for($i=0;$i<$count;$i++) {
             $copy = clone $copyP;
+            $baseIndex = $this->treeToList(null);
+            $this->treeToList($copy);
+            $indexs[] = $baseIndex;
             $this->insertAfter($copy, $p);
             $p = $copy;
         }
+        
+        
+        $this->idxExtendIdxs[$copyP->idxBegin] = $indexs;
         
         return $p;
     }
@@ -947,7 +862,6 @@ class Document extends PartBase
                 'childs'=>[
                     'fldChar'=>[
                         'fldCharType'=>'begin',
-                        //                                 'text'=>'12',
                     ]
                 ],
             ],

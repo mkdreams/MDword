@@ -40,6 +40,9 @@ class ContentTypes extends PartBase
   25 => 'application/vnd.ms-office.chartstyle+xml',
   26 => 'application/vnd.ms-office.chartcolorstyle+xml',
   27 => 'image/jpeg',
+  28 => 'image/x-wmf',
+  29 => 'application/vnd.openxmlformats-officedocument.oleObject',
+  30 => 'application/vnd.openxmlformats-officedocument.wordprocessingml.commentsExtensible+xml',
 )//--CONTENTTYPES--
     ;
     /**

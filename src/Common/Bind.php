@@ -26,8 +26,8 @@ class Bind
         
         //loop
         if(!is_null($pBindName) && isset($binds[$pBindName])) {
-//             if($name == 'link2') {
-//                 var_dump($binds[$pBindName]);exit;
+//             if($name == 'news') {
+//                 var_dump($pBindName,$binds[$pBindName]);exit;
 //             }
             foreach($binds[$pBindName] as $bind) {
                 $bind->bindValue($name,$keyList,null,$callback,$emptyCallBack);
@@ -43,6 +43,9 @@ class Bind
         
         if(is_array($data)) {
             $count = count($data);
+//             if($name == 'news') {
+//                 var_dump($count,$binds[$pBindName]);exit;
+//             }
             $this->wordProcessor->clone($name.$this->pre,$count);
             $i = 0;
             foreach($data as $subData) {
