@@ -97,8 +97,6 @@ class PartBase
         }
     }
     
-    
-    
     public function insertAfter($copy,$targetNode) {
         if($nextSibling = $targetNode->nextSibling) {
             if($parentNode = $nextSibling->parentNode) {
@@ -112,8 +110,9 @@ class PartBase
     }
     
     public function insertBefore($copy,$targetNode) {
-        $parentNode = $targetNode->parentNode;
-        $parentNode->insertBefore($copy,$targetNode);
+        if($parentNode = $targetNode->parentNode) {
+            $parentNode->insertBefore($copy,$targetNode);
+        }
     }
     
     public function removeChild($item) {

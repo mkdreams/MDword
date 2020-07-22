@@ -471,8 +471,12 @@ class Document extends PartBase
                 }
                 break;
             case 'clone':
+                if($this->isTc($this->domList[$nodeIdxs[0]])) {
+                    $nodeIdxs = [$this->domList[$nodeIdxs[0]]->parentNode->idxBegin];
+                }
+                
+                $lastNodeIdx = end($nodeIdxs);
                 for($i=1;$i<$value;$i++) {
-                    $lastNodeIdx = end($nodeIdxs);
                     foreach($nodeIdxs as $nodeIdx) {
                         $lastNodeIdx = $this->cloneNode($nodeIdx,$lastNodeIdx,$name,$i);
                     }
@@ -576,6 +580,10 @@ class Document extends PartBase
             for($i = $begin; $i <= $end; $i++) {
                 if(isset($this->domIdxToName[$i])) {
                     $cloneNodeIdx = $i+$offset;
+                    if(isset($this->idxExtendIdxs[$i])) {
+                        $this->idxExtendIdxs[$cloneNodeIdx] = $this->idxExtendIdxs[$i];
+                    }
+                    
                     $nameTemps = $this->domIdxToName[$i];
                     foreach($nameTemps as $key => $nameTemp) {
                         $newName = $nameTemp[1].'#'.$idx;
@@ -850,8 +858,9 @@ class Document extends PartBase
             $p = $copy;
         }
         
-        
-        $this->idxExtendIdxs[$copyP->idxBegin] = $indexs;
+        if(count($indexs) > 0) {
+            $this->idxExtendIdxs[$copyP->idxBegin] = $indexs;
+        }
         
         return $p;
     }
