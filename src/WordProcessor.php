@@ -73,6 +73,15 @@ class WordProcessor
     }
     
     /**
+     * delete tr include the block
+     * @param string $name
+     */
+    public function deleteTr(string $name) {
+        $documentEdit = $this->getDocumentEdit();
+        $documentEdit->setValue($name, 'tr','delete');
+    }
+    
+    /**
      * delete block
      * @param string $name
      */
@@ -132,7 +141,7 @@ class WordProcessor
      * @param string $name
      * @param int $count
      */
-    public function cloneTo($name,$nameTo) {
+    public function cloneTo($nameTo,$name) {
         $documentEdit = $this->getDocumentEdit();
         $documentEdit->setValue($nameTo, $name, 'cloneTo');
     }

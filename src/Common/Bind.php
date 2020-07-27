@@ -53,7 +53,7 @@ class Bind
             }
             
             if($count === 0 && !is_null($emptyCallBack)) {
-                $this->wordProcessor->cloneTo($emptyCallBack($data,$this->data),$name.$this->pre,$count);
+                $this->wordProcessor->cloneTo($name.$this->pre,$emptyCallBack($data,$this->data),$count);
             }
         }else{
             if(!is_null($callback)) {

@@ -111,7 +111,6 @@ class Document extends PartBase
      */
     public function setValue($name,$value,$type='text') {
         $blocks = $this->getBlocks($name);
-//         var_dump($type,$name,$value,$blocks);exit;
         foreach($blocks as $block) {
             $this->update($block,$name,$value,$type);
         }
@@ -454,20 +453,15 @@ class Document extends PartBase
                 }
                 break;
             case 'cloneTo':
-                $parentNode = $beginNode;
-                for($i=0;$i<$parentNodeCount;$i++) {
-                    $parentNode = $parentNode->parentNode;
-                }
-                
-                $p = $this->getParentToNode($parentNode,'p');
-                $blocks = $this->getBlocks($value);
-                
-                foreach($blocks as $block) {
-                    $start = $block[0];
-                    $startP = $this->getParentToNode($start,'p');
-                    $copy = clone $startP;
-                    $this->insertBefore($copy, $p);
-                    $this->updateCommentsId($copy, 0);
+                switch($value['type']) {
+                    case MDWORD_DELETE:
+                        foreach($nodeIdxs as $nodeIdx) {
+                            $p = $this->domList[$nodeIdx];
+                            if(!is_null($p)) {
+                                $this->markDelete($p);
+                            }
+                        }
+                        break;
                 }
                 break;
             case 'clone':
@@ -495,8 +489,13 @@ class Document extends PartBase
                             $this->markDelete($p);
                         }
                     }
-                }else{//to-do
-                    
+                }elseif($value == 'tr') {//to-do
+                    foreach($nodeIdxs as $nodeIdx) {
+                        $tr = $this->getParentToNode($nodeIdx,'tr');
+                        if(!is_null($tr)) {
+                            $this->markDelete($tr);
+                        }
+                    }
                 }
                 break;
             case 'break':
