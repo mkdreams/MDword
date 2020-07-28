@@ -34,3 +34,4 @@ require_once('Autoloader.php');
 - [ ] API
 - [x] 目录更新优化 （2020/07/20 完成）
 - [x] 优化速度 （2020/07/20 完成）
+- [ ] 与echarts对接，支持动态绘图
