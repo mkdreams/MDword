@@ -6,8 +6,12 @@
 
 ## 使用方法
 ```
-//自动加载类
+//引入自动加载类
 require_once('Autoloader.php');
+//新建类 加载 母版
+$TemplateProcessor = new WordProcessor();
+$template = 'temple.docx';
+$TemplateProcessor->load($template);
 
 //赋值
 
@@ -35,3 +39,6 @@ require_once('Autoloader.php');
 - [x] 目录更新优化 （2020/07/20 完成）
 - [x] 优化速度 （2020/07/20 完成）
 - [ ] 与echarts对接，支持动态绘图
+
+## 名称介绍
+母版：在某个word基础上修改的,这个word命名为“母版”
