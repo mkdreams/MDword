@@ -111,6 +111,11 @@ class Document extends PartBase
      */
     public function setValue($name,$value,$type='text') {
         $blocks = $this->getBlocks($name);
+        
+        if(empty($blocks)) {
+            $this->word->log->writeLog('not find name! name: '.$name);
+        }
+        
         foreach($blocks as $block) {
             $this->update($block,$name,$value,$type);
         }
@@ -413,6 +418,9 @@ class Document extends PartBase
                 break;
             case 'image':
                 $rids = $this->getRidByMd5($name);
+                if(empty($rids)) {
+                    $this->word->log->writeLog('not find image by md5! md5: '.$name);
+                }
                 foreach($rids as $rid) {
                     $this->updateRef($value,$rid);
                 }

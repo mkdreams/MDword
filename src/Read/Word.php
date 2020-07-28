@@ -4,10 +4,15 @@ namespace MDword\Read;
 use MDword\Edit\Part\Document;
 use MDword\Edit\Part\Comments;
 use MDword\Read\Part\ContentTypes;
+use MDword\Common\Log;
 
 class Word 
 {
     public $zip = null;
+    /**
+     * @var Log
+     */
+    public $log = null;
     
     private $Content_Types = null;
     
@@ -24,6 +29,10 @@ class Word
     public $parts = [];
     
     public $files = [];
+    
+    public function __construct() {
+        $this->log = new Log();
+    }
     
     private function read() {
         $this->Content_Types = new ContentTypes($this->getXmlDom('[Content_Types].xml'));
