@@ -290,7 +290,7 @@ class Document extends PartBase
         }
     }
     
-    private function update($nodeIdxs,$name,$value,$type) {
+    public function update($nodeIdxs,$name,$value,$type) {
         static $count = 0;
         $count++;
         if($name === 'content') {
@@ -412,12 +412,10 @@ class Document extends PartBase
                 $this->markDelete($targetNode);
                 break;
             case 'image':
-                $targetNode = $this->getTarget($beginNode,$endNode,$parentNodeCount,$nextNodeCount,'pict');
-                if(is_null($targetNode)) {
-                    break;
+                $rids = $this->getRidByMd5($name);
+                foreach($rids as $rid) {
+                    $this->updateRef($value,$rid);
                 }
-                $rid = $this->getAttr($targetNode->getElementsByTagName('imagedata')->item(0), 'id', 'r');
-                $this->updateRef($rid,$value);
                 break;
             case 'excel':
                 $targetNode = $this->getTarget($beginNode,$endNode,$parentNodeCount,$nextNodeCount,'drawing');
@@ -785,6 +783,14 @@ class Document extends PartBase
         }else{
             return $this->rels->replace($rid,$file);
         }
+    }
+    
+    private function getRidByMd5($md5) {
+        if(is_null($this->rels)) {
+            $this->initRels();
+        }
+        
+        return $this->rels->imageMd5ToRid[$md5];
     }
     
     private function deleteBlock($block) {

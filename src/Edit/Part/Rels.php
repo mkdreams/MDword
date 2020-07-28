@@ -7,6 +7,7 @@ use MDword\Common\Build;
 class Rels extends PartBase
 {
     public $partInfo = null;
+    public $imageMd5ToRid = [];
     
     protected $relationshipTypes =
     //--RELATIONSHIPTYPES--array (
@@ -30,6 +31,8 @@ class Rels extends PartBase
   17 => 'http://schemas.microsoft.com/office/2011/relationships/chartStyle',
   18 => 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/footer',
   19 => 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/header',
+  20 => 'http://schemas.microsoft.com/office/2018/08/relationships/commentsExtensible',
+  21 => 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink',
 )//--RELATIONSHIPTYPES--
     ;
     
@@ -37,13 +40,19 @@ class Rels extends PartBase
         parent::__construct($word);
         $this->DOMDocument = $DOMDocument;
         
-        if(MDWORD_DEBUG) {
-            $Relationships = $this->DOMDocument->getElementsByTagName('Relationship');
-            foreach ($Relationships as $Relationship) {
-                if(!in_array($type = $this->getAttr($Relationship, 'Type'), $this->relationshipTypes)) {
-                    $this->relationshipTypes[] = $type;
-                }
+        $Relationships = $this->DOMDocument->getElementsByTagName('Relationship');
+        foreach ($Relationships as $Relationship) {
+            if(!in_array($type = $this->getAttr($Relationship, 'Type'), $this->relationshipTypes)) {
+                $this->relationshipTypes[] = $type;
             }
+            
+            if($this->relationshipTypes[2] === $this->getAttr($Relationship, 'Type')) {
+                $md5 = md5($this->word->zip->getFromName('word/'.$this->getAttr($Relationship, 'Target')));
+                $this->imageMd5ToRid[$md5][] = $this->getAttr($Relationship, 'Id');
+            }
+        }
+        
+        if(MDWORD_DEBUG) {
             $build = new Build();
             $build->replace('RELATIONSHIPTYPES', $this->relationshipTypes, __FILE__);
         }

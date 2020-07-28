@@ -92,7 +92,7 @@ class WordProcessor
     
     public function setImageValue($name, $value) {
         $documentEdit = $this->getDocumentEdit();
-        $documentEdit->setValue($name, $value,'image');
+        $documentEdit->update([],$name,$value,'image');
     }
     
     /**
@@ -225,6 +225,31 @@ class WordProcessor
                 $fileName = preg_replace('/(\d+)/',$match[1],$part['embeddings']['name']);
                 $this->words[$this->wordsIndex]->zip->addFromString('word/embeddings/'.$fileName, $part['embeddings']['xml']);
             }
+        }
+    }
+    
+    public function showMedies() {
+        $word = $this->words[$this->wordsIndex];
+        $numFiles = $word->zip->numFiles;
+        $showList = [];
+        for ($i = 0; $i < $numFiles; $i++) {
+            $name = $word->zip->getNameIndex($i);
+            if(strpos($name, 'media') > 0) {
+                $content = $word->zip->getFromIndex($i);
+                $showList['medias'][] = [
+                    'md5' => md5($content),
+                    'name' => $word->zip->getNameIndex($i),
+                    'content' => $content,
+                ];
+            }
+        }
+        
+        foreach($showList as $medias) {
+            foreach($medias as $media) {
+                var_dump($media);
+                echo '<img src="data:image/jpeg;base64,'.base64_encode($media['content']).'"/><br/>';
+            }
+            
         }
     }
 }
