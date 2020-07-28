@@ -38,7 +38,7 @@ $TemplateProcessor->load($template);
 - [ ] API
 - [x] 目录更新优化 （2020/07/20 完成）
 - [x] 优化速度 （2020/07/20 完成）
-- [ ] 与echarts对接，支持动态绘图
+- [ ] 与echarts对接，支持动态绘图(取代word中自带的绘图)
 
 ## 名称介绍
 母版：在某个word基础上修改的,这个word命名为“母版”
