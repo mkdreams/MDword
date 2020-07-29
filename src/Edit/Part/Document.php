@@ -115,6 +115,7 @@ class Document extends PartBase
         if(empty($blocks)) {
             $this->word->log->writeLog('not find name! name: '.$name);
         }
+//         var_dump($blocks);exit;
         
         foreach($blocks as $block) {
             $this->update($block,$name,$value,$type);
@@ -146,47 +147,21 @@ class Document extends PartBase
             $instrTexts->item(0)->nodeValue = " PAGEREF $anchor \h ";
             
             if($index === 0) {//first add specail node
-                $mixed = [
-                    'r'=>[
-                        'childs'=>[
-                            'fldChar'=>[
-                                'fldCharType'=>'begin',
-                            ]
-                        ],
-                    ]
-                ];
-                $fldCharBegin = $this->creatNode($mixed);
+                $fldCharBegin = $this->createNodeByXml('<w:r><w:fldChar w:fldCharType="begin" /></w:r>');
                 $this->insertBefore($fldCharBegin, $hyperlink);
                 
-                $mixed = [
-                    'r'=>[
-                        'childs'=>[
-                            'instrText'=>[
-                                'xml:space'=>'preserve',
-                                'text'=>' TOC \o "1-3" \h \z \u ',
-                            ]
-                        ],
-                    ]
-                ];
-                $fldCharPreserve = $this->creatNode($mixed);
+                
+                $fldCharPreserve = $this->createNodeByXml('<w:r><w:instrText xml:space="preserve"> TOC \o "1-3" \h \z \u </w:instrText></w:r>');
                 $this->insertBefore($fldCharPreserve, $hyperlink);
                 
-                $mixed = [
-                    'r'=>[
-                        'childs'=>[
-                            'fldChar'=>[
-                                'fldCharType'=>'separate',
-                            ]
-                        ],
-                    ]
-                ];
-                $fldCharSeparate = $this->creatNode($mixed);
+                $fldCharSeparate = $this->createNodeByXml('<w:r><w:fldChar w:fldCharType="separate"/></w:r>');
                 $this->insertBefore($fldCharSeparate, $hyperlink);
             }
             
             
             $sdtContent->insertBefore($copy,$sdtContent->lastChild);
         }
+        
         
         $fldChars = $sdtContent->getElementsByTagName('fldChar');
         $fldCharsCount = [];
@@ -198,16 +173,7 @@ class Document extends PartBase
         }
         
         if($fldCharsCount['begin'] > $fldCharsCount['end']) {
-            $mixed = [
-                'r'=>[
-                    'childs'=>[
-                        'fldChar'=>[
-                            'fldCharType'=>'end',
-                        ]
-                    ],
-                ]
-            ];
-            $fldCharEnd = $this->creatNode($mixed);
+            $fldCharEnd = $this->createNodeByXml('<w:r><w:fldChar w:fldCharType="end"/></w:r>');
             $copy->appendChild($fldCharEnd);
         }
         
@@ -417,6 +383,8 @@ class Document extends PartBase
                 $this->markDelete($targetNode);
                 break;
             case 'image':
+                $this->createNodeByXml('image');
+                
                 $rids = $this->getRidByMd5($name);
                 if(empty($rids)) {
                     $this->word->log->writeLog('not find image by md5! md5: '.$name);
@@ -518,17 +486,7 @@ class Document extends PartBase
                 
                 $needCloneNodes = [$p];
                 
-                $mixed = [
-                    'r'=>[
-                        'childs'=>[
-                            'br'=>[
-                                'type'=>'page',
-//                                 'xmlns:default'=>null,
-                            ]
-                        ],
-                    ]
-                ];
-                $breakpage = $this->creatNode($mixed);
+                $breakpage = $this->createNodeByXml('<w:r><w:br w:type="page"/></w:r>');
                 for($i=1;$i<=$value;$i++) {
                     foreach($needCloneNodes as $targetNode) {
                         $copy = clone $targetNode;
@@ -649,21 +607,10 @@ class Document extends PartBase
             if($rs->length > 0) {
                 $maxId = $maxId+1;
                 $name = '_Toc'.$maxId;
-                $mixed = [
-                    'bookmarkStart'=>[
-                        'id'=>$maxId,
-                        'name'=>$name,
-                    ],
-                ];
-                $bookmarkStart = $this->creatNode($mixed);
+                $bookmarkStart = $this->createNodeByXml('<w:bookmarkStart w:id="'.$maxId.'" w:name="'.$name.'"/>');
                 $this->insertBefore($bookmarkStart, $rs->item(0));
                 
-                $mixed = [
-                    'bookmarkEnd'=>[
-                        'id'=>$maxId
-                    ],
-                ];
-                $bookmarkEnd = $this->creatNode($mixed);
+                $bookmarkEnd = $this->createNodeByXml('<w:bookmarkEnd w:id="'.$maxId.'"/>');
                 $this->insertAfter($bookmarkStart, $rs->item($rs->length-1));
                 
                 $infos[] = ['id'=>$maxId,'name'=>$name];
@@ -879,50 +826,13 @@ class Document extends PartBase
     }
     
     private function updateMDWORD_LINK($beginNode,$endNode,$link) {
-        $mixed = [
-            'r'=>[
-                'childs'=>[
-                    'fldChar'=>[
-                        'fldCharType'=>'begin',
-                    ]
-                ],
-            ],
-        ];
-        $hyperlinkNodeBegin = $this->creatNode($mixed);
+        $hyperlinkNodeBegin = $this->createNodeByXml('<w:r><w:fldChar w:fldCharType="begin"/></w:r>');
         
-        $mixed = [
-            'r'=>[
-                'childs'=>[
-                    'instrText'=>[
-                        'xml:space'=>'preserve',
-                        'text'=>' HYPERLINK "'.$link.'" '
-                    ]
-                ],
-            ],
-        ];
-        $hyperlinkNodePreserve = $this->creatNode($mixed);
+        $hyperlinkNodePreserve = $this->createNodeByXml('<w:r><w:instrText xml:space="preserve"> HYPERLINK "'.$link.'" \o "'.$link.'" </w:instrText></w:r>');
         
-        $mixed = [
-            'r'=>[
-                'childs'=>[
-                    'fldChar'=>[
-                        'fldCharType'=>'separate',
-                    ]
-                ],
-            ],
-        ];
-        $hyperlinkNodeSeparate = $this->creatNode($mixed);
+        $hyperlinkNodeSeparate = $this->createNodeByXml('<w:r><w:fldChar w:fldCharType="separate"/></w:r>');
         
-        $mixed = [
-            'r'=>[
-                'childs'=>[
-                    'fldChar'=>[
-                        'fldCharType'=>'end'
-                    ]
-                ],
-            ],
-        ];
-        $hyperlinkNodeEnd = $this->creatNode($mixed);
+        $hyperlinkNodeEnd = $this->createNodeByXml('<w:r><w:fldChar w:fldCharType="end"/></w:r>');
         
         $this->insertBefore($hyperlinkNodeBegin, $beginNode);
         $this->insertBefore($hyperlinkNodePreserve, $beginNode);

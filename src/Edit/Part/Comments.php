@@ -30,7 +30,6 @@ class Comments extends PartBase
     
     private function getBlocks() {
         $items = $this->DOMDocument->getElementsByTagName('comment');
-//         var_dump($items);exit;
         
         $preIsDollar = 0;
         $beginNode = null;
@@ -40,6 +39,13 @@ class Comments extends PartBase
         $blocks = [];
         foreach ($items as $item) {
             $text = $item->nodeValue;
+            
+            if(MDWORD_BIND_TYPE === 2) {
+                $blocks[$this->getAttr($item, 'id')] = trim($text);
+                continue;
+            }
+            
+            //default MDWORD_BIND_TYPE === 1
             $textArr = [];
             preg_match_all("/./u",$text,$textArr);
             if(!is_array($textArr)) {
@@ -66,7 +72,7 @@ class Comments extends PartBase
                 }
                 
                 if(!is_null($beginNode) && !is_null($endNode)) {
-                    $blocks[$item->getAttributeNS($this->xmlns['w'],'id')] = $blockName;
+                    $blocks[$this->getAttr($item, 'id')] = $blockName;
                     $blockName = '';
                     $beginNode = null;
                     $endNode = null;

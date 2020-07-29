@@ -108,14 +108,7 @@ class Rels extends PartBase
                 $mimeArr = explode('/', $imageInfo['mime'],2);
                 $target = 'media/image'.$rIdMax.'.'.$mimeArr[1];
                 $rId = 'rId'.$rIdMax;
-                $mixed = [
-                    'Relationship'=>[
-                        'Id'=>$rId,
-                        'Type'=>$type,
-                        'Target'=>$target,
-                    ],
-                ];
-                $Relationship = $this->creatNode($mixed);
+                $Relationship = $this->createNodeByXml('<Relationship Id="'.$rId.'" Type="'.$type.'" Target="'.$target.'" />');
                 $this->DOMDocument->getElementsByTagName('Relationships')->item(0)->appendChild($Relationship);
                 
                 $target = $this->partInfo['dirname'].'/'.$target;

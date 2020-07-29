@@ -195,31 +195,22 @@ class PartBase
         $this->word->parts[$xmlType][] = ['PartName'=>$this->rels->partName,'DOMElement'=>$this->rels->DOMDocument];
     }
     
-    public function creatNode($mixed=[], \DOMElement $domElement = null)
+    public function createNodeByXml($xmlname)
     {
-        foreach ($mixed as $tagName => $nodeInfo) {
-            $node = $this->DOMDocument->createElementNS($this->xmlns['w'],$tagName);
-            foreach($nodeInfo as $attrName => $attr) {
-                if($attrName === 'childs') {
-                    $this->creatNode($attr,$node);
-                }elseif($attrName === 'text'){
-                    $node->nodeValue = $attr;
-                }else{
-                    if(strpos($attrName, ':') > 0) {
-                        $attrNameArr = explode(':', $attrName,2);
-                        $node->setAttributeNS($this->xmlns[$attrNameArr[0]], $attrNameArr[1], $attr);
-                    }else{
-                        $node->setAttributeNS($this->xmlns['w'], $attrName, $attr);
-                    }
-                }
-            }
-            
-            if(!is_null($domElement)) {
-                $domElement->appendChild($node);
-            }
+        $filename = MDWORD_SRC_DIRECTORY.'/XmlTemple/'.$xmlname.'.xml';
+        if(is_file($filename)) {
+            $xml = file_get_contents($filename);
+        }else{
+            $xml = $xmlname;
         }
         
-        return $node;
+        $xml = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:document xmlns:wpc="http://schemas.microsoft.com/office/word/2010/wordprocessingCanvas" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:m="http://schemas.openxmlformats.org/officeDocument/2006/math" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:wp14="http://schemas.microsoft.com/office/word/2010/wordprocessingDrawing" xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing" xmlns:w10="urn:schemas-microsoft-com:office:word" xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" xmlns:w14="http://schemas.microsoft.com/office/word/2010/wordml" xmlns:w15="http://schemas.microsoft.com/office/word/2012/wordml" xmlns:wpg="http://schemas.microsoft.com/office/word/2010/wordprocessingGroup" xmlns:wpi="http://schemas.microsoft.com/office/word/2010/wordprocessingInk" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:wne="http://schemas.microsoft.com/office/word/2006/wordml" xmlns:wps="http://schemas.microsoft.com/office/word/2010/wordprocessingShape" mc:Ignorable="w14 w15 wp14">'
+            .$xml.'</w:document>';
+        
+        $dom = new \DOMDocument();
+        $dom->loadXML($xml);
+        
+        return $this->DOMDocument->importNode($dom->documentElement->firstChild,true);
     }
     
     protected function initChartRels($relArr) {

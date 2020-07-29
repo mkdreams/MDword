@@ -1,6 +1,10 @@
 <?php 
 define('MDWORD_DEBUG', true);
 define('MDWORD_GENERATED_DIRECTORY', dirname(__FILE__,3).'/tests/Output');
+define('MDWORD_SRC_DIRECTORY', dirname(__FILE__,2));
+//1 example: ${name} in comments
+//2 example: name in comments
+define('MDWORD_BIND_TYPE', 2);
 
 define('MDWORD_BREAK', 1);
 define('MDWORD_PAGE_BREAK', 2);
