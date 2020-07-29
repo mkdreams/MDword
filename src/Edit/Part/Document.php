@@ -115,7 +115,6 @@ class Document extends PartBase
         if(empty($blocks)) {
             $this->word->log->writeLog('not find name! name: '.$name);
         }
-//         var_dump($blocks);exit;
         
         foreach($blocks as $block) {
             $this->update($block,$name,$value,$type);
