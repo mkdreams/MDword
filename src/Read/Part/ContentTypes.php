@@ -8,7 +8,6 @@ class ContentTypes extends PartBase
 {
     protected $defaults = [];
     protected $overrides = [];
-    protected $partNames = [];
     
     protected $contentTypes =
     //--CONTENTTYPES--array (
@@ -87,8 +86,7 @@ class ContentTypes extends PartBase
                 break;
             case 'Override':
                 $PartName = ltrim($item->getAttribute('PartName'),'/');
-                $this->overrides[] = ['PartName'=>$PartName,'ContentType'=>$pos];
-                $this->partNames[] = $PartName;
+                $this->overrides[$PartName] = ['PartName'=>$PartName,'ContentType'=>$pos];
                 break;
         }
     }
@@ -102,12 +100,13 @@ class ContentTypes extends PartBase
             $this->insertBefore($node, $Types->firstChild);
         }
     }
+    
+    public function addOverride($PartName='word/document.xml',$ContentTypeIdx=2) {
+        $this->overrides[$PartName] = ['PartName'=>$PartName,'ContentType'=>$ContentTypeIdx];
+    }
 
     public function setContent_types($newOverrides){
         $this->overrides = array_merge($this->overrides,$newOverrides);
-        foreach($newOverrides as $overrides){
-            $this->partNames[] = $overrides['PartName'];
-        }
         $xlsDefault = ['Extension' => 'xlsx','ContentType' =>11];
         foreach($this->defaults as $default){
             $defaultArr[] = $default['Extension'];
