@@ -82,13 +82,24 @@ class ContentTypes extends PartBase
         
         switch ($item->tagName) {
             case 'Default':
-                $this->defaults[] = ['Extension'=>$item->getAttribute('Extension'),'ContentType'=>$pos];
+                $Extension = $item->getAttribute('Extension');
+                $this->defaults[$Extension] = ['Extension'=>$Extension,'ContentType'=>$pos];
                 break;
             case 'Override':
                 $PartName = ltrim($item->getAttribute('PartName'),'/');
                 $this->overrides[] = ['PartName'=>$PartName,'ContentType'=>$pos];
                 $this->partNames[] = $PartName;
                 break;
+        }
+    }
+    
+    public function addDefault($Extension,$ContentTypeIdx) {
+        if(!isset($this->defaults[$Extension])) {
+            $this->defaults[$Extension] = ['Extension'=>$Extension,'ContentType'=>$ContentTypeIdx];
+            
+            $node = $this->createNodeByXml('<Default Extension="'.$Extension.'" ContentType="'.$this->contentTypes[$ContentTypeIdx].'"/>');
+            $Types = $this->DOMDocument->getElementsByTagName('Types')->item(0);
+            $this->insertBefore($node, $Types->firstChild);
         }
     }
 

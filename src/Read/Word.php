@@ -34,16 +34,6 @@ class Word
         $this->log = new Log();
     }
     
-    private function read() {
-        $this->Content_Types = new ContentTypes($this->getXmlDom('[Content_Types].xml'));
-        foreach ($this->Content_Types->overrides as $part) {
-            if($part['ContentType'] === 14) {//image/png
-                $this->parts[$part['ContentType']][] = ['PartName'=>$part['PartName'],'DOMElement'=>$part['PartName']];
-            }else{
-                $this->parts[$part['ContentType']][] = ['PartName'=>$part['PartName'],'DOMElement'=>$this->getXmlDom($part['PartName'])];
-            }
-        }
-    }
     
     public function load($archive) {
         $this->tempDocumentFilename = tempnam($this->getTempDir(), 'MDword');
@@ -60,6 +50,17 @@ class Word
         $this->zip->open($this->tempDocumentFilename);
         
         $this->read();
+    }
+    
+    private function read() {
+        $this->Content_Types = new ContentTypes($this->getXmlDom('[Content_Types].xml'));
+        foreach ($this->Content_Types->overrides as $part) {
+            if($part['ContentType'] === 14) {//image/png
+                $this->parts[$part['ContentType']][] = ['PartName'=>$part['PartName'],'DOMElement'=>$part['PartName']];
+            }else{
+                $this->parts[$part['ContentType']][] = ['PartName'=>$part['PartName'],'DOMElement'=>$this->getXmlDom($part['PartName'])];
+            }
+        }
     }
     
     public static function getTempDir()

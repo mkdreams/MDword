@@ -1,7 +1,8 @@
 <?php 
+require_once('../../../Autoloader.php');
+
 use MDword\WordProcessor;
 
-require_once('../../../Autoloader.php');
 
 $template = __DIR__.'/temple.docx';
 $rtemplate = __DIR__.'/r-temple.docx';
