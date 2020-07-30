@@ -14,14 +14,30 @@ $template = 'temple.docx';
 $TemplateProcessor->load($template);
 
 //赋值
-
-//图片替换
-
-//克隆多列
+$TemplateProcessor->setValue('value', 'r-value');
 
 //克隆并复制
+$TemplateProcessor->clone('people', 3);
 
+$TemplateProcessor->setValue('name#0', 'colin0');
+$TemplateProcessor->setValue('name#1', [['text'=>'colin1','style'=>'style','type'=>MDWORD_TEXT]]);
+$TemplateProcessor->setValue('name#2', 'colin2');
 
+$TemplateProcessor->setValue('sex#1', 'woman');
+
+$TemplateProcessor->setValue('age#0', '280');
+$TemplateProcessor->setValue('age#1', '281');
+$TemplateProcessor->setValue('age#2', '282');
+
+//图片复制
+$TemplateProcessor->setImageValue('image', dirname(__FILE__).'/logo.jpg');
+
+//删除某行
+$TemplateProcessor->deleteP('style');
+
+//保存
+$rtemplate = __DIR__.'/r-temple.docx';
+$TemplateProcessor->saveAs($rtemplate);
 ```
 ## 项目进展
 - [x] 目录随内容更改而更新 （2020/04/09 完成）
