@@ -4,10 +4,16 @@
 主要用途：动态生成word  
 优势：生成word只需关注动态数据及逻辑，无需关注式样的调整（式样可以借助office word调整母版即可）
 
-## 使用方法
+## 教程
++ ### 安装
 ```
-//引入自动加载类
+//方法一
+composer require mkdreams/mdword
+//方法二，手动引入自动加载类
 require_once('Autoloader.php');
+```
++ ### 使用方法（可参考此实例：tests\samples\simple for readme）
+```
 //新建类 加载 母版
 $TemplateProcessor = new WordProcessor();
 $template = 'temple.docx';
