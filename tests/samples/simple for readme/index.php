@@ -15,7 +15,7 @@ $TemplateProcessor->setValue('value', 'r-value');
 
 $TemplateProcessor->setImageValue('image', dirname(__FILE__).'/logo.jpg');
 
-$TemplateProcessor->clone('people', 3);
+$TemplateProcessor->clones('people', 3);
 
 $TemplateProcessor->setValue('name#0', 'colin0');
 $TemplateProcessor->setValue('name#1', [['text'=>'colin1','style'=>'style','type'=>MDWORD_TEXT]]);

@@ -60,18 +60,29 @@ class Rels extends PartBase
     
     public function replace($rid,$file) {
         $Relationships = $this->DOMDocument->getElementsByTagName('Relationship');
-        $length = $Relationships->length;
         foreach ($Relationships as $Relationship) {
             if($Relationship->getAttribute('Id') === $rid) {
                 $type = $this->getAttr($Relationship, 'Type');
+                $oldTarget = $Relationship->getAttribute('Target');
                 switch ($type) {
                     case $this->relationshipTypes[2]:
-                        $target = 'media/image'.++$length.'.png';
+                        $imageInfo = @getimagesize($file);
+                        if($imageInfo === false) {
+                            $this->word->log->writeLog('image not invalid! image:'.$file);
+                            return false;
+                        }
+                        
+                        $Extension = pathinfo($file, PATHINFO_EXTENSION);
+                        $ExtensionArr = parse_url($Extension);
+                        $Extension = $ExtensionArr['path'];
+                        
+                        $target = 'media/replace'.pathinfo($file, PATHINFO_FILENAME).'.'.$Extension;
+                        $this->word->Content_Types->addDefault($Extension, $imageInfo['mime']);
                         break;
                 }
                 
                 //删除旧文件
-                $oldValue = $this->partInfo['dirname'].'/'.$Relationship->getAttribute('Target');
+                $oldValue = $this->partInfo['dirname'].'/'.$oldTarget;
                 $this->word->zip->deleteName($oldValue);
                 
                 //替换
@@ -115,6 +126,8 @@ class Rels extends PartBase
                 $this->word->zip->addFromString($target, file_get_contents($file));
                 
                 $Extension = pathinfo($target, PATHINFO_EXTENSION);
+                $ExtensionArr = parse_url($Extension);
+                $Extension = $ExtensionArr['path'];
                 $this->word->Content_Types->addDefault($Extension, $imageInfo['mime']);
                 return ['rId'=>$rId,'imageInfo'=>$imageInfo];
                 break;

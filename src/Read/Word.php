@@ -84,10 +84,15 @@ class Word
         //delete again
         $this->deleteComments();
         
-        foreach($this->parts as $list ) {
+        foreach($this->parts as $type => $list ) {
             foreach($list as $part) {
                 if(is_object($part['DOMElement'])) {
-                    $this->zip->addFromString($part['PartName'], $part['DOMElement']->saveXML());
+                    //delete document end space
+                    if($type === 2) {
+                        $this->zip->addFromString($part['PartName'], $this->autoDeleteSpacePage($part['DOMElement']->saveXML()));
+                    }else{
+                        $this->zip->addFromString($part['PartName'], $part['DOMElement']->saveXML());
+                    }
                 }
             }
         }
@@ -115,6 +120,27 @@ class Word
         return $this->tempDocumentFilename;
     }
     
+    
+    private function autoDeleteSpacePage($xml) {
+        return $xml;
+//         $xml = preg_replace_callback('/\<\/w\:p\>(?:\<w\:p\>(?:(?!\<\/w\:t\>).)+?\<\/w\:p\>|\<w\:p\/\>)*?\<w\:p.+?\<w\:r.+?\<w\:br w\:type\=\"page\"\/\>\<\/w\:r\>\<\/w\:p\>/i', function($match) {
+//         preg_match('/\<w\:r\>(?:(?!\<\/w\:r\>).)*?\<w\:br w\:type\=\"page\"\/\>\<\/w\:r\>\<\/w\:p\>/i', $xml, $match);
+//         var_dump($match);exit;
+        $xml = preg_replace_callback('/<\/w:p>(?:<w:p[ >](?:(?!(<\/w:t>|)).)+?<\/w:p>|<w:p\/>)*?\<w\:p(?:(?!<\/w:p>).)*?<w:r>(?:(?!<w:r>).)*?<w:br w:type\=\"page\"\/><\/w:r><\/w:p>/i', function($match) {
+//             echo $match[0];
+//             var_dump($match);
+            preg_match_all('/<w:p[ >](.+?)\<\/w:p>/i', $match[0],$subMatch);
+            
+            if(!empty($subMatch[1])) {
+                return implode('', $subMatch[1]).'</w:p>';
+            }
+            
+            return '<w:r><w:br w:type="page"/></w:r></w:p>';
+        }, $xml);
+//         echo $xml;exit;
+        
+        return $xml;
+    }
     
     private function deleteComments() {
         $parts = [];

@@ -136,7 +136,7 @@ class WordProcessor
      * @param string $name
      * @param int $count
      */
-    public function clone($name,$count=1) {
+    public function clones($name,$count=1) {
         $documentEdit = $this->getDocumentEdit();
         $documentEdit->setValue($name, $count, 'clone');
     }
