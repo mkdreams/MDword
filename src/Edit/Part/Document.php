@@ -116,6 +116,8 @@ class Document extends PartBase
             $this->word->log->writeLog('not find name! name: '.$name);
         }
         
+//         var_dump($name,$value,$type,$blocks);
+        
         foreach($blocks as $block) {
             $this->update($block,$name,$value,$type);
         }
@@ -305,8 +307,6 @@ class Document extends PartBase
                                 case MDWORD_PAGE_BREAK:
                                     break;
                                 case MDWORD_LINK:
-//                                     echo $this->DOMDocument->saveXML($copy);exit;
-//                                     var_dump($copy);exit;
                                     if(!is_null($valueArr['text'])) {
                                         $copy->getElementsByTagName('t')->item(0)->nodeValue= $valueArr['text'];
                                     }
@@ -382,15 +382,61 @@ class Document extends PartBase
                 $this->markDelete($targetNode);
                 break;
             case 'image':
-                $this->createNodeByXml('image');
+                if(is_null($nodeIdxs)) {//md5
+                    $rids = $this->getRidByMd5($name);
+                    if(empty($rids)) {
+                        $this->word->log->writeLog('not find image by md5! md5: '.$name);
+                    }
+                    foreach($rids as $rid) {
+                        $this->updateRef($value,$rid);
+                    }
+                    break;
+                }
                 
-                $rids = $this->getRidByMd5($name);
-                if(empty($rids)) {
-                    $this->word->log->writeLog('not find image by md5! md5: '.$name);
+                $drawing = $this->createNodeByXml('image');
+                
+                $refInfo = $this->updateRef($value,null,MDWORD_IMG);
+                $rId = $refInfo['rId'];
+                $imageInfo = $refInfo['imageInfo'];
+                
+                $blip = $drawing->getElementsByTagName('blip')->item(0);
+                $this->setAttr($blip, 'embed', $rId,'r');
+                
+                $orgCx = intval($imageInfo[0]*9530);
+                $orgCy = intval($imageInfo[1]*9530);
+                
+                $extents = $drawing->getElementsByTagName('extent');
+                foreach($extents as $extent) {
+                    $this->setAttr($extent, 'cx', $orgCx, null);
+                    $this->setAttr($extent, 'cy', $orgCy, null);
                 }
-                foreach($rids as $rid) {
-                    $this->updateRef($value,$rid);
+                
+                if($spPr = $drawing->getElementsByTagName('spPr')->item(0)) {
+                    $exts = $spPr->getElementsByTagName('ext');
+                    foreach($exts as $extent) {
+                        $this->setAttr($extent, 'cx', $orgCx, null);
+                        $this->setAttr($extent, 'cy', $orgCy, null);
+                    }
                 }
+                
+                $targetNode = $this->getTarget($nodeIdxs,'r',function($node) {
+                    $t = $node->getElementsByTagName('t');
+                    if($t->length > 0) {
+                        return true;
+                    }else{
+                        return false;
+                    }
+                });
+                
+                $t = $targetNode->getElementsByTagName('t')->item(0);
+                $this->markDelete($t);
+                $targetNode->appendChild($drawing);
+                
+                $copyP = $this->updateMDWORD_BREAK($targetNode->parentNode,1,false,['drawing']);
+                $targetNode = $copyP->getElementsByTagName('r')->item(0);
+                $this->removeMarkDelete($targetNode);
+                
+//                 echo $this->DOMDocument->saveXML();exit;
                 break;
             case 'excel':
                 $targetNode = $this->getTarget($beginNode,$endNode,$parentNodeCount,$nextNodeCount,'drawing');

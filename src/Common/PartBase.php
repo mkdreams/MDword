@@ -208,7 +208,7 @@ class PartBase
             .$xml.'</w:document>';
         
         $dom = new \DOMDocument();
-        $dom->loadXML($xml);
+        $dom->loadXML($xml,LIBXML_NOBLANKS);
         
         return $this->DOMDocument->importNode($dom->documentElement->firstChild,true);
     }

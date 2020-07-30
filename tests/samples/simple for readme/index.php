@@ -1,5 +1,5 @@
 <?php 
-require_once('../../../Autoloader.php');
+require_once(__DIR__.'/../../../Autoloader.php');
 
 use MDword\WordProcessor;
 

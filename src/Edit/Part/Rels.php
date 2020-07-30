@@ -113,6 +113,9 @@ class Rels extends PartBase
                 
                 $target = $this->partInfo['dirname'].'/'.$target;
                 $this->word->zip->addFromString($target, file_get_contents($file));
+                
+                $Extension = pathinfo($target, PATHINFO_EXTENSION);
+                $this->word->Content_Types->addDefault($Extension, $imageInfo['mime']);
                 return ['rId'=>$rId,'imageInfo'=>$imageInfo];
                 break;
         }

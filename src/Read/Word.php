@@ -14,7 +14,7 @@ class Word
      */
     public $log = null;
     
-    private $Content_Types = null;
+    public $Content_Types = null;
     
     private $tempDocumentFilename = null;
     /**
@@ -100,6 +100,7 @@ class Word
             }
         }
         
+        $this->zip->addFromString('[Content_Types].xml', $this->Content_Types->DOMDocument->saveXML());
         
         if (false === $this->zip->close()) {
             throw new \Exception('Could not close zip file.');

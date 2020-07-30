@@ -91,11 +91,16 @@ class ContentTypes extends PartBase
         }
     }
     
-    public function addDefault($Extension,$ContentTypeIdx) {
+    public function addDefault($Extension,$ContentType) {
         if(!isset($this->defaults[$Extension])) {
-            $this->defaults[$Extension] = ['Extension'=>$Extension,'ContentType'=>$ContentTypeIdx];
+            $pos = array_search($ContentType,$this->contentTypes);
+            if($pos === false) {
+                $this->word->log->writeLog('content type not find! type:'.$ContentType);
+            }else{
+                $this->defaults[$Extension] = ['Extension'=>$Extension,'ContentType'=>$pos];
+            }
             
-            $node = $this->createNodeByXml('<Default Extension="'.$Extension.'" ContentType="'.$this->contentTypes[$ContentTypeIdx].'"/>');
+            $node = $this->createNodeByXml('<Default Extension="'.$Extension.'" ContentType="'.$ContentType.'"/>');
             $Types = $this->DOMDocument->getElementsByTagName('Types')->item(0);
             $this->insertBefore($node, $Types->firstChild);
         }
