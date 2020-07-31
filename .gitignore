@@ -1,7 +1,6 @@
 
 .project
 *.prefs
-*.xml
 
 tests/Output/*
 tests/Log/*
