@@ -73,7 +73,9 @@ class PartBase
     }
     
     protected function markDelete($item) {
-        $item->setAttribute('md',(++$this->id));
+        if(!is_null($item)) {
+            $item->setAttribute('md',(++$this->id));
+        }
     }
     
     protected function removeMarkDelete($item) {
@@ -362,5 +364,9 @@ class PartBase
         }else{
             return false;
         }
+    }
+    
+    protected function showXml($node) {
+        echo $this->DOMDocument->saveXML($node);exit;
     }
 }

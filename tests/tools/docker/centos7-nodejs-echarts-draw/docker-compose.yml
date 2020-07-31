@@ -1,0 +1,10 @@
+version: "3.5"
+services:
+    echarts:
+        container_name: centos7-nodejs-echarts-draw
+        image: centos7-nodejs-echarts-draw
+        restart: always
+        ports:
+            - "3000:3000"
+        volumes:
+            - "/data:/data"
