@@ -391,8 +391,16 @@ class Document extends PartBase
                     break;
                 }
                 
-                $drawing = $this->createNodeByXml('image');
+                //replace when node include image
+                $drawing = $this->getTarget($nodeIdxs,'drawing');
+                if(!is_null($drawing)) {
+                    $blip = $drawing->getElementsByTagName('blip')->item(0);
+                    $rid = $this->getAttr($blip, 'embed', 'r');
+                    $this->updateRef($value,$rid);
+                    return ;
+                }
                 
+                $drawing = $this->createNodeByXml('image');
                 $refInfo = $this->updateRef($value,null,MDWORD_IMG);
                 $rId = $refInfo['rId'];
                 $imageInfo = $refInfo['imageInfo'];
@@ -418,12 +426,18 @@ class Document extends PartBase
                 }
                 
                 $targetNode = $this->getTarget($nodeIdxs,'r',function($node) {
-                    $t = $node->getElementsByTagName('t');
-                    if($t->length > 0) {
+                    $nodes = $node->getElementsByTagName('t');
+                    if($nodes->length > 0) {
                         return true;
-                    }else{
-                        return false;
                     }
+                    
+                    $nodes = $node->getElementsByTagName('drawing');
+                    
+                    if($nodes->length > 0) {
+                        return true;
+                    }
+                    
+                    return false;
                 });
                 
                 $t = $targetNode->getElementsByTagName('t')->item(0);
@@ -433,8 +447,6 @@ class Document extends PartBase
                 $copyP = $this->updateMDWORD_BREAK($targetNode->parentNode,1,false,['drawing']);
                 $targetNode = $copyP->getElementsByTagName('r')->item(0);
                 $this->removeMarkDelete($targetNode);
-                
-//                 echo $this->DOMDocument->saveXML();exit;
                 break;
             case 'excel':
                 $targetNode = $this->getTarget($beginNode,$endNode,$parentNodeCount,$nextNodeCount,'drawing');

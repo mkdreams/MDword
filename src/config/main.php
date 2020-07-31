@@ -1,5 +1,5 @@
 <?php 
-define('MDWORD_DEBUG', false);
+define('MDWORD_DEBUG', true);
 define('MDWORD_GENERATED_DIRECTORY', dirname(__FILE__,3).'/tests/Output');
 define('MDWORD_SRC_DIRECTORY', dirname(__FILE__,2));
 //1 example: ${name} in comments
