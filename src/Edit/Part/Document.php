@@ -19,7 +19,9 @@ class Document extends PartBase
         
         $this->initNameSpaces();
         $this->initLevelToAnchor();
-        $this->blocks = $this->initCommentRange();
+        if(!$this->word->wordProcessor->isForTrace) {
+            $this->blocks = $this->initCommentRange();
+        }
     }
     
     private function initLevelToAnchor() {
@@ -118,9 +120,7 @@ class Document extends PartBase
         
         foreach($blocks as $block) {
             $this->update($block,$name,$value,$type);
-            //--SAVE-ANIMALCODE--$this->word->wordProcessor->saveAsToPathForTrace('E:\wamp\www\MDword-tp5\vendor\mkdreams\mdword\tests\samples\simple for readme/result', 'word');
-// throw new \Exception('saved!');
-exit;//--SAVE-ANIMALCODE--
+            //--SAVE-ANIMALCODE--//--SAVE-ANIMALCODE--
         }
     }
     

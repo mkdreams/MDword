@@ -10,6 +10,7 @@ class WordProcessor
 {
     private $wordsIndex = -1;
     private $words = [];
+    public $isForTrace = false;
     
     public function __construct() {
         require_once(dirname(__FILE__).DIRECTORY_SEPARATOR.'config'.DIRECTORY_SEPARATOR.'main.php');
@@ -201,15 +202,19 @@ class WordProcessor
     {
         static $idx = 0;
         $word = $this->words[$this->wordsIndex];
-        $tempFileName = $word->saveForTrace(true);
+        $tempFileName = $word->saveForTrace();
         
         $fileName = $dir.'/'.$baseName.'-'.$idx++.'.docx';
         
         if (file_exists($fileName)) {
             unlink($fileName);
         }
-        
         copy($tempFileName, $fileName);
+        
+        $WordProcessor = new WordProcessor();
+        $WordProcessor->isForTrace = true;
+        $WordProcessor->load($fileName);
+        $WordProcessor->saveAs($fileName);
     }
     
     public function setChartValue($name='',$fileName)

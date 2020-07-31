@@ -129,20 +129,12 @@ class Word
     
     public function saveForTrace()
     {
-        $this->deleteComments();
-        
-        //update Toc
-        $this->documentEdit->updateToc();
-        
-        //delete again
-        $this->deleteComments();
-        
         foreach($this->parts as $type => $list ) {
             foreach($list as $part) {
                 if(is_object($part['DOMElement'])) {
                     //delete document end space
                     if($type === 2) {
-                        $this->zip->addFromString($part['PartName'], $this->autoDeleteSpacePage($part['DOMElement']->saveXML()));
+                        $this->zip->addFromString($part['PartName'], $this->autoDeleteSpaceBeforeBreakPage($part['DOMElement']->saveXML()));
                     }else{
                         $this->zip->addFromString($part['PartName'], $part['DOMElement']->saveXML());
                     }

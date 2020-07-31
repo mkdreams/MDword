@@ -1,6 +1,8 @@
-
+.settings/*
 .project
 *.prefs
+temp-*
 
 tests/Output/*
 tests/Log/*
+
