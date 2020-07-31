@@ -5,6 +5,7 @@ use MDword\Edit\Part\Document;
 use MDword\Edit\Part\Comments;
 use MDword\Read\Part\ContentTypes;
 use MDword\Common\Log;
+use MDword\WordProcessor;
 
 class Word 
 {
@@ -29,6 +30,12 @@ class Word
     public $parts = [];
     
     public $files = [];
+    
+    /**
+     * @var WordProcessor
+     */
+    public $wordProcessor = null;
+    
     
     public function __construct() {
         $this->log = new Log();
@@ -116,6 +123,46 @@ class Word
             $this->zip->extractTo(MDWORD_GENERATED_DIRECTORY);
             $this->zip->close();
         }
+        
+        return $this->tempDocumentFilename;
+    }
+    
+    public function saveForTrace()
+    {
+        $this->deleteComments();
+        
+        //update Toc
+        $this->documentEdit->updateToc();
+        
+        //delete again
+        $this->deleteComments();
+        
+        foreach($this->parts as $type => $list ) {
+            foreach($list as $part) {
+                if(is_object($part['DOMElement'])) {
+                    //delete document end space
+                    if($type === 2) {
+                        $this->zip->addFromString($part['PartName'], $this->autoDeleteSpacePage($part['DOMElement']->saveXML()));
+                    }else{
+                        $this->zip->addFromString($part['PartName'], $part['DOMElement']->saveXML());
+                    }
+                }
+            }
+        }
+        
+        foreach($this->files as $part) {
+            if(isset($part['this'])) {
+                $this->zip->addFromString($part['PartName'], $part['this']->getContent());
+            }else{
+                $this->zip->deleteName($part['PartName']);
+            }
+        }
+        
+        $this->zip->addFromString('[Content_Types].xml', $this->Content_Types->DOMDocument->saveXML());
+        
+        
+        $this->zip->open($this->tempDocumentFilename);
+        $this->zip->extractTo(MDWORD_GENERATED_DIRECTORY);
         
         return $this->tempDocumentFilename;
     }

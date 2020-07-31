@@ -13,7 +13,7 @@ $TemplateProcessor->load($template);
 
 $TemplateProcessor->setValue('value', 'r-value');
 
-$TemplateProcessor->setImageValue('image', dirname(__FILE__).'/logo.jpg');
+// $TemplateProcessor->setImageValue('image', dirname(__FILE__).'/logo.jpg');
 
 $TemplateProcessor->clones('people', 3);
 

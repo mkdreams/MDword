@@ -17,6 +17,7 @@ class WordProcessor
     
     public function load($zip) {
         $reader = new Word();
+        $reader->wordProcessor = $this;
         $reader->load($zip);
         $this->words[++$this->wordsIndex] = $reader;
         
@@ -28,10 +29,6 @@ class WordProcessor
             $Comment->word = $this->words[$this->wordsIndex];
             $this->words[$this->wordsIndex]->commentsEdit[] = $Comment;
         }
-//         $comments = $this->words[$this->wordsIndex]->parts[15][0]['DOMElement'];
-//         $this->words[$this->wordsIndex]->commentsEdit = new Comments($this->words[$this->wordsIndex],$comments);
-//         $this->words[$this->wordsIndex]->commentsEdit->partName = $this->words[$this->wordsIndex]->parts[15][0]['PartName'];
-//         $this->words[$this->wordsIndex]->commentsEdit->word = $this->words[$this->wordsIndex];
         
         $this->getDocumentEdit();
         
@@ -198,6 +195,21 @@ class WordProcessor
         
         copy($tempFileName, $fileName);
         unlink($tempFileName);
+    }
+    
+    public function saveAsToPathForTrace($dir,$baseName)
+    {
+        static $idx = 0;
+        $word = $this->words[$this->wordsIndex];
+        $tempFileName = $word->saveForTrace(true);
+        
+        $fileName = $dir.'/'.$baseName.'-'.$idx++.'.docx';
+        
+        if (file_exists($fileName)) {
+            unlink($fileName);
+        }
+        
+        copy($tempFileName, $fileName);
     }
     
     public function setChartValue($name='',$fileName)

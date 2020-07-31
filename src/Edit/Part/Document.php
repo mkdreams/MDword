@@ -89,7 +89,7 @@ class Document extends PartBase
     /**
      * 
      * @param string $name
-     * @param string|array $value 例如：
+     * @param string|array $value examples：
      * [
             [
             'text'=>1,
@@ -118,6 +118,9 @@ class Document extends PartBase
         
         foreach($blocks as $block) {
             $this->update($block,$name,$value,$type);
+            //--SAVE-ANIMALCODE--$this->word->wordProcessor->saveAsToPathForTrace('E:\wamp\www\MDword-tp5\vendor\mkdreams\mdword\tests\samples\simple for readme/result', 'word');
+// throw new \Exception('saved!');
+exit;//--SAVE-ANIMALCODE--
         }
     }
     
@@ -261,11 +264,6 @@ class Document extends PartBase
     }
     
     public function update($nodeIdxs,$name,$value,$type) {
-        static $count = 0;
-        $count++;
-        if($name === 'content') {
-            var_dump($nodeIdxs);exit;
-        }
         switch ($type) {
             case 'text':
                 $targetNode = $this->getTarget($nodeIdxs,'r',function($node) {
@@ -565,6 +563,7 @@ class Document extends PartBase
                 if(isset($this->domIdxToName[$i])) {
                     $cloneNodeIdx = $i+$offset;
                     $nameTemps = $this->domIdxToName[$i];
+                    
                     foreach($nameTemps as $key => $nameTemp) {
                         $newName = $nameTemp[1].'#'.$idx;
                         $nameTemps[$key] = [$nameTemp[0],$newName];
@@ -600,8 +599,8 @@ class Document extends PartBase
                 }
             }
             
-            
             $this->insertAfter($cloneNode, $this->domList[$endNodeIdx]);
+            
             return $baseIndex;
         }
     }
@@ -704,6 +703,7 @@ class Document extends PartBase
     
     private function getTarget($nodeIdxs,$type='r' ,$checkCallBack = null) {
         $find = false;
+        $targetNode = null;
         foreach($nodeIdxs as $nodeIdx) {
             $node = $this->domList[$nodeIdx];
             $this->markDelete($node);
@@ -714,7 +714,7 @@ class Document extends PartBase
             if($node->localName === $type && (is_null($checkCallBack) || $checkCallBack($node))) {
                 $targetNode = $node;
                 $find = true;
-            }else{//todo
+            }else{
                 $rs = $node->getElementsByTagName($type);
                 foreach($rs as $r) {
                     if(is_null($targetNode) && (is_null($checkCallBack) || $checkCallBack($r))) {
@@ -822,6 +822,9 @@ class Document extends PartBase
                 }
             }
         }
+        
+        //--HIGHLIGHT-ANIMALCODE--
+        //--HIGHLIGHT-ANIMALCODE--
         
         return $blocks;
     }

@@ -24,9 +24,6 @@ class Build
             throw new \Exception('Not a valid file : '.$file);
         }
         
-        if(empty($value)) {
-            throw new \Exception('value is empty!');
-        }
         $content = file_get_contents($file);
         
         $preg = preg_quote($name);

@@ -9,7 +9,7 @@ class PartBase
     /**
      * @var \DOMDocument
      */
-    protected $DOMDocument;
+    public $DOMDocument;
     
     public $rels = null;
     
