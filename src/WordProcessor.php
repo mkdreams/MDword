@@ -204,7 +204,7 @@ class WordProcessor
         $word = $this->words[$this->wordsIndex];
         $tempFileName = $word->saveForTrace();
         
-        $fileName = $dir.'/'.$baseName.'-'.$idx++.'.docx';
+        $fileName = $dir.'/'.$baseName.'-'.str_pad($idx++,3,"0",STR_PAD_LEFT).'.docx';
         
         if (file_exists($fileName)) {
             unlink($fileName);

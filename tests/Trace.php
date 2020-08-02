@@ -49,7 +49,7 @@ foreach($images['images'] as $image) {
 $gc = new GifCreator();
 $gifBinary = $gc->create($frames, $durations, 0);
 
-file_put_contents($dir.DIRECTORY_SEPARATOR.$baseName.'.gif',$gifBinary);
+file_put_contents($dir.DIRECTORY_SEPARATOR.'..'.DIRECTORY_SEPARATOR.$baseName.'.gif',$gifBinary);
 
 
 function getCodeByTrace($file) {
