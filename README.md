@@ -47,7 +47,7 @@ $TemplateProcessor->saveAs($rtemplate);
 ```
 + ### 辅助理解动图
 <pre>
-<img src="https://github.com/mkdreams/MDword/blob/master/tests/samples/simple%20for%20readme/word.gif" width="300px" alt="simple for readme gif"/><br/>
+<img src="https://github.com/mkdreams/MDword/blob/master/tests/samples/simple%20for%20readme/word.gif" width="80%" alt="simple for readme gif"/><br/>
 </pre>
 
 ## 项目进展
