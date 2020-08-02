@@ -1,45 +1,74 @@
 <?php
 use MDword\Common\Build;
+use MDword\Common\Common;
 
 require_once(__DIR__.'/../Autoloader.php');
 require_once(__DIR__.'/../src/config/main.php');
 
+$wordToImageApi = 'http://www.cwoods.online/api/office/wordToImage';
+
+$common = new Common();
 $build = new Build();
 
 $runSampleFile = realpath(__DIR__.'/samples/simple for readme/index.php');
 
-$dir = dirname($runSampleFile).'/temp-result';
+$dir = dirname($runSampleFile).DIRECTORY_SEPARATOR.'temp-result';
 if(!is_dir($dir)) {
-    mkdir($dir,'0777',true);
+    mkdir($dir,0777,true);
 }
 
 $baseName = 'word';
 
+$codeName = 'code';
 $SAVEANIMALCODE = <<<CODE
+\$code = \getCodeByTrace('$runSampleFile');
+\$this->setValue('$codeName', \$code, 'text', false);
 \$this->word->wordProcessor->saveAsToPathForTrace('$dir', '$baseName');
 CODE;
 $build->replace('SAVE-ANIMALCODE', $SAVEANIMALCODE, MDWORD_SRC_DIRECTORY.'/Edit/Part/Document.php');
 
-// require $runSampleFile;
+require $runSampleFile;
 
 $build->replace('SAVE-ANIMALCODE', '', MDWORD_SRC_DIRECTORY.'/Edit/Part/Document.php');
 
-//图片资源写入数组，支持如下图片资源。
-$frames = array(
-    "http://pic27.nipic.com/20130313/9252150_092049419327_2.jpg",
-    "http://pic27.nipic.com/20130324/9252150_152129329000_2.jpg",
-    "http://pic44.nipic.com/20140723/18505720_094503373000_2.jpg",
-    "http://pic18.nipic.com/20120103/8993051_170340691334_2.jpg"
-);
+$words = $common->getDirFiles($dir,function($dir,$wordName) {
+    return base64_encode(file_get_contents($dir.DIRECTORY_SEPARATOR.$wordName));
+});
 
-// 设置图片转换快慢，数值越小越快，数组个数和frames对应。
-$durations = array(40, 80, 40, 20);
+$imagesStream = $common->CurlSend($wordToImageApi,['words'=>json_encode($words)],180000);
+$images = json_decode($imagesStream,true);
+$frames = $durations = [];
+if(!is_array($images['images'])) {
+    echo $imagesStream;exit;
+}
+foreach($images['images'] as $image) {
+    $frames[] = base64_decode($image);
+    $durations[] = 300;
+}
 
 $gc = new GifCreator();
 $gifBinary = $gc->create($frames, $durations, 0);
 
-file_put_contents('./ceshi.gif',$gifBinary);
+file_put_contents($dir.DIRECTORY_SEPARATOR.$baseName.'.gif',$gifBinary);
 
+
+function getCodeByTrace($file) {
+    $traces = debug_backtrace(null,5);
+    $code = '';
+    foreach($traces as $trace) {
+        if($trace['file'] == $file) {
+            foreach ($trace['args'] as $key => $arg) {
+                if(is_array($arg)) {
+                    $trace['args'][$key] = preg_replace('/\s/i', '', var_export($arg,true));
+                }
+            }
+            $code = $trace['line'].'  '.$trace['class'].$trace['type'].$trace['function'].'('.implode(',', $trace['args']).')';
+            break;
+        }
+    }
+    
+    return $code;
+}
 
 /**
  * from https://www.cnblogs.com/lixihuan/p/11906094.html
@@ -139,7 +168,7 @@ class GifCreator
                 
             } elseif (is_string($frames[$i])) { // File path or URL or Binary source code
                 
-                if (file_exists($frames[$i]) || filter_var($frames[$i], FILTER_VALIDATE_URL)) { // File path
+                if (@file_exists($frames[$i]) || filter_var($frames[$i], FILTER_VALIDATE_URL)) { // File path
                     
                     $frames[$i] = file_get_contents($frames[$i]);
                 }
