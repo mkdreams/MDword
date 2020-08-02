@@ -10,10 +10,10 @@ $rtemplate = __DIR__.'/r-temple.docx';
 $TemplateProcessor = new WordProcessor();
 $TemplateProcessor->load($template);
 
-
 $TemplateProcessor->setValue('value', 'r-value');
+$TemplateProcessor->setValue('value', 'r-value2');
 
-// $TemplateProcessor->setImageValue('image', dirname(__FILE__).'/logo.jpg');
+$TemplateProcessor->setImageValue('image', dirname(__FILE__).'/logo.jpg');
 
 $TemplateProcessor->clones('people', 3);
 

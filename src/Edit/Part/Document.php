@@ -111,15 +111,21 @@ class Document extends PartBase
         ];
      * @param string $type
      */
-    public function setValue($name,$value,$type='text') {
+    public function setValue($name,$value,$type='text',$needRecord=true) {
         $blocks = $this->getBlocks($name);
         
         if(empty($blocks)) {
             $this->word->log->writeLog('not find name! name: '.$name);
         }
         
-        foreach($blocks as $block) {
+        foreach($blocks as $key => $block) {
             $this->update($block,$name,$value,$type);
+            //add new node idx
+            $this->blocks[$name][$key] = $block;
+            
+            if(!$needRecord) {
+                continue;
+            }
             //--SAVE-ANIMALCODE--//--SAVE-ANIMALCODE--
         }
     }
@@ -263,7 +269,7 @@ class Document extends PartBase
         }
     }
     
-    public function update($nodeIdxs,$name,$value,$type) {
+    public function update(&$nodeIdxs,$name,$value,$type) {
         switch ($type) {
             case 'text':
                 $targetNode = $this->getTarget($nodeIdxs,'r',function($node) {
@@ -372,6 +378,8 @@ class Document extends PartBase
                 }else{
                     $copy = clone $targetNode;
                     $copy->getElementsByTagName('t')->item(0)->nodeValue= $value;
+                    $this->treeToList($copy);
+                    $nodeIdxs = array_merge([$copy->idxBegin],$nodeIdxs);
                     $this->insertBefore($copy, $targetNode);
                 }
                 
