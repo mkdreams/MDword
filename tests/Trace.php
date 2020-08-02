@@ -43,7 +43,7 @@ if(!is_array($images['images'])) {
 }
 foreach($images['images'] as $image) {
     $frames[] = base64_decode($image);
-    $durations[] = 300;
+    $durations[] = 500;
 }
 
 $gc = new GifCreator();
