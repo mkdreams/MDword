@@ -45,7 +45,8 @@ $TemplateProcessor->deleteP('style');
 $rtemplate = __DIR__.'/r-temple.docx';
 $TemplateProcessor->saveAs($rtemplate);
 ```
-![image](https://github.com/mkdreams/MDword/blob/master/tests/samples/simple%20for%20readme/word.gif )
+<img src="https://github.com/mkdreams/MDword/blob/master/tests/samples/simple%20for%20readme/word.gif" border="1px" width="50%" alt="simple for readme gif"/><br/>
+
 ## 项目进展
 - [x] 目录随内容更改而更新 （2020/04/09 完成）
 - [ ] readme 完善
