@@ -1,22 +1,23 @@
 {
-	"name" : "mkdreams/mdword",
-	"description" : "edit word",
-	"license" : "Apache-2.0",
-	"authors" : [{
-			"name" : "colin",
-			"email" : "colin.chen@gmail.com"
-		}
-	],
-	"require" : {
-		"php" : ">=7.0.0"
-	},
+    "name": "mkdreams/mdword",
+    "description": "edit word",
+    "license": "Apache-2.0",
+    "authors": [
+        {
+            "name": "colin",
+            "email": "chenlincolin@gmail.com"
+        }
+    ],
+    "require": {
+        "php": ">=7.0.0"
+    },
     "require-dev": {
         "phpunit/phpunit": "^9"
     },
-	"autoload" : {
-		"psr-4" : {
-			"MDword\\" : "src"
-		}
-	},
-	"minimum-stability" : "dev"
+    "autoload": {
+        "psr-4": {
+            "MDword\\": "src"
+        }
+    },
+    "minimum-stability": "dev"
 }
