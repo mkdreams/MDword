@@ -571,7 +571,6 @@ class Document extends PartBase
                 if(isset($this->domIdxToName[$i])) {
                     $cloneNodeIdx = $i+$offset;
                     $nameTemps = $this->domIdxToName[$i];
-                    
                     foreach($nameTemps as $key => $nameTemp) {
                         $newName = $nameTemp[1].'#'.$idx;
                         $nameTemps[$key] = [$nameTemp[0],$newName];
@@ -881,7 +880,7 @@ class Document extends PartBase
     
     private function updateMDWORD_LINK($beginNode,$endNode,$link) {
         $hyperlinkNodeBegin = $this->createNodeByXml('<w:r><w:fldChar w:fldCharType="begin"/></w:r>');
-        
+        $link = htmlspecialchars($link,ENT_COMPAT, 'UTF-8');
         $hyperlinkNodePreserve = $this->createNodeByXml('<w:r><w:instrText xml:space="preserve"> HYPERLINK "'.$link.'" \o "'.$link.'" </w:instrText></w:r>');
         
         $hyperlinkNodeSeparate = $this->createNodeByXml('<w:r><w:fldChar w:fldCharType="separate"/></w:r>');
