@@ -31,6 +31,7 @@ class MD_Autoloader
 
         $pClassNameArr = explode('\\', $pClassName,2);
         
+        $pClassNameArr[1] = str_replace('\\', DIRECTORY_SEPARATOR,$pClassNameArr[1]);
         
         $pClassFilePath = dirname(__FILE__).'/src/'.
             $pClassNameArr[1].
