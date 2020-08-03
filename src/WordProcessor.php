@@ -91,7 +91,8 @@ class WordProcessor
     public function setImageValue($name, $value) {
         $documentEdit = $this->getDocumentEdit();
         if(strlen($name) === 32) {//image md5
-            $documentEdit->update(null,$name,$value,'image');
+            $nodeIdxs = null;
+            $documentEdit->update($nodeIdxs,$name,$value,'image');
         }else{
             $documentEdit->setValue($name, $value,'image');
         }
