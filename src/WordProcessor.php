@@ -13,7 +13,7 @@ class WordProcessor
     public $isForTrace = false;
     
     public function __construct() {
-        require_once(dirname(__FILE__).DIRECTORY_SEPARATOR.'config'.DIRECTORY_SEPARATOR.'main.php');
+        require_once(dirname(__FILE__).DIRECTORY_SEPARATOR.'Config'.DIRECTORY_SEPARATOR.'Main.php');
     }
     
     public function load($zip) {
@@ -44,9 +44,9 @@ class WordProcessor
         return $bind;
     }
     
-    public function setValue($name, $value) {
+    public function setValue($name, $value, $type=MDWORD_TEXT) {
         $documentEdit = $this->getDocumentEdit();
-        $documentEdit->setValue($name, $value);
+        $documentEdit->setValue($name, $value, $type);
     }
     
     public function setValues($values,$pre='') {
@@ -67,7 +67,7 @@ class WordProcessor
      */
     public function deleteP(string $name) {
         $documentEdit = $this->getDocumentEdit();
-        $documentEdit->setValue($name, 'p','delete');
+        $documentEdit->setValue($name, 'p',MDWORD_DELETE);
     }
     
     /**
@@ -76,7 +76,7 @@ class WordProcessor
      */
     public function deleteTr(string $name) {
         $documentEdit = $this->getDocumentEdit();
-        $documentEdit->setValue($name, 'tr','delete');
+        $documentEdit->setValue($name, 'tr',MDWORD_DELETE);
     }
     
     /**
@@ -85,16 +85,16 @@ class WordProcessor
      */
     public function delete(string $name) {
         $documentEdit = $this->getDocumentEdit();
-        $documentEdit->setValue($name, '','text');
+        $documentEdit->setValue($name, '',MDWORD_TEXT);
     }
     
     public function setImageValue($name, $value) {
         $documentEdit = $this->getDocumentEdit();
         if(strlen($name) === 32) {//image md5
             $nodeIdxs = null;
-            $documentEdit->update($nodeIdxs,$name,$value,'image');
+            $documentEdit->update($nodeIdxs,$name,$value,MDWORD_IMG);
         }else{
-            $documentEdit->setValue($name, $value,'image');
+            $documentEdit->setValue($name, $value,MDWORD_IMG);
         }
     }
     
@@ -106,20 +106,20 @@ class WordProcessor
     public function setLinkValue($name, $value) {
         $documentEdit = $this->getDocumentEdit();
         
-        $documentEdit->setValue($name, $value[0],'text');
-        $documentEdit->setValue($name, $value[1],'link');
+        $documentEdit->setValue($name, $value[0],MDWORD_TEXT);
+        $documentEdit->setValue($name, $value[1],MDWORD_LINK);
     }
     
-    /**
-     * @param string $name
-     * @param array $datas
-     * change value ['A1',9,'set']
-     * extention range ['$A$1:$A$5','$A$1:$A$10','ext']
-     */
-    public function setExcelValues($name='',$datas=[]) {
-        $documentEdit = $this->getDocumentEdit();
-        $documentEdit->setValue($name, $datas, 'excel');
-    }
+//     /**
+//      * @param string $name
+//      * @param array $datas
+//      * change value ['A1',9,'set']
+//      * extention range ['$A$1:$A$5','$A$1:$A$10','ext']
+//      */
+//     public function setExcelValues($name='',$datas=[]) {
+//         $documentEdit = $this->getDocumentEdit();
+//         $documentEdit->setValue($name, $datas, 'excel');
+//     }
     
     /**
      * clone p
@@ -128,7 +128,7 @@ class WordProcessor
      */
     public function cloneP($name,$count=1) {
         $documentEdit = $this->getDocumentEdit();
-        $documentEdit->setValue($name, $count, 'cloneP');
+        $documentEdit->setValue($name, $count, MDWORD_CLONEP);
     }
     /**
      * clone
@@ -137,7 +137,7 @@ class WordProcessor
      */
     public function clones($name,$count=1) {
         $documentEdit = $this->getDocumentEdit();
-        $documentEdit->setValue($name, $count, 'clone');
+        $documentEdit->setValue($name, $count, MDWORD_CLONE);
     }
     /**
      * clone
@@ -146,19 +146,19 @@ class WordProcessor
      */
     public function cloneTo($nameTo,$name) {
         $documentEdit = $this->getDocumentEdit();
-        $documentEdit->setValue($nameTo, $name, 'cloneTo');
+        $documentEdit->setValue($nameTo, $name, MDWORD_CLONETO);
     }
     
     
     public function setBreakValue($name, $value) {
         $documentEdit = $this->getDocumentEdit();
-        $documentEdit->setValue($name, $value,'break');
+        $documentEdit->setValue($name, $value,MDWORD_BREAK);
     }
     
     
     public function setBreakPageValue($name, $value=1) {
         $documentEdit = $this->getDocumentEdit();
-        $documentEdit->setValue($name, $value,'breakpage');
+        $documentEdit->setValue($name, $value,MDWORD_PAGE_BREAK);
     }
     
     /**

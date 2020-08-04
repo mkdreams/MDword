@@ -21,14 +21,11 @@ class Bind
         $this->pre = $pre;
     }
     
-    public function bindValue($name,$keyList,$pBindName=null,$callback=null,$emptyCallBack=null) {
+    public function bindValue($name,$keyList,$pBindName=null,$callbackOrValueType=null,$emptyCallBack=null) {
         static $binds = [];
         
         //loop
         if(!is_null($pBindName) && isset($binds[$pBindName])) {
-//             if($name == 'news') {
-//                 var_dump($pBindName,$binds[$pBindName]);exit;
-//             }
             foreach($binds[$pBindName] as $bind) {
                 $bind->bindValue($name,$keyList,null,$callback,$emptyCallBack);
             }
@@ -43,9 +40,6 @@ class Bind
         
         if(is_array($data)) {
             $count = count($data);
-//             if($name == 'news') {
-//                 var_dump($count,$binds[$pBindName]);exit;
-//             }
             $this->wordProcessor->clones($name.$this->pre,$count);
             $i = 0;
             foreach($data as $subData) {
@@ -56,16 +50,16 @@ class Bind
                 $this->wordProcessor->cloneTo($name.$this->pre,$emptyCallBack($data,$this->data),$count);
             }
         }else{
+            $type = MDWORD_TEXT;
             if(!is_null($callback)) {
-                $data = $callback($data,$this->data);
+                if(is_callable($callback)) {
+                    $data = $callback($data,$this->data);
+                }elseif(is_int($callback)) {
+                    $type = $callback;
+                }
             }
-            $this->wordProcessor->setValue($name.$this->pre,$data);
+            $this->wordProcessor->setValue($name.$this->pre,$data,$type);
         }
-        
-        return $this;
-    }
-    
-    public function bindSubValue() {
         
         return $this;
     }

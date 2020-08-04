@@ -111,7 +111,7 @@ class Document extends PartBase
         ];
      * @param string $type
      */
-    public function setValue($name,$value,$type='text',$needRecord=true) {
+    public function setValue($name,$value,$type=MDWORD_TEXT,$needRecord=true) {
         $blocks = $this->getBlocks($name);
         
         if(empty($blocks)) {
@@ -271,7 +271,7 @@ class Document extends PartBase
     
     public function update(&$nodeIdxs,$name,$value,$type) {
         switch ($type) {
-            case 'text':
+            case MDWORD_TEXT:
                 $targetNode = $this->getTarget($nodeIdxs,'r',function($node) {
                     $t = $node->getElementsByTagName('t');
                     if($t->length > 0) {
@@ -385,7 +385,7 @@ class Document extends PartBase
                 
                 $this->markDelete($targetNode);
                 break;
-            case 'image':
+            case MDWORD_IMG:
                 if(is_null($nodeIdxs)) {//md5
                     $rids = $this->getRidByMd5($name);
                     if(empty($rids)) {
@@ -451,18 +451,18 @@ class Document extends PartBase
                 
 //                 echo $this->DOMDocument->saveXML();exit;
                 break;
-            case 'excel':
-                $targetNode = $this->getTarget($beginNode,$endNode,$parentNodeCount,$nextNodeCount,'drawing');
-                if(!is_null($targetNode)) {
-                    $rid = $this->getAttr($targetNode->getElementsByTagName('chart')->item(0), 'id', 'r');
-                    $this->initChart($rid);
-                    $value = $this->charts[$rid]->excel->preDealDatas($value);
-                    $this->charts[$rid]->excel->changeExcelValues($value);
-                    $this->charts[$rid]->chartRelUpdateByType($value,'str');
-                    $this->charts[$rid]->chartRelUpdateByType($value,'num');
-                }
-                break;
-            case 'cloneP':
+//             case 'excel':
+//                 $targetNode = $this->getTarget($beginNode,$endNode,$parentNodeCount,$nextNodeCount,'drawing');
+//                 if(!is_null($targetNode)) {
+//                     $rid = $this->getAttr($targetNode->getElementsByTagName('chart')->item(0), 'id', 'r');
+//                     $this->initChart($rid);
+//                     $value = $this->charts[$rid]->excel->preDealDatas($value);
+//                     $this->charts[$rid]->excel->changeExcelValues($value);
+//                     $this->charts[$rid]->chartRelUpdateByType($value,'str');
+//                     $this->charts[$rid]->chartRelUpdateByType($value,'num');
+//                 }
+//                 break;
+            case MDWORD_CLONEP:
                 $p = $lastNode = $this->getParentToNode($beginNode,'p');
                 $needCloneNodes = [$p];
                 for($i=1;$i<=$value;$i++) {
@@ -484,7 +484,7 @@ class Document extends PartBase
                     $this->updateCommentsId($targetNode, 0);
                 }
                 break;
-            case 'cloneTo':
+            case MDWORD_CLONETO:
                 switch($value['type']) {
                     case MDWORD_DELETE:
                         foreach($nodeIdxs as $nodeIdx) {
@@ -496,7 +496,7 @@ class Document extends PartBase
                         break;
                 }
                 break;
-            case 'clone':
+            case MDWORD_CLONE:
                 if($this->isTc($this->domList[$nodeIdxs[0]])) {
                     $nodeIdxs = [$this->domList[$nodeIdxs[0]]->parentNode->idxBegin];
                 }
@@ -513,7 +513,7 @@ class Document extends PartBase
                     $lastNodeIdx = $this->cloneNode($nodeIdx,$lastNodeIdx,$name,0);
                 }
                 break;
-            case 'delete':
+            case MDWORD_DELETE:
                 if($value == 'p') {
                     foreach($nodeIdxs as $nodeIdx) {
                         $p = $this->getParentToNode($nodeIdx,'p');
@@ -530,12 +530,12 @@ class Document extends PartBase
                     }
                 }
                 break;
-            case 'break':
+            case MDWORD_BREAK:
                 $p = $lastNode = $this->getParentToNode($nodeIdxs[0],'p');
 //                 var_dump($p);exit;
                 $this->updateMDWORD_BREAK($p,$value,true);
                 break;
-            case 'breakpage':
+            case MDWORD_PAGE_BREAK:
                 $p = $lastNode = $this->getParentToNode($beginNode,'p');
                 $childNodes = $p->childNodes;
                 foreach($childNodes as $childNode) {
@@ -562,7 +562,7 @@ class Document extends PartBase
                     }
                 }
                 break;
-            case 'link':
+            case MDWORD_LINK:
                 $this->updateMDWORD_LINK($beginNode, $endNode, $value);
                 break;
             default:

@@ -3,7 +3,7 @@ use MDword\Common\Build;
 use MDword\Common\Common;
 
 require_once(__DIR__.'/../Autoloader.php');
-require_once(__DIR__.'/../src/config/main.php');
+require_once(__DIR__.'/../src/Config/Main.php');
 
 $wordToImageApi = 'http://www.cwoods.online/api/office/wordToImage';
 
