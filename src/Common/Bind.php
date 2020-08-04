@@ -27,7 +27,7 @@ class Bind
         //loop
         if(!is_null($pBindName) && isset($binds[$pBindName])) {
             foreach($binds[$pBindName] as $bind) {
-                $bind->bindValue($name,$keyList,null,$callback,$emptyCallBack);
+                $bind->bindValue($name,$keyList,null,$callbackOrValueType,$emptyCallBack);
             }
             
             return $this;
@@ -51,11 +51,11 @@ class Bind
             }
         }else{
             $type = MDWORD_TEXT;
-            if(!is_null($callback)) {
-                if(is_callable($callback)) {
-                    $data = $callback($data,$this->data);
-                }elseif(is_int($callback)) {
-                    $type = $callback;
+            if(!is_null($callbackOrValueType)) {
+                if(is_callable($callbackOrValueType)) {
+                    $data = $callbackOrValueType($data,$this->data);
+                }elseif(is_int($callbackOrValueType)) {
+                    $type = $callbackOrValueType;
                 }
             }
             $this->wordProcessor->setValue($name.$this->pre,$data,$type);
