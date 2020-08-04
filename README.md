@@ -23,7 +23,7 @@ $TemplateProcessor->load($template);
 $TemplateProcessor->setValue('value', 'r-value');
 
 //克隆并复制
-$TemplateProcessor->clone('people', 3);
+$TemplateProcessor->clones('people', 3);
 
 $TemplateProcessor->setValue('name#0', 'colin0');
 $TemplateProcessor->setValue('name#1', [['text'=>'colin1','style'=>'style','type'=>MDWORD_TEXT]]);

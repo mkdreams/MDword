@@ -61,6 +61,7 @@ class Word
     
     private function read() {
         $this->Content_Types = new ContentTypes($this->getXmlDom('[Content_Types].xml'));
+        $this->Content_Types->word = $this;
         foreach ($this->Content_Types->overrides as $part) {
             if($part['ContentType'] === 14) {//image/png
                 $this->parts[$part['ContentType']][] = ['PartName'=>$part['PartName'],'DOMElement'=>$part['PartName']];

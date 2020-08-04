@@ -42,6 +42,7 @@ class ContentTypes extends PartBase
   28 => 'image/x-wmf',
   29 => 'application/vnd.openxmlformats-officedocument.oleObject',
   30 => 'application/vnd.openxmlformats-officedocument.wordprocessingml.commentsExtensible+xml',
+  31 => 'image/x-ms-bmp',
 )//--CONTENTTYPES--
     ;
     /**

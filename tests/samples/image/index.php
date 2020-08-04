@@ -13,11 +13,23 @@ $TemplateProcessor->load($template);
 
 // $TemplateProcessor->showMedies();//help method for get md5
 
-$TemplateProcessor->setImageValue('image insert', dirname(__FILE__).'/logo.jpg');
 
-$TemplateProcessor->setImageValue('image replace', dirname(__FILE__).'/logo.jpg');
+$TemplateProcessor->clones('row',3);
+$TemplateProcessor->setValue('rowIndex#0',0);
+$TemplateProcessor->setValue('rowIndex#1',1);
+$TemplateProcessor->setValue('rowIndex#2',2);
 
-$TemplateProcessor->setImageValue('2529be7711acbb60c7e4ac1693c680a0', dirname(__FILE__).'/logo.jpg');
+$TemplateProcessor->setImageValue('rowImage#0',dirname(__FILE__).'/img.jpg');
+$TemplateProcessor->setImageValue('rowImage#1',dirname(__FILE__).'/img2.bmp');
+$TemplateProcessor->setImageValue('rowImage#2',dirname(__FILE__).'/img3.png');
+
+$TemplateProcessor->setImageValue('image insert', dirname(__FILE__).'/img.jpg');
+
+$TemplateProcessor->setImageValue('image replace', dirname(__FILE__).'/img.jpg');
+
+$TemplateProcessor->setImageValue('2529be7711acbb60c7e4ac1693c680a0', dirname(__FILE__).'/img.jpg');
+
+
 
 
 $TemplateProcessor->saveAs($rtemplate);

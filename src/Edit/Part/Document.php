@@ -397,6 +397,15 @@ class Document extends PartBase
                     break;
                 }
                 
+                $drawing = $this->getTarget($nodeIdxs,'drawing');
+                if(!is_null($drawing)) {
+                    $refInfo = $this->updateRef($value,null,MDWORD_IMG);
+                    $rId = $refInfo['rId'];
+                    $blip = $drawing->getElementsByTagName('blip')->item(0);
+                    $this->setAttr($blip, 'embed', $rId ,'r');
+                    break;
+                }
+                
                 $drawing = $this->createNodeByXml('image');
                 
                 $refInfo = $this->updateRef($value,null,MDWORD_IMG);
