@@ -111,17 +111,26 @@ class Document extends PartBase
         ];
      * @param string $type
      */
-    public function setValue($name,$value,$type=MDWORD_TEXT,$needRecord=true) {
-        $blocks = $this->getBlocks($name);
-        
-        if(empty($blocks)) {
-            $this->word->log->writeLog('not find name! name: '.$name);
+    public function setValue($name,$value,$type=MDWORD_TEXT) {
+        //todo
+    }
+    
+    public function setValueAction($name,$value,$type=MDWORD_TEXT,$needRecord=true) {
+        if(strlen($name) === 32) {//media md5
+            $blocks = [null];
+        }else{
+            $blocks = $this->getBlocks($name);
+            if(empty($blocks)) {
+                $this->word->log->writeLog('not find name! name: '.$name);
+            }
         }
         
         foreach($blocks as $key => $block) {
             $this->update($block,$name,$value,$type);
-            //add new node idx
-            $this->blocks[$name][$key] = $block;
+            //update node idx
+            if(!is_null($block)) {
+                $this->blocks[$name][$key] = $block;
+            }
             
             if(!$needRecord) {
                 continue;
