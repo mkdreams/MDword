@@ -111,11 +111,7 @@ class Document extends PartBase
         ];
      * @param string $type
      */
-    public function setValue($name,$value,$type=MDWORD_TEXT) {
-        //todo
-    }
-    
-    public function setValueAction($name,$value,$type=MDWORD_TEXT,$needRecord=true) {
+    public function setValue($name,$value,$type=MDWORD_TEXT,$needRecord=true) {
         if(strlen($name) === 32) {//media md5
             $blocks = [null];
         }else{
@@ -388,7 +384,7 @@ class Document extends PartBase
                     $copy = clone $targetNode;
                     $copy->getElementsByTagName('t')->item(0)->nodeValue= $value;
                     $this->treeToList($copy);
-                    $nodeIdxs = array_merge([$copy->idxBegin],$nodeIdxs);
+                    $this->extendIds($targetNode->idxBegin,[$copy->idxBegin]);
                     $this->insertBefore($copy, $targetNode);
                 }
                 
@@ -605,13 +601,16 @@ class Document extends PartBase
             $end = $node->idxEnd;
             $baseIndex = $this->treeToList(null);
             $this->treeToList($cloneNode);
-            $offset = $baseIndex - $begin;
+            $beginIdOldToNew = $this->getTreeToListBeginIdOldToNew($node, $cloneNode->idxBegin);
             
             for($i = $begin; $i <= $end; $i++) {
                 if(isset($this->domIdxToName[$i])) {
-                    $cloneNodeIdx = $i+$offset;
+                    $cloneNodeIdx = $beginIdOldToNew[$i];
                     if(isset($this->idxExtendIdxs[$i])) {
-                        $this->idxExtendIdxs[$cloneNodeIdx] = $this->idxExtendIdxs[$i];
+                        $this->idxExtendIdxs[$cloneNodeIdx] = [];
+                        foreach ($this->idxExtendIdxs[$i] as $oldId) {
+                            $this->idxExtendIdxs[$cloneNodeIdx][] = $beginIdOldToNew[$oldId];
+                        }
                     }
                     
                     $nameTemps = $this->domIdxToName[$i];
@@ -890,7 +889,7 @@ class Document extends PartBase
         }
         
         if(count($indexs) > 0) {
-            $this->idxExtendIdxs[$copyP->idxBegin] = $indexs;
+            $this->extendIds($copyP->idxBegin,$indexs);
         }
         
         return $p;
@@ -952,5 +951,16 @@ class Document extends PartBase
         if(!is_null($targetNode->parentNode)){
             $targetNode->parentNode->removeChild($targetNode); 
         }
+    }
+    /**
+     * 
+     * @param int $id
+     * @param [] $newIds
+     */
+    private function extendIds($id,$newIds) {
+        if(!isset($this->idxExtendIdxs[$id])) {
+            $this->idxExtendIdxs[$id] = [];
+        }
+        $this->idxExtendIdxs[$id] = array_merge($this->idxExtendIdxs[$id],$newIds);
     }
 }

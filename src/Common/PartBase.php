@@ -270,6 +270,31 @@ class PartBase
         $node->idxEnd = $index-1;
     }
     
+    protected function getTreeToListBeginIdOldToNew($node,$beginId,$main=true) {
+        static $beginIdOldToNew = [];
+        static $index = 0;
+        if($main) {
+            $beginIdOldToNew = [];
+            $index = $beginId;
+        }
+        
+        if(!isset($beginIdOldToNew[$node->idxBegin])) {
+            $beginIdOldToNew[$node->idxBegin] = $index;
+        }
+        
+        $index++;
+        if(($node->hasChildNodes())) {
+            foreach($node->childNodes as $childNode) {
+                if($childNode->nodeType !== 3) {
+                    $this->getTreeToListBeginIdOldToNew($childNode,0,false);
+                }
+            }
+            
+        }
+        
+        return $beginIdOldToNew;
+    }
+    
     protected function getCommentRangeEnd($parentNode,$id) {
         $commentRangeEndItems = $parentNode->getElementsByTagName('commentRangeEnd');
         
