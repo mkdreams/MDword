@@ -50,23 +50,8 @@ $TemplateProcessor->saveAs($rtemplate);
 <img src="https://github.com/mkdreams/MDword/blob/master/tests/samples/simple%20for%20readme/word.gif" width="80%" alt="simple for readme gif"/><br/>
 </pre>
 
-## 项目进展
-- [x] 目录随内容更改而更新 （2020/04/09 完成）
-- [ ] readme 完善
-- [ ] tests框架完善
-- [x] 赋值支持克隆属性（字体属性） （2020/04/16 完成）
-- [x] 支持XML赋值 （2020/07/29 完成）
-- [x] 删除区块  （2020/04/16 完成）
-- [x] 支持换行符&分页符
-- [x] 克隆支持段落（cloneP） 
-- [x] 速度优化 (第一轮)
-- [x] 添加bind数据类（简化克隆和赋值操作）
-- [x] 赋值支持图片 （2020/07/29 完成）
-- [ ] API（达到跨语言调用）
-- [x] 目录更新优化 （2020/07/20 完成）
-- [x] 优化速度  (第二轮)（2020/07/20 完成）
-- [ ] 与echarts对接，支持动态绘图(取代word中自带的绘图)
-- [x] 删除分页前换行
+## [项目进展](https://github.com/mkdreams/MDword/projects/1#column-10318470)
+
 
 ## 名称介绍
 母版：在某个word基础上修改的,这个word命名为“母版”
