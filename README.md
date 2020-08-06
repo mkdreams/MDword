@@ -12,7 +12,7 @@ composer require mkdreams/mdword
 //方法二，手动引入自动加载类
 require_once('Autoloader.php');
 ```
-+ ### 使用方法（可参考此实例：tests\samples\simple for readme）
++ ### 使用方法（可参考此实例：[tests\samples\simple for readme](https://github.com/mkdreams/MDword/blob/master/tests/samples/simple%20for%20readme/index.php)）
 ```
 //新建类 加载 母版
 $TemplateProcessor = new WordProcessor();
