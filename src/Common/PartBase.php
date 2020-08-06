@@ -324,7 +324,9 @@ class PartBase
             $parentNodeCount++;
         }
         
-        $traces[] = $startParentNode;
+        if(!isset($delTags[$startParentNode->localName])) {
+            $traces[] = $startParentNode;
+        }
         
         $nextNodeCount = 0;
         $nextSibling = $startParentNode->nextSibling;
@@ -343,7 +345,12 @@ class PartBase
                 $find = false;
                 $preCount = 0;
                 $endCount = 0;
+                $childNodesTemp = [];
                 foreach ($childNodes as $childNode) {
+                    if($find === false) {
+                        $childNodesTemp[] = $childNode;
+                    }
+                    
                     if($find === false && ($childNode === $commentRangeEndItem || $this->getCommentRangeEnd($childNode,$id) !== null)) {
                         $find = true;
                         continue;
@@ -359,24 +366,26 @@ class PartBase
                 }
                 
                 if($endCount === 0) {
-                    $traces[] = $nextSibling;
+                    if(!isset($delTags[$nextSibling->localName])) {
+                        $traces[] = $nextSibling;
+                    }
+                }elseif(count($traces) === 0) {
+                    foreach($childNodesTemp as $trace) {
+                        if(!isset($delTags[$trace->localName])) {
+                            $traces[] = $trace;
+                        }
+                    }
                 }
                 
                 break;
             }else{
-                $traces[] = $nextSibling;
+                if(!isset($delTags[$nextSibling->localName])) {
+                    $traces[] = $nextSibling;
+                }
             }
             
             $nextSibling = $nextSibling->nextSibling;
             $nextNodeCount++;
-        }
-        
-        foreach($traces as $key => $trace) {
-            $tagName = $trace->localName;
-            if(isset($delTags[$tagName])) {
-                unset($traces[$key]);
-                continue;
-            }
         }
         
         return array_values($traces);

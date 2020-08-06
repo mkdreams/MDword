@@ -14,29 +14,27 @@ $TemplateProcessor->load($template);
 // $TemplateProcessor->showMedies();//help method for get md5
 
 $TemplateProcessor->clones('row',3);
-// $TemplateProcessor->setValue('rowIndex#0',0);
-// $TemplateProcessor->setValue('rowIndex#1',1);
-// $TemplateProcessor->setValue('rowIndex#2',2);
-// $TemplateProcessor->setValue('rowIndex#2',3);
+$TemplateProcessor->setValue('rowIndex#0',0);
+$TemplateProcessor->setValue('rowIndex#1',1);
+$TemplateProcessor->setValue('rowIndex#2',2);
+$TemplateProcessor->setValue('rowIndex#2',3);
 $TemplateProcessor->setValue('rowIndex#2',4);
 
-// $TemplateProcessor->setImageValue('rowImage#0',dirname(__FILE__).'/img.jpg');
-// $TemplateProcessor->setImageValue('rowImage#1',dirname(__FILE__).'/img2.bmp');
-// $TemplateProcessor->setImageValue('rowImage#2',dirname(__FILE__).'/img3.png');
+$TemplateProcessor->setImageValue('rowImage#0',dirname(__FILE__).'/img.jpg');
+$TemplateProcessor->setImageValue('rowImage#1',dirname(__FILE__).'/img2.bmp');
+$TemplateProcessor->setImageValue('rowImage#2',dirname(__FILE__).'/img3.png');
 
 $rows = [
-    ['index'=>0,'image'=> dirname(__FILE__).'/img.jpg'],
-    ['index'=>1,'image'=> dirname(__FILE__).'/img2.bmp'],
-    ['index'=>2,'image'=> dirname(__FILE__).'/img3.png'],
+    ['index'=>2,'image'=> dirname(__FILE__).'/img.jpg'],
+    ['index'=>3,'image'=> dirname(__FILE__).'/img2.bmp'],
+    ['index'=>4,'image'=> dirname(__FILE__).'/img3.png'],
 ];
 
 $bind = $TemplateProcessor->getBind($rows);
 $bind->bindValue('row#2',[])
-// ->bindValue('rowIndex#2',['index'],'row#2')
-// ->bindValue('rowImage#2',['image'],'row#2',MDWORD_IMG)
+->bindValue('rowIndex#2',['index'],'row#2')
+->bindValue('rowImage#2',['image'],'row#2',MDWORD_IMG)
 ;
-
-$TemplateProcessor->setValue('rowIndex#2#2',2);
 
 $TemplateProcessor->setImageValue('rowImage#2#1',dirname(__FILE__).'/img.jpg');
 
