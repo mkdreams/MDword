@@ -46,7 +46,7 @@ $TemplateProcessor->deleteP('style');
 $rtemplate = __DIR__.'/r-temple.docx';
 $TemplateProcessor->saveAs($rtemplate);
 ```
-+ ### 辅助理解动图
++ ### 动图
 <pre>
 <img src="https://github.com/mkdreams/MDword/blob/master/tests/samples/simple%20for%20readme/word.gif" width="80%" alt="simple for readme gif"/><br/>
 </pre>
