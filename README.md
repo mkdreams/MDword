@@ -1,4 +1,5 @@
 # MDword
+中文 | English
 ## 项目介绍
 当前版本：Alpha  
 主要用途：动态生成word  
