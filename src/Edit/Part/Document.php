@@ -323,6 +323,9 @@ class Document extends PartBase
                                     break;
                                 case MDWORD_IMG:
                                     $drawing = $this->getStyle($valueArr['style'],MDWORD_IMG);
+                                    if(is_null($drawing)) {
+                                        $drawing = $this->createNodeByXml('image');
+                                    }
                                     $copyDrawing = clone $drawing;
                                     
                                     $refInfo = $this->updateRef($valueArr['text'],null,MDWORD_IMG);
