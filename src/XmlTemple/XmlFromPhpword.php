@@ -83,6 +83,19 @@ class XmlFromPhpword extends AbstractWriter implements WriterInterface
         return $names;
     }
     
+    private function writeImages() {
+        $sectionMedia = Media::getElements('section');
+        $rids = [];
+        foreach($sectionMedia as $media) {
+            if($media['type'] === 'image') {
+                $refInfo = $this->document->updateRef($media['source'],null,MDWORD_IMG);
+                $rids['r:id="rId'.($media['rID']+6).'"'] = 'r:id="'.$refInfo['rId'].'"';
+            }
+        }
+        
+        return $rids;
+    }
+    
     private function getPartXml($partName) {
         $xml = $this->writerParts[$partName]->write();
         return $xml;
@@ -90,9 +103,13 @@ class XmlFromPhpword extends AbstractWriter implements WriterInterface
     
     public function createNodesByBodyXml() {
         $styleNames = $this->writeStyles();
+        $imageRids = $this->writeImages();
         
         $xml = $this->getPartXml('document');
-        $xml = str_replace(array_keys($styleNames), array_values($styleNames), $xml);
+        $xml = str_replace(
+            array_merge(array_keys($styleNames),array_keys($imageRids)),
+            array_merge(array_values($styleNames),array_values($imageRids)),
+            $xml);
         $body = $this->document->createNodeByXml($xml,function($documentElement) {
             return $documentElement->firstChild;
         });

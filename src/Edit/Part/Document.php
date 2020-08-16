@@ -797,7 +797,7 @@ class Document extends PartBase
         }
     }
     
-    private function updateRef($file,$rid=null,$type=MDWORD_IMG) {
+    public function updateRef($file,$rid=null,$type=MDWORD_IMG) {
         if(is_null($this->rels)) {
             $this->initRels();
         }
