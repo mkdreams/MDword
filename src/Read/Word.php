@@ -6,6 +6,7 @@ use MDword\Edit\Part\Comments;
 use MDword\Read\Part\ContentTypes;
 use MDword\Common\Log;
 use MDword\WordProcessor;
+use MDword\Edit\Part\Styles;
 
 class Word 
 {
@@ -26,6 +27,10 @@ class Word
      * @var Comments
      */
     public $commentsEdit = null;
+    /**
+     * @var Styles
+     */
+    public $stylesEdit = null;
     
     public $parts = [];
     

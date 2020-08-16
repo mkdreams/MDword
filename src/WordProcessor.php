@@ -182,6 +182,18 @@ class WordProcessor
         return $documentEdit;
     }
     
+    public function getStylesEdit() {
+        $stylesEdit = $this->words[$this->wordsIndex]->stylesEdit;
+        if(is_null($stylesEdit)) {
+            $document = $this->words[$this->wordsIndex]->parts[4][0]['DOMElement'];
+            $stylesEdit = new Document($this->words[$this->wordsIndex],$document);
+            $this->words[$this->wordsIndex]->stylesEdit = $stylesEdit;
+            $this->words[$this->wordsIndex]->stylesEdit->partName = $this->words[$this->wordsIndex]->parts[4][0]['PartName'];
+        }
+        
+        return $stylesEdit;
+    }
+    
     public function saveAs($fileName)
     {
         $tempFileName = $this->words[$this->wordsIndex]->save();
