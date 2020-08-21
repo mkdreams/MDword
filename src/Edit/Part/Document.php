@@ -358,7 +358,11 @@ class Document extends PartBase
                                     $this->removeMarkDelete($targetNode);
                                     break;
                                 default:
-                                    $rPr = $this->getStyle($valueArr['style']);
+                                    if(isset($valueArr['style'])) {
+                                        $rPr = $this->getStyle($valueArr['style']);
+                                    }else{
+                                        $rPr = null;
+                                    }
                                     if(!is_null($rPr)) {
                                         $rPrCopy = clone $rPr;
                                         $rPrOrg = $copy->getElementsByTagName('rPr')->item(0);

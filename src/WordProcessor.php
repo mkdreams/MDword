@@ -172,7 +172,7 @@ class WordProcessor
             $blocks = [];
             foreach($this->words[$this->wordsIndex]->commentsEdit as $coments) {
                 if($coments->partName === 'word/comments.xml') {
-                    $blocks = $coments->blocks;
+                    $blocks = array_merge($this->words[$this->wordsIndex]->blocks,$coments->blocks);
                 }
             }
             $documentEdit = new Document($this->words[$this->wordsIndex],$document,$blocks);

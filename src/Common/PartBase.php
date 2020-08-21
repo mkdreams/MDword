@@ -275,6 +275,15 @@ class PartBase
         }
         
         $node->idxEnd = $index-1;
+        
+        return $blockBenginAndEndNode;
+    }
+    
+    
+    protected function replace($node, $targetNode) {
+        if($parentNode = $targetNode->parentNode) {
+            $parentNode->replaceChild($node, $targetNode);
+        }
     }
     
     protected function getTreeToListBeginIdOldToNew($node,$beginId,$main=true) {
