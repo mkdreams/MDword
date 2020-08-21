@@ -271,12 +271,9 @@ class PartBase
                     $this->treeToList($childNode);
                 }
             }
-            
         }
         
         $node->idxEnd = $index-1;
-        
-        return $blockBenginAndEndNode;
     }
     
     
