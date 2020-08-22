@@ -7,6 +7,8 @@ use MDword\Read\Part\ContentTypes;
 use MDword\Common\Log;
 use MDword\WordProcessor;
 use MDword\Edit\Part\Styles;
+use MDword\Edit\Part\Footer;
+use MDword\Edit\Part\Header;
 
 class Word 
 {
@@ -20,9 +22,17 @@ class Word
     
     private $tempDocumentFilename = null;
     /**
+     * @var Header
+     */
+    public $headerEdit = null;
+    /**
      * @var Document
      */
     public $documentEdit = null;
+    /**
+     * @var Footer
+     */
+    public $footerEdit = null;
     /**
      * @var Comments
      */
@@ -240,13 +250,17 @@ class Word
 
         
         //remove marked
+        $this->headerEdit->deleteMarked();
         $this->documentEdit->deleteMarked();
+        $this->footerEdit->deleteMarked();
         
         //test
 //         echo $this->documentEdit->DOMDocument->saveXML();exit;
         
         //remove comments tag
+        $this->headerEdit->deleteByXpath('//w:commentRangeStart|//w:commentRangeEnd|//w:commentReference/..');
         $this->documentEdit->deleteByXpath('//w:commentRangeStart|//w:commentRangeEnd|//w:commentReference/..');
+        $this->footerEdit->deleteByXpath('//w:commentRangeStart|//w:commentRangeEnd|//w:commentReference/..');
     }
     
     /**
