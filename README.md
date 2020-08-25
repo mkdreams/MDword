@@ -1,4 +1,5 @@
 # MDword
+中文 | English
 ## 项目介绍
 当前版本：Alpha  
 主要用途：动态生成word  
@@ -45,9 +46,9 @@ $TemplateProcessor->deleteP('style');
 $rtemplate = __DIR__.'/r-temple.docx';
 $TemplateProcessor->saveAs($rtemplate);
 ```
-+ ### 辅助理解动图
++ ### 动图
 <pre>
-<img src="https://github.com/mkdreams/MDword/blob/master/tests/samples/simple%20for%20readme/word.gif" width="80%" alt="simple for readme gif"/><br/>
+<img src="http://www.cwoods.online/static/MDword/simpleforreadme.gif" width="80%" alt="simple for readme gif"/><br/>
 </pre>
 
 ## [项目进展](https://github.com/mkdreams/MDword/projects/1#column-10318470)

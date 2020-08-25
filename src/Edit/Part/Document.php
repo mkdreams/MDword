@@ -2,6 +2,7 @@
 namespace MDword\Edit\Part;
 
 use MDword\Common\PartBase;
+use MDword\XmlTemple\XmlFromPhpword;
 
 class Document extends PartBase
 {
@@ -360,7 +361,11 @@ class Document extends PartBase
                                     $this->removeMarkDelete($targetNode);
                                     break;
                                 default:
-                                    $rPr = $this->getStyle($valueArr['style']);
+                                    if(isset($valueArr['style'])) {
+                                        $rPr = $this->getStyle($valueArr['style']);
+                                    }else{
+                                        $rPr = null;
+                                    }
                                     if(!is_null($rPr)) {
                                         $rPrCopy = clone $rPr;
                                         $rPrOrg = $copy->getElementsByTagName('rPr')->item(0);
@@ -456,20 +461,7 @@ class Document extends PartBase
                 $copyP = $this->updateMDWORD_BREAK($targetNode->parentNode,1,false,['drawing']);
                 $targetNode = $copyP->getElementsByTagName('r')->item(0);
                 $this->removeMarkDelete($targetNode);
-                
-//                 echo $this->DOMDocument->saveXML();exit;
                 break;
-//             case 'excel':
-//                 $targetNode = $this->getTarget($beginNode,$endNode,$parentNodeCount,$nextNodeCount,'drawing');
-//                 if(!is_null($targetNode)) {
-//                     $rid = $this->getAttr($targetNode->getElementsByTagName('chart')->item(0), 'id', 'r');
-//                     $this->initChart($rid);
-//                     $value = $this->charts[$rid]->excel->preDealDatas($value);
-//                     $this->charts[$rid]->excel->changeExcelValues($value);
-//                     $this->charts[$rid]->chartRelUpdateByType($value,'str');
-//                     $this->charts[$rid]->chartRelUpdateByType($value,'num');
-//                 }
-//                 break;
             case MDWORD_CLONEP:
                 $p = $lastNode = $this->getParentToNode($beginNode,'p');
                 $needCloneNodes = [$p];
@@ -573,6 +565,20 @@ class Document extends PartBase
             case MDWORD_LINK:
                 $this->updateMDWORD_LINK($beginNode, $endNode, $value);
                 break;
+            case MDWORD_PHPWORD:
+                //get p
+                $targetNode = $this->getParentToNode($nodeIdxs[0]);
+                    
+                $XmlFromPhpword = new XmlFromPhpword($value,$this);
+                $nodes = $XmlFromPhpword->createNodesByBodyXml();
+                
+                foreach($nodes as $node) {
+                    $copy = clone $node;
+                    $this->insertBefore($copy, $targetNode);
+                }
+                
+                $this->markDelete($targetNode);
+                
             default:
                 break;
         }
@@ -798,7 +804,7 @@ class Document extends PartBase
         }
     }
     
-    private function updateRef($file,$rid=null,$type=MDWORD_IMG) {
+    public function updateRef($file,$rid=null,$type=MDWORD_IMG) {
         if(is_null($this->rels)) {
             $this->initRels();
         }

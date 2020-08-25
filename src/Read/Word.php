@@ -6,6 +6,9 @@ use MDword\Edit\Part\Comments;
 use MDword\Read\Part\ContentTypes;
 use MDword\Common\Log;
 use MDword\WordProcessor;
+use MDword\Edit\Part\Styles;
+use MDword\Edit\Part\Footer;
+use MDword\Edit\Part\Header;
 
 class Word 
 {
@@ -19,17 +22,31 @@ class Word
     
     private $tempDocumentFilename = null;
     /**
+     * @var Header
+     */
+    public $headerEdit = null;
+    /**
      * @var Document
      */
     public $documentEdit = null;
     /**
+     * @var Footer
+     */
+    public $footerEdit = null;
+    /**
      * @var Comments
      */
     public $commentsEdit = null;
+    /**
+     * @var Styles
+     */
+    public $stylesEdit = null;
     
     public $parts = [];
     
     public $files = [];
+    
+    public $blocks = [];
     
     /**
      * @var WordProcessor
@@ -63,10 +80,19 @@ class Word
         $this->Content_Types = new ContentTypes($this->getXmlDom('[Content_Types].xml'));
         $this->Content_Types->word = $this;
         foreach ($this->Content_Types->overrides as $part) {
+            if(in_array($part['ContentType'], [2,22,23])) {//document footer header
+                $standardXmlFunc = function($xml) {
+                    $xml = $this->standardXml($xml);
+                    return $xml;
+                };
+            }else{
+                $standardXmlFunc = null;
+            }
+            
             if($part['ContentType'] === 14) {//image/png
                 $this->parts[$part['ContentType']][] = ['PartName'=>$part['PartName'],'DOMElement'=>$part['PartName']];
             }else{
-                $this->parts[$part['ContentType']][] = ['PartName'=>$part['PartName'],'DOMElement'=>$this->getXmlDom($part['PartName'])];
+                $this->parts[$part['ContentType']][] = ['PartName'=>$part['PartName'],'DOMElement'=>$this->getXmlDom($part['PartName'],$standardXmlFunc)];
             }
         }
     }
@@ -161,6 +187,37 @@ class Word
     }
     
     
+    private function standardXml($xml) {
+        $xml = preg_replace_callback('/\$\{[\s\S]+?\}/i', function($match){
+            return preg_replace('/\s/', '', strip_tags($match[0]));
+        }, $xml);
+        
+        static $commentId = 0;
+        $nameToCommendId = [];
+        $xml = preg_replace_callback('/(<w\:r[> ](?:(?!<w:r[> ])[\S\s])*?<w\:t[ ]{0,1}[^>]*?>)([^><]*?)(<\/w\:t>[\s\S]*?<\/w\:r>)/i', function($matchs) use(&$commentId,&$nameToCommendId){
+            return preg_replace_callback('/\$\{([\s\S]+?)\}/i', function($match) use(&$commentId,&$nameToCommendId,$matchs){
+                $name = $match[1];
+                $length = strlen($name);
+                if($name[$length-1] === '/') {
+                    $name = trim($name,'/');
+                    $this->blocks['r'.$commentId] = $name;
+                    return $matchs[3].'<w:commentRangeStart w:id="r'.$commentId.'"/>'.$matchs[1].$name.$matchs[3].'<w:commentRangeEnd w:id="r'.$commentId++.'"/>'.$matchs[1];
+                }elseif($name[0] === '/') {//begin
+                    $name = trim($name,'/');
+                    return $matchs[3].'<w:commentRangeStart w:id="r'.$nameToCommendId[$name].'"/>'.$matchs[1];
+                }else{//end
+                    $name = trim($name,'/');
+                    $this->blocks['r'.$commentId] = $name;
+                    $nameToCommendId[$name] = $commentId;
+                    return $matchs[3].'<w:commentRangeEnd w:id="r'.$commentId++.'"/>'.$matchs[1];
+                }
+                
+            }, $matchs[0]);
+        }, $xml);
+        
+        return $xml;
+    }
+    
     private function autoDeleteSpaceBeforeBreakPage($xml) {
         ini_set("pcre.backtrack_limit",-1);//回溯bug fixed,-1代表不做限制
         $xml = preg_replace_callback('/<\/w:p>(?:<w:p[ >](?:(?!(<\/w:t>)).)+?<\/w:p>|<w:p\/>)*?\<w\:p(?:(?!<\/w:p>).)*?<w:r>(?:(?!<w:r>).)*?<w:br w:type\=\"page\"\/><\/w:r><\/w:p>/i', function($match) {
@@ -193,13 +250,17 @@ class Word
 
         
         //remove marked
+        $this->headerEdit->deleteMarked();
         $this->documentEdit->deleteMarked();
+        $this->footerEdit->deleteMarked();
         
         //test
 //         echo $this->documentEdit->DOMDocument->saveXML();exit;
         
         //remove comments tag
+        $this->headerEdit->deleteByXpath('//w:commentRangeStart|//w:commentRangeEnd|//w:commentReference/..');
         $this->documentEdit->deleteByXpath('//w:commentRangeStart|//w:commentRangeEnd|//w:commentReference/..');
+        $this->footerEdit->deleteByXpath('//w:commentRangeStart|//w:commentRangeEnd|//w:commentReference/..');
     }
     
     /**
@@ -207,8 +268,11 @@ class Word
      * @param string $filename
      * @return \DOMDocument
      */
-    public function getXmlDom($filename) {
+    public function getXmlDom($filename,$standardXmlFunc=null) {
         $xml = $this->zip->getFromName($filename);
+        if(!is_null($standardXmlFunc)) {
+            $xml = $standardXmlFunc($xml);
+        }
         $domDocument = new \DOMDocument();
         $domDocument->loadXML($xml);
         if(MDWORD_DEBUG === true) {

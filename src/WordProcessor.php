@@ -5,6 +5,8 @@ use MDword\Edit\Part\Document;
 use MDword\Read\Word;
 use MDword\Edit\Part\Comments;
 use MDword\Common\Bind;
+use MDword\Edit\Part\Header;
+use MDword\Edit\Part\Footer;
 
 class WordProcessor
 {
@@ -31,8 +33,6 @@ class WordProcessor
             $this->words[$this->wordsIndex]->commentsEdit[] = $Comment;
         }
         
-        $this->getDocumentEdit();
-        
         return $this->words[$this->wordsIndex];
     }
     
@@ -45,7 +45,11 @@ class WordProcessor
     }
     
     public function setValue($name, $value, $type=MDWORD_TEXT) {
+        $documentEdit = $this->getHeaderEdit();
+        $documentEdit->setValue($name, $value, $type);
         $documentEdit = $this->getDocumentEdit();
+        $documentEdit->setValue($name, $value, $type);
+        $documentEdit = $this->getFooterEdit();
         $documentEdit->setValue($name, $value, $type);
     }
     
@@ -66,7 +70,11 @@ class WordProcessor
      * @param string $name
      */
     public function deleteP(string $name) {
+        $documentEdit = $this->getHeaderEdit();
+        $documentEdit->setValue($name, 'p',MDWORD_DELETE);
         $documentEdit = $this->getDocumentEdit();
+        $documentEdit->setValue($name, 'p',MDWORD_DELETE);
+        $documentEdit = $this->getFooterEdit();
         $documentEdit->setValue($name, 'p',MDWORD_DELETE);
     }
     
@@ -75,7 +83,11 @@ class WordProcessor
      * @param string $name
      */
     public function deleteTr(string $name) {
+        $documentEdit = $this->getHeaderEdit();
+        $documentEdit->setValue($name, 'tr',MDWORD_DELETE);
         $documentEdit = $this->getDocumentEdit();
+        $documentEdit->setValue($name, 'tr',MDWORD_DELETE);
+        $documentEdit = $this->getFooterEdit();
         $documentEdit->setValue($name, 'tr',MDWORD_DELETE);
     }
     
@@ -84,12 +96,20 @@ class WordProcessor
      * @param string $name
      */
     public function delete(string $name) {
+        $documentEdit = $this->getHeaderEdit();
+        $documentEdit->setValue($name, '',MDWORD_TEXT);
         $documentEdit = $this->getDocumentEdit();
+        $documentEdit->setValue($name, '',MDWORD_TEXT);
+        $documentEdit = $this->getFooterEdit();
         $documentEdit->setValue($name, '',MDWORD_TEXT);
     }
     
     public function setImageValue($name, $value) {
+        $documentEdit = $this->getHeaderEdit();
+        $documentEdit->setValue($name, $value,MDWORD_IMG);
         $documentEdit = $this->getDocumentEdit();
+        $documentEdit->setValue($name, $value,MDWORD_IMG);
+        $documentEdit = $this->getFooterEdit();
         $documentEdit->setValue($name, $value,MDWORD_IMG);
     }
     
@@ -99,8 +119,13 @@ class WordProcessor
      * @param array $value
      */
     public function setLinkValue($name, $value) {
+        $documentEdit = $this->getHeaderEdit();
+        $documentEdit->setValue($name, $value[0],MDWORD_TEXT);
+        $documentEdit->setValue($name, $value[1],MDWORD_LINK);
         $documentEdit = $this->getDocumentEdit();
-        
+        $documentEdit->setValue($name, $value[0],MDWORD_TEXT);
+        $documentEdit->setValue($name, $value[1],MDWORD_LINK);
+        $documentEdit = $this->getFooterEdit();
         $documentEdit->setValue($name, $value[0],MDWORD_TEXT);
         $documentEdit->setValue($name, $value[1],MDWORD_LINK);
     }
@@ -122,7 +147,11 @@ class WordProcessor
      * @param int $count
      */
     public function cloneP($name,$count=1) {
+        $documentEdit = $this->getHeaderEdit();
+        $documentEdit->setValue($name, $count, MDWORD_CLONEP);
         $documentEdit = $this->getDocumentEdit();
+        $documentEdit->setValue($name, $count, MDWORD_CLONEP);
+        $documentEdit = $this->getFooterEdit();
         $documentEdit->setValue($name, $count, MDWORD_CLONEP);
     }
     /**
@@ -131,7 +160,11 @@ class WordProcessor
      * @param int $count
      */
     public function clones($name,$count=1) {
+        $documentEdit = $this->getHeaderEdit();
+        $documentEdit->setValue($name, $count, MDWORD_CLONE);
         $documentEdit = $this->getDocumentEdit();
+        $documentEdit->setValue($name, $count, MDWORD_CLONE);
+        $documentEdit = $this->getFooterEdit();
         $documentEdit->setValue($name, $count, MDWORD_CLONE);
     }
     /**
@@ -140,19 +173,31 @@ class WordProcessor
      * @param int $count
      */
     public function cloneTo($nameTo,$name) {
+        $documentEdit = $this->getHeaderEdit();
+        $documentEdit->setValue($nameTo, $name, MDWORD_CLONETO);
         $documentEdit = $this->getDocumentEdit();
+        $documentEdit->setValue($nameTo, $name, MDWORD_CLONETO);
+        $documentEdit = $this->getFooterEdit();
         $documentEdit->setValue($nameTo, $name, MDWORD_CLONETO);
     }
     
     
     public function setBreakValue($name, $value) {
+        $documentEdit = $this->getHeaderEdit();
+        $documentEdit->setValue($name, $value,MDWORD_BREAK);
         $documentEdit = $this->getDocumentEdit();
+        $documentEdit->setValue($name, $value,MDWORD_BREAK);
+        $documentEdit = $this->getFooterEdit();
         $documentEdit->setValue($name, $value,MDWORD_BREAK);
     }
     
     
     public function setBreakPageValue($name, $value=1) {
+        $documentEdit = $this->getHeaderEdit();
+        $documentEdit->setValue($name, $value,MDWORD_PAGE_BREAK);
         $documentEdit = $this->getDocumentEdit();
+        $documentEdit->setValue($name, $value,MDWORD_PAGE_BREAK);
+        $documentEdit = $this->getFooterEdit();
         $documentEdit->setValue($name, $value,MDWORD_PAGE_BREAK);
     }
     
@@ -172,7 +217,7 @@ class WordProcessor
             $blocks = [];
             foreach($this->words[$this->wordsIndex]->commentsEdit as $coments) {
                 if($coments->partName === 'word/comments.xml') {
-                    $blocks = $coments->blocks;
+                    $blocks = array_merge($this->words[$this->wordsIndex]->blocks,$coments->blocks);
                 }
             }
             $documentEdit = new Document($this->words[$this->wordsIndex],$document,$blocks);
@@ -180,6 +225,53 @@ class WordProcessor
             $this->words[$this->wordsIndex]->documentEdit->partName = $this->words[$this->wordsIndex]->parts[2][0]['PartName'];
         }
         return $documentEdit;
+    }
+    
+    private function getHeaderEdit() {
+        $headerEdit = $this->words[$this->wordsIndex]->headerEdit;
+        if(is_null($headerEdit)) {
+            $document = $this->words[$this->wordsIndex]->parts[22][0]['DOMElement'];
+            $blocks = [];
+            foreach($this->words[$this->wordsIndex]->commentsEdit as $coments) {
+                if($coments->partName === 'word/comments.xml') {
+                    $blocks = array_merge($this->words[$this->wordsIndex]->blocks,$coments->blocks);
+                }
+            }
+            $headerEdit = new Header($this->words[$this->wordsIndex],$document,$blocks);
+            $this->words[$this->wordsIndex]->headerEdit = $headerEdit;
+            $this->words[$this->wordsIndex]->headerEdit->partName = $this->words[$this->wordsIndex]->parts[2][0]['PartName'];
+        }
+        return $headerEdit;
+    }
+    
+    
+    private function getFooterEdit() {
+        $footerEdit = $this->words[$this->wordsIndex]->footerEdit;
+        if(is_null($footerEdit)) {
+            $document = $this->words[$this->wordsIndex]->parts[23][0]['DOMElement'];
+            $blocks = [];
+            foreach($this->words[$this->wordsIndex]->commentsEdit as $coments) {
+                if($coments->partName === 'word/comments.xml') {
+                    $blocks = array_merge($this->words[$this->wordsIndex]->blocks,$coments->blocks);
+                }
+            }
+            $footerEdit = new Footer($this->words[$this->wordsIndex],$document,$blocks);
+            $this->words[$this->wordsIndex]->footerEdit = $footerEdit;
+            $this->words[$this->wordsIndex]->footerEdit->partName = $this->words[$this->wordsIndex]->parts[2][0]['PartName'];
+        }
+        return $footerEdit;
+    }
+    
+    public function getStylesEdit() {
+        $stylesEdit = $this->words[$this->wordsIndex]->stylesEdit;
+        if(is_null($stylesEdit)) {
+            $document = $this->words[$this->wordsIndex]->parts[4][0]['DOMElement'];
+            $stylesEdit = new Document($this->words[$this->wordsIndex],$document);
+            $this->words[$this->wordsIndex]->stylesEdit = $stylesEdit;
+            $this->words[$this->wordsIndex]->stylesEdit->partName = $this->words[$this->wordsIndex]->parts[4][0]['PartName'];
+        }
+        
+        return $stylesEdit;
     }
     
     public function saveAs($fileName)
