@@ -13,7 +13,9 @@ composer require mkdreams/mdword
 //方法二，手动引入自动加载类
 require_once('Autoloader.php');
 ```
-+ ### 使用方法（可参考此实例：[tests\samples\simple for readme](https://github.com/mkdreams/MDword/blob/master/tests/samples/simple%20for%20readme/index.php)）
++ ### 给母版“temple.docx”添加批注
+![image](https://github.com/mkdreams/MDword/blob/master/tests/samples/simple%20for%20readme/word%20config.png) 
++ ### 调用方法（可参考此实例：[tests\samples\simple for readme](https://github.com/mkdreams/MDword/blob/master/tests/samples/simple%20for%20readme/index.php)）
 ```
 //新建类 加载 母版
 $TemplateProcessor = new WordProcessor();
@@ -46,10 +48,8 @@ $TemplateProcessor->deleteP('style');
 $rtemplate = __DIR__.'/r-temple.docx';
 $TemplateProcessor->saveAs($rtemplate);
 ```
-+ ### 动图
-<pre>
-<img src="http://www.cwoods.online/static/MDword/simpleforreadme.gif" width="80%" alt="simple for readme gif"/><br/>
-</pre>
++ ### 结果
+![image](https://github.com/mkdreams/MDword/blob/master/tests/samples/simple%20for%20readme/word%20result.png) 
 
 ## [项目进展](https://github.com/mkdreams/MDword/projects/1#column-10318470)
 
