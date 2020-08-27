@@ -109,6 +109,12 @@ class WordProcessor
     }
     
     public function setImageValue($name, $value) {
+        if(strlen($name) === 32) {//media md5
+            $documentEdit = $this->getDocumentEdit();
+            $documentEdit->setValue($name, $value,MDWORD_IMG);
+            retrun ;
+        }
+        
         foreach($this->words[$this->wordsIndex]->needUpdateParts as $func) {
             /**
              * @var Document $documentEdit
@@ -222,12 +228,7 @@ class WordProcessor
         $headerEdit = $this->words[$this->wordsIndex]->headerEdit;
         if(is_null($headerEdit)) {
             $document = $this->words[$this->wordsIndex]->parts[22][0]['DOMElement'];
-            $blocks = [];
-            foreach($this->words[$this->wordsIndex]->commentsEdit as $coments) {
-                if($coments->partName === 'word/comments.xml') {
-                    $blocks = array_merge($this->words[$this->wordsIndex]->blocks,$coments->blocks);
-                }
-            }
+            $blocks = $this->words[$this->wordsIndex]->blocks[22];//header not add comment
             $headerEdit = new Header($this->words[$this->wordsIndex],$document,$blocks);
             $this->words[$this->wordsIndex]->headerEdit = $headerEdit;
             $this->words[$this->wordsIndex]->headerEdit->partName = $this->words[$this->wordsIndex]->parts[2][0]['PartName'];
@@ -242,7 +243,7 @@ class WordProcessor
             $blocks = [];
             foreach($this->words[$this->wordsIndex]->commentsEdit as $coments) {
                 if($coments->partName === 'word/comments.xml') {
-                    $blocks = array_merge($this->words[$this->wordsIndex]->blocks,$coments->blocks);
+                    $blocks = $this->my_array_merge($this->words[$this->wordsIndex]->blocks[2],$coments->blocks);
                 }
             }
             $documentEdit = new Document($this->words[$this->wordsIndex],$document,$blocks);
@@ -256,12 +257,7 @@ class WordProcessor
         $footerEdit = $this->words[$this->wordsIndex]->footerEdit;
         if(is_null($footerEdit)) {
             $document = $this->words[$this->wordsIndex]->parts[23][0]['DOMElement'];
-            $blocks = [];
-            foreach($this->words[$this->wordsIndex]->commentsEdit as $coments) {
-                if($coments->partName === 'word/comments.xml') {
-                    $blocks = array_merge($this->words[$this->wordsIndex]->blocks,$coments->blocks);
-                }
-            }
+            $blocks = $this->words[$this->wordsIndex]->blocks[23];//footer not add comment
             $footerEdit = new Footer($this->words[$this->wordsIndex],$document,$blocks);
             $this->words[$this->wordsIndex]->footerEdit = $footerEdit;
             $this->words[$this->wordsIndex]->footerEdit->partName = $this->words[$this->wordsIndex]->parts[2][0]['PartName'];
@@ -342,6 +338,14 @@ class WordProcessor
                 $this->words[$this->wordsIndex]->zip->addFromString('word/embeddings/'.$fileName, $part['embeddings']['xml']);
             }
         }
+    }
+    
+    public function my_array_merge($arr,$arr2) {
+        foreach($arr2 as $key => $val) {
+            $arr[$key] = $val;
+        }
+        
+        return $arr;
     }
     
     public function showMedies() {
