@@ -49,6 +49,11 @@ class Word
     public $blocks = [];
     
     /**
+     * @var array
+     */
+    public $needUpdateParts = []; 
+    
+    /**
      * @var WordProcessor
      */
     public $wordProcessor = null;
@@ -74,6 +79,17 @@ class Word
         $this->zip->open($this->tempDocumentFilename);
         
         $this->read();
+        
+        //update needUpdateParts
+        if(isset($this->parts['22'])) {
+            $this->needUpdateParts[] = 'getHeaderEdit';
+        }
+        if(isset($this->parts['2'])) {
+            $this->needUpdateParts[] = 'getDocumentEdit';
+        }
+        if(isset($this->parts['23'])) {
+            $this->needUpdateParts[] = 'getFooterEdit';
+        }
     }
     
     private function read() {
@@ -249,18 +265,35 @@ class Word
         }
 
         
-        //remove marked
-        $this->headerEdit->deleteMarked();
-        $this->documentEdit->deleteMarked();
-        $this->footerEdit->deleteMarked();
+        if(isset($this->parts['22'])) {
+            $this->needUpdateParts[] = 'getHeaderEdit';
+        }
+        if(isset($this->parts['2'])) {
+            $this->needUpdateParts[] = 'getDocumentEdit';
+        }
+        if(isset($this->parts['23'])) {
+            $this->needUpdateParts[] = 'getFooterEdit';
+        }
+        
+        foreach($this->needUpdateParts as $func) {
+            switch ($func) {
+                case 'getHeaderEdit':
+                    $this->headerEdit->deleteMarked();//remove marked
+                    $this->headerEdit->deleteByXpath('//w:commentRangeStart|//w:commentRangeEnd|//w:commentReference/..');//remove comments tag
+                    break;
+                case 'getDocumentEdit':
+                    $this->documentEdit->deleteMarked();//remove marked
+                    $this->documentEdit->deleteByXpath('//w:commentRangeStart|//w:commentRangeEnd|//w:commentReference/..');//remove comments tag
+                    break;
+                case 'getFooterEdit':
+                    $this->footerEdit->deleteMarked();//remove marked
+                    $this->footerEdit->deleteByXpath('//w:commentRangeStart|//w:commentRangeEnd|//w:commentReference/..');//remove comments tag
+                    break;
+            }
+        }
         
         //test
 //         echo $this->documentEdit->DOMDocument->saveXML();exit;
-        
-        //remove comments tag
-        $this->headerEdit->deleteByXpath('//w:commentRangeStart|//w:commentRangeEnd|//w:commentReference/..');
-        $this->documentEdit->deleteByXpath('//w:commentRangeStart|//w:commentRangeEnd|//w:commentReference/..');
-        $this->footerEdit->deleteByXpath('//w:commentRangeStart|//w:commentRangeEnd|//w:commentReference/..');
     }
     
     /**
