@@ -111,7 +111,7 @@ class XmlFromPhpword extends AbstractWriter implements WriterInterface
             array_merge(array_values($styleNames),array_values($imageRids)),
             $xml);
         $body = $this->document->createNodeByXml($xml,function($documentElement) {
-            return $documentElement->firstChild;
+            return $documentElement->getElementsByTagName('body')->item(0);
         });
         
         return $body->childNodes;
