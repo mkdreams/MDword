@@ -3,7 +3,7 @@ English
 
 ## 项目通用名称
 母版：在某个word基础上修改的,这个word命名为“母版”   
-block：区块，也就是要被替换或者克隆的部分呢
+区块：也就是要被替换或者克隆的部分呢
 
 
 ## 项目介绍
@@ -64,7 +64,7 @@ $TemplateProcessor->saveAs($rtemplate);
 - [带式样的文字](https://github.com/mkdreams/MDword/tree/master/tests/samples/text)
 - [添加图片](https://github.com/mkdreams/MDword/tree/master/tests/samples/image)
 - [克隆](https://github.com/mkdreams/MDword/tree/master/tests/samples/clone)
-- [多种方式设置block，解决无法添加批注问题](https://github.com/mkdreams/MDword/tree/master/tests/samples/block)
+- [多种方式设置区块，解决无法添加批注问题](https://github.com/mkdreams/MDword/tree/master/tests/samples/block)
 
 ## [项目进展](https://github.com/mkdreams/MDword/projects/1#column-10318470)
 
