@@ -53,7 +53,11 @@ class Bind
             $type = MDWORD_TEXT;
             if(!is_null($callbackOrValueType)) {
                 if(is_callable($callbackOrValueType)) {
-                    $data = $callbackOrValueType($data,$this->data);
+                    $data = $callbackOrValueType($data,$this->data,$this->pre);
+                    if(isset($data['overrideType'])) {
+                        $type = $data['overrideType'];
+                        $data = $data['overrideValue'];
+                    }
                 }elseif(is_int($callbackOrValueType)) {
                     $type = $callbackOrValueType;
                 }

@@ -132,7 +132,8 @@ class Document extends PartBase
             if(!$needRecord) {
                 continue;
             }
-            //--SAVE-ANIMALCODE--//--SAVE-ANIMALCODE--
+            //--SAVE-ANIMALCODE--
+//--SAVE-ANIMALCODE--
         }
     }
     
@@ -158,7 +159,11 @@ class Document extends PartBase
             $this->setAttr($hyperlink, 'anchor', $title['anchor'][0]['name']);
             
             $instrTexts = $copy->getElementsByTagName('instrText');
-            $instrTexts->item(0)->nodeValue = " PAGEREF $anchor \h ";
+            foreach($instrTexts as $instrText) {
+                if(strpos($instrText->nodeValue, 'PAGEREF') > 0) {
+                    $instrText->nodeValue = " PAGEREF $anchor \h ";
+                }
+            }
             
             if($index === 0) {//first add specail node
                 $fldCharBegin = $this->createNodeByXml('<w:r><w:fldChar w:fldCharType="begin" /></w:r>');
@@ -293,6 +298,7 @@ class Document extends PartBase
                 if(is_array($value)) {
                     foreach($value as $valueArr) {
                         $copy = clone $targetNode;
+//                         $this->word->log->writeLog(json_encode($valueArr,JSON_UNESCAPED_UNICODE).': '.memory_get_usage()/1024/1024);
                         if(is_array($valueArr)) {
                             switch ($valueArr['type']){
                                 case MDWORD_BREAK:
@@ -313,6 +319,7 @@ class Document extends PartBase
                                     $this->removeMarkDelete($targetNode);
                                     break;
                                 case MDWORD_PAGE_BREAK:
+                                    $this->updateMDWORD_BREAK_PAGE($targetNode->parentNode,$valueArr['text'],true);
                                     break;
                                 case MDWORD_LINK:
                                     if(!is_null($valueArr['text'])) {
@@ -356,7 +363,7 @@ class Document extends PartBase
                                     $targetNode->getElementsByTagName('t')->item(0)->nodeValue= '';
                                     $targetNode->appendChild($copyDrawing);
                                     
-                                    $copyP = $this->updateMDWORD_BREAK($targetNode->parentNode,1,false,['drawing']);
+                                    $copyP = $this->updateMDWORD_BREAK($targetNode->parentNode,1,false);
                                     $targetNode = $copyP->getElementsByTagName('r')->item(0);
                                     $this->removeMarkDelete($targetNode);
                                     break;
@@ -458,7 +465,7 @@ class Document extends PartBase
                 $this->markDelete($t);
                 $targetNode->appendChild($drawing);
                 
-                $copyP = $this->updateMDWORD_BREAK($targetNode->parentNode,1,false,['drawing']);
+                $copyP = $this->updateMDWORD_BREAK($targetNode->parentNode,1,false);
                 $targetNode = $copyP->getElementsByTagName('r')->item(0);
                 $this->removeMarkDelete($targetNode);
                 break;
@@ -536,31 +543,8 @@ class Document extends PartBase
                 $this->updateMDWORD_BREAK($p,$value,true);
                 break;
             case MDWORD_PAGE_BREAK:
-                $p = $lastNode = $this->getParentToNode($beginNode,'p');
-                $childNodes = $p->childNodes;
-                foreach($childNodes as $childNode) {
-                    $this->markDelete($childNode);
-                }
-                
-                $needCloneNodes = [$p];
-                
-                $breakpage = $this->createNodeByXml('<w:r><w:br w:type="page"/></w:r>');
-                for($i=1;$i<=$value;$i++) {
-                    foreach($needCloneNodes as $targetNode) {
-                        $copy = clone $targetNode;
-//                         var_dump($copy,$breakpage);exit;
-                        $copy->appendChild($breakpage);
-                        $this->updateCommentsId($copy, $i, $value);
-                        if($nextSibling = $lastNode->nextSibling) {
-                            $this->insertBefore($copy,$nextSibling);
-                        }else{
-                            $parentNode = $lastNode->parentNode;
-                            $parentNode->appendChild($copy);
-                        }
-                        
-                        $lastNode = $copy;
-                    }
-                }
+                $p = $this->getParentToNode($nodeIdxs[0],'p');
+                $this->updateMDWORD_BREAK_PAGE($p,$value,true);
                 break;
             case MDWORD_LINK:
                 $this->updateMDWORD_LINK($beginNode, $endNode, $value);
@@ -863,38 +847,61 @@ class Document extends PartBase
     }
     
     
-    private function updateMDWORD_BREAK($p,$count=1,$replace=true,$needDelTags = []) {
+    private function updateMDWORD_BREAK($p,$count=1,$replace=true) {
+        $copyP = $this->createNodeByXml('<w:p></w:p>');
+        if($pPr = $p->getElementsByTagName('pPr')->item(0)) {
+            $this->appendChild($copyP, $pPr);
+        }
+        
+        $t = $p->getElementsByTagName('t')->item(0);
+        
         if($replace === true) {
-            $count -= 1;
-            $copyP = $p;
-        }else{
-            $copyP = clone $p;
-        }
-        
-        $childNodes = $copyP->childNodes;
-        foreach($childNodes as $childNode) {
-            if($childNode->localName === 'pPr') {
-                continue;
-            }
-            
-            $this->markDelete($childNode);
-        }
-        
-        foreach($needDelTags as $needDelTag) {
-            $nodes = $copyP->getElementsByTagName($needDelTag);
-            foreach($nodes as $node) {
-                $node->parentNode->removeChild($node);
-            }
+            $this->markDelete($p);
         }
         
         $indexs = [];
+        $copy = $copyP;
         for($i=0;$i<$count;$i++) {
-            $copy = clone $copyP;
             $baseIndex = $this->treeToList(null);
             $this->treeToList($copy);
             $indexs[] = $baseIndex;
             $this->insertAfter($copy, $p);
             $p = $copy;
+            
+            if($i < $count - 1) {
+                $copy = clone $copyP;
+            }
+        }
+        
+        if(count($indexs) > 0) {
+            $this->extendIds($copyP->idxBegin,$indexs);
+        }
+        
+        $r = clone $t->parentNode;
+        $t = $r->getElementsByTagName('t')->item(0)->nodeValue = ' ';
+        $this->appendChild($p, $r);
+        
+        return $p;
+    }
+    
+    private function updateMDWORD_BREAK_PAGE($p,$count=1,$replace=true) {
+        $copyP = $this->createNodeByXml('<w:p><w:r><w:br w:type="page"/></w:r></w:p>');
+        if($replace === true) {
+            $this->markDelete($p);
+        }
+        
+        $indexs = [];
+        $copy = $copyP;
+        for($i=0;$i<$count;$i++) {
+            $baseIndex = $this->treeToList(null);
+            $this->treeToList($copy);
+            $indexs[] = $baseIndex;
+            $this->insertAfter($copy, $p);
+            $p = $copy;
+            
+            if($i < $count - 1) {
+                $copy = clone $copyP;
+            }
         }
         
         if(count($indexs) > 0) {

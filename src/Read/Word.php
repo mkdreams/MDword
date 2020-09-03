@@ -236,11 +236,17 @@ class Word
     
     private function autoDeleteSpaceBeforeBreakPage($xml) {
         ini_set("pcre.backtrack_limit",-1);//回溯bug fixed,-1代表不做限制
-        $xml = preg_replace_callback('/<\/w:p>(?:<w:p[ >](?:(?!(<\/w:t>)).)+?<\/w:p>|<w:p\/>)*?\<w\:p(?:(?!<\/w:p>).)*?<w:r>(?:(?!<w:r>).)*?<w:br w:type\=\"page\"\/><\/w:r><\/w:p>/i', function($match) {
-            preg_match_all('/(?:<w:p>|<w:p [^>]*?>)(.+?)\<\/w:p>/i', $match[0],$subMatch);
+        $xml = preg_replace_callback('/\<\/w\:p\>(?:\<w\:p\>(?:(?!\<\/w\:t\>|\<v\:imagedata).)+?\<\/w\:p\>|\<w\:p\/\>)*?\<w\:p[^>]*?\>\<w\:r\>\<w\:br w\:type\=\"page\"\/\>\<\/w\:r\>\<\/w\:p\>/i', function($match) {
+            
+            preg_match_all('/\<w\:p[^>]*?\>(.+?)\<\/w\:p\>/i', $match[0],$subMatch);
+            if(!empty($subMatch[1])) {
+                return implode('', $subMatch[1]).'</w:p>';
+            }
             
             return '<w:r><w:br w:type="page"/></w:r></w:p>';
         }, $xml);
+            
+        $xml = preg_replace('/\<w\:p\/\>\<w\:sectPr\>/','<w:sectPr>',$xml);
         
         return $xml;
     }
