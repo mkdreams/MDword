@@ -131,9 +131,6 @@ class Word
         //update Toc
         $this->documentEdit->updateToc();
         
-        //delete again
-        $this->deleteComments();
-        
         foreach($this->parts as $type => $list ) {
             foreach($list as $part) {
                 if(is_object($part['DOMElement'])) {
@@ -160,6 +157,8 @@ class Word
         if (false === $this->zip->close()) {
             throw new \Exception('Could not close zip file.');
         }
+        
+//         trigger_error('debug',E_USER_ERROR);exit;
         
         if(MDWORD_DEBUG === true) {
             $this->zip->open($this->tempDocumentFilename);
@@ -270,26 +269,43 @@ class Word
             $this->zip->deleteName($part['PartName']);
         }
 
-        
         foreach($this->needUpdateParts as $func) {
             switch ($func) {
                 case 'getHeaderEdit':
-                    $this->headerEdit->deleteMarked();//remove marked
-                    $this->headerEdit->deleteByXpath('//w:commentRangeStart|//w:commentRangeEnd|//w:commentReference/..');//remove comments tag
+                    $this->deleteMded($this->headerEdit);
                     break;
                 case 'getDocumentEdit':
-                    $this->documentEdit->deleteMarked();//remove marked
-                    $this->documentEdit->deleteByXpath('//w:commentRangeStart|//w:commentRangeEnd|//w:commentReference/..');//remove comments tag
+                    $this->deleteMded($this->documentEdit);
                     break;
                 case 'getFooterEdit':
-                    $this->footerEdit->deleteMarked();//remove marked
-                    $this->footerEdit->deleteByXpath('//w:commentRangeStart|//w:commentRangeEnd|//w:commentReference/..');//remove comments tag
+                    $this->deleteMded($this->footerEdit);
                     break;
             }
         }
         
         //test
 //         echo $this->documentEdit->DOMDocument->saveXML();exit;
+    }
+    
+    private function deleteMded($edit) {
+        $deleteTags = [
+            'commentRangeStart'=>1,
+            'commentRangeEnd'=>1,
+            'commentReference'=>1
+        ];
+        
+        $willDeleted = [];
+        $edit->treeToListCallback($edit->DOMDocument,function($node) use($edit,$deleteTags,&$willDeleted) {
+            if($edit->getAttr($node,'md',null) || isset($deleteTags[$node->localName])) {
+                $willDeleted[] = $node;
+            }else{
+                return $node;
+            }
+        });
+            
+        foreach($willDeleted as $node) {
+            $edit->removeChild($node);
+        }
     }
     
     /**

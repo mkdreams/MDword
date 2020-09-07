@@ -198,28 +198,29 @@ class Document extends PartBase
         
         
         foreach($this->hyperlinkParentNodeArr as $hyperlinkParentNode) {
-            $this->markDelete($hyperlinkParentNode);
+            $this->removeChild($hyperlinkParentNode);
         }
     }
     
     private function getTitles() {
-        $pPrs = $this->DOMDocument->getElementsByTagName('pPr');
-        
         $titles = [];
-        foreach ($pPrs as $pPr) {
-            $pStyle = $pPr->getElementsByTagName('pStyle');
-            if($pStyle->length > 0) {
-                $pStyle = $pStyle->item(0);
-                $val = intval($this->getAttr($pStyle, 'val'));
+        $edit = $this;
+        $this->treeToListCallback($this->DOMDocument,function($node) use($edit,&$titles) {
+            if($node->localName === 'pStyle') {
+                $val = intval($this->getAttr($node, 'val'));
                 if(isset($this->anchors[$val])) {
+                    $pPr = $node->parentNode;
+                    $anchorInfo = [];
                     $anchorInfo = $this->updateBookMark($pPr->parentNode);
                     $anchorNode = $this->anchors[$val];
                     $copy = clone $anchorNode;
-                    
+    
                     $titles[] = ['copy'=>$copy,'anchor'=>$anchorInfo,'text'=>$pPr->parentNode->textContent];
                 }
+            }else{
+                return $node;
             }
-        }
+        });
         
         return $titles;
     }
@@ -879,6 +880,10 @@ class Document extends PartBase
         
         $r = clone $t->parentNode;
         $t = $r->getElementsByTagName('t')->item(0)->nodeValue = ' ';
+        foreach($r->getElementsByTagName('drawing') as $drawing) {
+            $this->removeChild($drawing);
+        }
+        
         $this->appendChild($p, $r);
         
         return $p;

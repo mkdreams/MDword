@@ -51,6 +51,10 @@ class Stream {
         var_dump($this->cur,$this->pos);
     }
     
+    public function seek($pos) {
+        $this->pos = $pos;
+    }
+    
     public function getUChar() {
         return $this->data[$this->cur++];
     }

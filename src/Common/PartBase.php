@@ -280,6 +280,20 @@ class PartBase
         $node->idxEnd = $index-1;
     }
     
+    public function treeToListCallback($node,$callback) {
+        if(is_null($node)) {
+            return ;
+        }
+        
+        if(($node->hasChildNodes())) {
+            foreach($node->childNodes as $childNode) {
+                if($childNode->nodeType !== 3) {
+                    $this->treeToListCallback($callback($childNode),$callback);
+                }
+            }
+        }
+    }
+    
     
     protected function replace($node, $targetNode) {
         if($parentNode = $targetNode->parentNode) {

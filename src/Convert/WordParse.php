@@ -516,6 +516,10 @@ array (
             }
         }
         
+        if($tableSeeks['nOtherTableSeek'] > 0) {
+            $this->stream->seek($tableSeeks['nOtherTableSeek']);
+        }
+        
         var_dump($aSeekTable);exit;
         
         
