@@ -24,7 +24,7 @@ class Word
     /**
      * @var Header
      */
-    public $headerEdit = null;
+    public $headerEdits = [];
     /**
      * @var Document
      */
@@ -32,7 +32,7 @@ class Word
     /**
      * @var Footer
      */
-    public $footerEdit = null;
+    public $footerEdits = [];
     /**
      * @var Comments
      */
@@ -82,13 +82,17 @@ class Word
         
         //update needUpdateParts
         if(isset($this->parts[22]) && isset($this->blocks[22])) {
-            $this->needUpdateParts[] = 'getHeaderEdit';
+            foreach($this->blocks[22] as $partName => $value) {
+                $this->needUpdateParts[$partName] = ['func'=>'getHeaderEdit','partName'=>$partName];
+            }
         }
         
-        $this->needUpdateParts[] = 'getDocumentEdit';
+        $this->needUpdateParts['word/document.xml'] = ['func'=>'getDocumentEdit','partName'=>'word/document.xml'];
         
         if(isset($this->parts[23])  && isset($this->blocks[23])) {
-            $this->needUpdateParts[] = 'getFooterEdit';
+            foreach($this->blocks[23] as $partName => $value) {
+                $this->needUpdateParts[$partName] = ['func'=>'getFooterEdit','partName'=>$partName];
+            }
         }
     }
     
@@ -98,7 +102,7 @@ class Word
         foreach ($this->Content_Types->overrides as $part) {
             if(in_array($part['ContentType'], [2,22,23])) {//document footer header
                 $standardXmlFunc = function($xml) use($part) {
-                    $xml = $this->standardXml($xml,$part['ContentType']);
+                    $xml = $this->standardXml($xml,$part['ContentType'],$part['PartName']);
                     return $xml;
                 };
             }else{
@@ -204,27 +208,27 @@ class Word
     }
     
     
-    private function standardXml($xml,$ContentType) {
+    private function standardXml($xml,$ContentType,$PartName) {
         $xml = preg_replace_callback('/\$\{[\s\S]+?\}/i', function($match){
             return preg_replace('/\s/', '', strip_tags($match[0]));
         }, $xml);
         
         static $commentId = 0;
         $nameToCommendId = [];
-        $xml = preg_replace_callback('/(<w\:r[> ](?:(?!<w:r[> ])[\S\s])*?<w\:t[ ]{0,1}[^>]*?>)([^><]*?)(<\/w\:t>[\s\S]*?<\/w\:r>)/i', function($matchs) use(&$commentId,&$nameToCommendId,$ContentType){
-            return preg_replace_callback('/\$\{([\s\S]+?)\}/i', function($match) use(&$commentId,&$nameToCommendId,$matchs,$ContentType){
+        $xml = preg_replace_callback('/(<w\:r[> ](?:(?!<w:r[> ])[\S\s])*?<w\:t[ ]{0,1}[^>]*?>)([^><]*?)(<\/w\:t>[\s\S]*?<\/w\:r>)/i', function($matchs) use(&$commentId,&$nameToCommendId,$ContentType,$PartName){
+            return preg_replace_callback('/\$\{([\s\S]+?)\}/i', function($match) use(&$commentId,&$nameToCommendId,$matchs,$ContentType,$PartName){
                 $name = $match[1];
                 $length = strlen($name);
                 if($name[$length-1] === '/') {
                     $name = trim($name,'/');
-                    $this->blocks[$ContentType]['r'.$commentId] = $name;
+                    $this->blocks[$ContentType][$PartName]['r'.$commentId] = $name;
                     return $matchs[3].'<w:commentRangeStart w:id="r'.$commentId.'"/>'.$matchs[1].$name.$matchs[3].'<w:commentRangeEnd w:id="r'.$commentId++.'"/>'.$matchs[1];
                 }elseif($name[0] === '/') {//begin
                     $name = trim($name,'/');
                     return $matchs[3].'<w:commentRangeStart w:id="r'.$nameToCommendId[$name].'"/>'.$matchs[1];
                 }else{//end
                     $name = trim($name,'/');
-                    $this->blocks[$ContentType]['r'.$commentId] = $name;
+                    $this->blocks[$ContentType][$PartName]['r'.$commentId] = $name;
                     $nameToCommendId[$name] = $commentId;
                     return $matchs[3].'<w:commentRangeEnd w:id="r'.$commentId++.'"/>'.$matchs[1];
                 }
@@ -271,16 +275,17 @@ class Word
             $this->zip->deleteName($part['PartName']);
         }
 
-        foreach($this->needUpdateParts as $func) {
+        foreach($this->needUpdateParts as $part) {
+            $func = $part['func'];
             switch ($func) {
                 case 'getHeaderEdit':
-                    $this->deleteMded($this->headerEdit);
+                    $this->deleteMded($this->headerEdits[$part['partName']]);
                     break;
                 case 'getDocumentEdit':
                     $this->deleteMded($this->documentEdit);
                     break;
                 case 'getFooterEdit':
-                    $this->deleteMded($this->footerEdit);
+                    $this->deleteMded($this->footerEdits[$part['partName']]);
                     break;
             }
         }

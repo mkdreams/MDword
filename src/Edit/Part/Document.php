@@ -113,7 +113,7 @@ class Document extends PartBase
      * @param string $type
      */
     public function setValue($name,$value,$type=MDWORD_TEXT,$needRecord=true) {
-        if(strlen($name) === 32) {//media md5
+        if(strlen($name) === 32 || is_array($name)) {//media md5
             $blocks = [null];
         }else{
             $blocks = $this->getBlocks($name);
@@ -408,7 +408,7 @@ class Document extends PartBase
                 break;
             case MDWORD_IMG:
                 if(is_null($nodeIdxs)) {//md5
-                    $rids = $this->getRidByMd5($name);
+                    $rids = $name;
                     if(empty($rids)) {
                         $this->word->log->writeLog('not find image by md5! md5: '.$name);
                     }
@@ -801,7 +801,7 @@ class Document extends PartBase
         }
     }
     
-    private function getRidByMd5($md5) {
+    public function getRidByMd5($md5) {
         if(is_null($this->rels)) {
             $this->initRels();
         }

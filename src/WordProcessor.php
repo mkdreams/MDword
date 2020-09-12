@@ -45,11 +45,13 @@ class WordProcessor
     }
     
     public function setValue($name, $value, $type=MDWORD_TEXT) {
-        foreach($this->words[$this->wordsIndex]->needUpdateParts as $func) {
+        foreach($this->words[$this->wordsIndex]->needUpdateParts as $part) {
+            $func = $part['func'];
+            $partName = $part['partName'];
             /**
              * @var Document $documentEdit
              */
-            $documentEdit = $this->$func();
+            $documentEdit = $this->$func($partName);
             $documentEdit->setValue($name, $value, $type);
         }
     }
@@ -71,11 +73,13 @@ class WordProcessor
      * @param string $name
      */
     public function deleteP(string $name) {
-        foreach($this->words[$this->wordsIndex]->needUpdateParts as $func) {
+        foreach($this->words[$this->wordsIndex]->needUpdateParts as $part) {
+            $func = $part['func'];
+            $partName = $part['partName'];
             /**
              * @var Document $documentEdit
              */
-            $documentEdit = $this->$func();
+            $documentEdit = $this->$func($partName);
             $documentEdit->setValue($name, 'p',MDWORD_DELETE);
         }
     }
@@ -85,11 +89,13 @@ class WordProcessor
      * @param string $name
      */
     public function deleteTr(string $name) {
-        foreach($this->words[$this->wordsIndex]->needUpdateParts as $func) {
+        foreach($this->words[$this->wordsIndex]->needUpdateParts as $part) {
+            $func = $part['func'];
+            $partName = $part['partName'];
             /**
              * @var Document $documentEdit
              */
-            $documentEdit = $this->$func();
+            $documentEdit = $this->$func($partName);
             $documentEdit->setValue($name, 'tr',MDWORD_DELETE);
         }
     }
@@ -99,27 +105,65 @@ class WordProcessor
      * @param string $name
      */
     public function delete(string $name) {
-        foreach($this->words[$this->wordsIndex]->needUpdateParts as $func) {
+        foreach($this->words[$this->wordsIndex]->needUpdateParts as $part) {
+            $func = $part['func'];
+            $partName = $part['partName'];
             /**
              * @var Document $documentEdit
              */
-            $documentEdit = $this->$func();
+            $documentEdit = $this->$func($partName);
             $documentEdit->setValue($name, '',MDWORD_TEXT);
         }
     }
     
     public function setImageValue($name, $value) {
         if(strlen($name) === 32) {//media md5
+            $includeImageEdits = [];
+            
             $documentEdit = $this->getDocumentEdit();
-            $documentEdit->setValue($name, $value,MDWORD_IMG);
-            retrun ;
+            $rids = $documentEdit->getRidByMd5($name);
+            if(!empty($rids)) {
+                $includeImageEdits[] = [$documentEdit,$rids];
+            }
+            
+            foreach ($this->words[$this->wordsIndex]->parts[22] as $part) {
+                $partName = $part['PartName'];
+                $headerEdit = $this->getHeaderEdit($partName);
+                $rids = $headerEdit->getRidByMd5($name);
+                if(!empty($rids)) {
+                    $includeImageEdits[] = [$headerEdit,$rids];
+                    $this->words[$this->wordsIndex]->needUpdateParts[$partName] = ['func'=>'getHeaderEdit','partName'=>$partName];
+                }
+            }
+            
+            foreach ($this->words[$this->wordsIndex]->parts[23] as $part) {
+                $partName = $part['PartName'];
+                $footerEdit = $this->getFooterEdit($partName);
+                $rids = $footerEdit->getRidByMd5($name);
+                if(!empty($rids)) {
+                    $includeImageEdits[] = [$footerEdit,$rids];
+                    $this->words[$this->wordsIndex]->needUpdateParts[$partName] = ['func'=>'getFooterEdit','partName'=>$partName];
+                }
+            }
+            
+            /**
+             * @var Document $edit
+             */
+            $edit = null;
+            foreach($includeImageEdits as list($edit,$rids)) {
+                $edit->setValue($rids, $value,MDWORD_IMG);
+            }
+            
+            return ;
         }
         
-        foreach($this->words[$this->wordsIndex]->needUpdateParts as $func) {
+        foreach($this->words[$this->wordsIndex]->needUpdateParts as $part) {
+            $func = $part['func'];
+            $partName = $part['partName'];
             /**
              * @var Document $documentEdit
              */
-            $documentEdit = $this->$func();
+            $documentEdit = $this->$func($partName);
             $documentEdit->setValue($name, $value,MDWORD_IMG);
         }
     }
@@ -130,11 +174,13 @@ class WordProcessor
      * @param array $value
      */
     public function setLinkValue($name, $value) {
-        foreach($this->words[$this->wordsIndex]->needUpdateParts as $func) {
+        foreach($this->words[$this->wordsIndex]->needUpdateParts as $part) {
+            $func = $part['func'];
+            $partName = $part['partName'];
             /**
              * @var Document $documentEdit
              */
-            $documentEdit = $this->$func();
+            $documentEdit = $this->$func($partName);
             $documentEdit->setValue($name, $value[0],MDWORD_TEXT);
             $documentEdit->setValue($name, $value[1],MDWORD_LINK);
         }
@@ -157,11 +203,13 @@ class WordProcessor
      * @param int $count
      */
     public function cloneP($name,$count=1) {
-        foreach($this->words[$this->wordsIndex]->needUpdateParts as $func) {
+        foreach($this->words[$this->wordsIndex]->needUpdateParts as $part) {
+            $func = $part['func'];
+            $partName = $part['partName'];
             /**
              * @var Document $documentEdit
              */
-            $documentEdit = $this->$func();
+            $documentEdit = $this->$func($partName);
             $documentEdit->setValue($name, $count, MDWORD_CLONEP);
         }
     }
@@ -171,11 +219,13 @@ class WordProcessor
      * @param int $count
      */
     public function clones($name,$count=1) {
-        foreach($this->words[$this->wordsIndex]->needUpdateParts as $func) {
+        foreach($this->words[$this->wordsIndex]->needUpdateParts as $part) {
+            $func = $part['func'];
+            $partName = $part['partName'];
             /**
              * @var Document $documentEdit
              */
-            $documentEdit = $this->$func();
+            $documentEdit = $this->$func($partName);
             $documentEdit->setValue($name, $count, MDWORD_CLONE);
         }
     }
@@ -185,33 +235,39 @@ class WordProcessor
      * @param int $count
      */
     public function cloneTo($nameTo,$name) {
-        foreach($this->words[$this->wordsIndex]->needUpdateParts as $func) {
+        foreach($this->words[$this->wordsIndex]->needUpdateParts as $part) {
+            $func = $part['func'];
+            $partName = $part['partName'];
             /**
              * @var Document $documentEdit
              */
-            $documentEdit = $this->$func();
+            $documentEdit = $this->$func($partName);
             $documentEdit->setValue($nameTo, $name, MDWORD_CLONETO);
         }
     }
     
     
     public function setBreakValue($name, $value) {
-        foreach($this->words[$this->wordsIndex]->needUpdateParts as $func) {
+        foreach($this->words[$this->wordsIndex]->needUpdateParts as $part) {
+            $func = $part['func'];
+            $partName = $part['partName'];
             /**
              * @var Document $documentEdit
              */
-            $documentEdit = $this->$func();
+            $documentEdit = $this->$func($partName);
             $documentEdit->setValue($name, $value,MDWORD_BREAK);
         }
     }
     
     
     public function setBreakPageValue($name, $value=1) {
-        foreach($this->words[$this->wordsIndex]->needUpdateParts as $func) {
+        foreach($this->words[$this->wordsIndex]->needUpdateParts as $part) {
+            $func = $part['func'];
+            $partName = $part['partName'];
             /**
              * @var Document $documentEdit
              */
-            $documentEdit = $this->$func();
+            $documentEdit = $this->$func($partName);
             $documentEdit->setValue($name, $value,MDWORD_PAGE_BREAK);
         }
     }
@@ -224,45 +280,66 @@ class WordProcessor
         $documentEdit->updateToc();
     }
     
-    private function getHeaderEdit() {
-        $headerEdit = $this->words[$this->wordsIndex]->headerEdit;
+    private function getHeaderEdit($partName='word/header1.xml') {
+        $headerEdit = $this->words[$this->wordsIndex]->headerEdits[$partName];
         if(is_null($headerEdit)) {
-            $document = $this->words[$this->wordsIndex]->parts[22][0]['DOMElement'];
-            $blocks = $this->words[$this->wordsIndex]->blocks[22];//header not add comment
+            $index = $this->getPartsIndexByPartName(22,$partName);
+            $document = $this->words[$this->wordsIndex]->parts[22][$index]['DOMElement'];
+            $blocks = $this->words[$this->wordsIndex]->blocks[22][$partName];//header not add comment
+            $blocks = $blocks?$blocks:[];
             $headerEdit = new Header($this->words[$this->wordsIndex],$document,$blocks);
-            $this->words[$this->wordsIndex]->headerEdit = $headerEdit;
-            $this->words[$this->wordsIndex]->headerEdit->partName = $this->words[$this->wordsIndex]->parts[2][0]['PartName'];
+            $this->words[$this->wordsIndex]->headerEdits[$partName] = $headerEdit;
+            $this->words[$this->wordsIndex]->headerEdits[$partName]->partName = $this->words[$this->wordsIndex]->parts[22][$index]['PartName'];
         }
         return $headerEdit;
     }
     
-    private function getDocumentEdit() {
+    private function getDocumentEdit($partName='word/document.xml') {
         $documentEdit = $this->words[$this->wordsIndex]->documentEdit;
         if(is_null($documentEdit)) {
-            $document = $this->words[$this->wordsIndex]->parts[2][0]['DOMElement'];
+            $index = $this->getPartsIndexByPartName(2,$partName);
+            $document = $this->words[$this->wordsIndex]->parts[2][$index]['DOMElement'];
             $blocks = [];
             foreach($this->words[$this->wordsIndex]->commentsEdit as $coments) {
                 if($coments->partName === 'word/comments.xml') {
-                    $blocks = $this->my_array_merge($this->words[$this->wordsIndex]->blocks[2],$coments->blocks);
+                    $blocks = $this->my_array_merge($this->words[$this->wordsIndex]->blocks[2][$partName],$coments->blocks);
                 }
             }
             $documentEdit = new Document($this->words[$this->wordsIndex],$document,$blocks);
             $this->words[$this->wordsIndex]->documentEdit = $documentEdit;
-            $this->words[$this->wordsIndex]->documentEdit->partName = $this->words[$this->wordsIndex]->parts[2][0]['PartName'];
+            $this->words[$this->wordsIndex]->documentEdit->partName = $this->words[$this->wordsIndex]->parts[2][$index]['PartName'];
         }
         return $documentEdit;
     }
     
-    private function getFooterEdit() {
-        $footerEdit = $this->words[$this->wordsIndex]->footerEdit;
+    private function getFooterEdit($partName='word/footer1.xml') {
+        $footerEdit = $this->words[$this->wordsIndex]->footerEdits[$partName];
         if(is_null($footerEdit)) {
-            $document = $this->words[$this->wordsIndex]->parts[23][0]['DOMElement'];
-            $blocks = $this->words[$this->wordsIndex]->blocks[23];//footer not add comment
+            $index = $this->getPartsIndexByPartName(23,$partName);
+            $document = $this->words[$this->wordsIndex]->parts[23][$index]['DOMElement'];
+            $blocks = $this->words[$this->wordsIndex]->blocks[23][$partName];//footer not add comment
+            $blocks = $blocks?$blocks:[];
+//             var_dump($partName,$document,$blocks);
             $footerEdit = new Footer($this->words[$this->wordsIndex],$document,$blocks);
-            $this->words[$this->wordsIndex]->footerEdit = $footerEdit;
-            $this->words[$this->wordsIndex]->footerEdit->partName = $this->words[$this->wordsIndex]->parts[2][0]['PartName'];
+            $this->words[$this->wordsIndex]->footerEdits[$partName] = $footerEdit;
+            $this->words[$this->wordsIndex]->footerEdits[$partName]->partName = $this->words[$this->wordsIndex]->parts[23][$index]['PartName'];
         }
         return $footerEdit;
+    }
+    
+    private function getPartsIndexByPartName($type,$partName) {
+        static $data = null;
+        
+        if(is_null($data)) {
+            $data = [];
+            foreach($this->words[$this->wordsIndex]->parts as $part) {
+                foreach($part as $index => $val) {
+                    $data[$val['PartName']] = $index;
+                }
+            }
+        }
+        
+        return $data[$partName];
     }
     
     public function getStylesEdit() {
