@@ -150,7 +150,7 @@ class Document extends PartBase
         foreach($titles as $index => $title) {
             $anchor = $title['anchor'][0]['name'];
             $copy = $title['copy'];
-            $copy->getElementsByTagName('t')->item(0)->nodeValue = $title['text'];
+            $copy->getElementsByTagName('t')->item(0)->nodeValue = $this->htmlspecialcharsBase($title['text']);
             
             if($tItme = $copy->getElementsByTagName('t')->item(1)) {
                 $tItme->nodeValue = '';
@@ -324,7 +324,7 @@ class Document extends PartBase
                                     break;
                                 case MDWORD_LINK:
                                     if(!is_null($valueArr['text'])) {
-                                        $copy->getElementsByTagName('t')->item(0)->nodeValue= $valueArr['text'];
+                                        $copy->getElementsByTagName('t')->item(0)->nodeValue= $this->htmlspecialcharsBase($valueArr['text']);
                                     }
                                     $this->insertBefore($copy, $targetNode);
                                     $this->markDelete($targetNode);
@@ -385,12 +385,12 @@ class Document extends PartBase
                                             $this->markDelete($rPrOrg);
                                         }
                                     }
-                                    $copy->getElementsByTagName('t')->item(0)->nodeValue= $valueArr['text'];
+                                    $copy->getElementsByTagName('t')->item(0)->nodeValue= $this->htmlspecialcharsBase($valueArr['text']);
                                     $this->insertBefore($copy, $targetNode);
                                     break;
                             }
                         }else{
-                            $copy->getElementsByTagName('t')->item(0)->nodeValue= $valueArr;
+                            $copy->getElementsByTagName('t')->item(0)->nodeValue= $this->htmlspecialcharsBase($valueArr);
                             $this->insertBefore($copy, $targetNode);
                         }
                         
@@ -398,7 +398,7 @@ class Document extends PartBase
                     
                 }else{
                     $copy = clone $targetNode;
-                    $copy->getElementsByTagName('t')->item(0)->nodeValue= $value;
+                    $copy->getElementsByTagName('t')->item(0)->nodeValue= $this->htmlspecialcharsBase($value);
                     $this->treeToList($copy);
                     $this->extendIds($targetNode->idxBegin,[$copy->idxBegin]);
                     $this->insertBefore($copy, $targetNode);
@@ -918,7 +918,7 @@ class Document extends PartBase
     
     private function updateMDWORD_LINK($beginNode,$endNode,$link) {
         $hyperlinkNodeBegin = $this->createNodeByXml('<w:r><w:fldChar w:fldCharType="begin"/></w:r>');
-        $link = htmlspecialchars($link,ENT_COMPAT, 'UTF-8');
+        $link = $this->htmlspecialcharsBase($link);
         $hyperlinkNodePreserve = $this->createNodeByXml('<w:r><w:instrText xml:space="preserve"> HYPERLINK "'.$link.'" \o "'.$link.'" </w:instrText></w:r>');
         
         $hyperlinkNodeSeparate = $this->createNodeByXml('<w:r><w:fldChar w:fldCharType="separate"/></w:r>');

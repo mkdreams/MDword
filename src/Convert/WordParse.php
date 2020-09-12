@@ -2,6 +2,7 @@
 namespace MDword\Convert;
 
 use MDword\Common\Build;
+use MDword\Convert\Read\OtherTable;
 
 class WordParse{
     private $defualtStyle = 
@@ -518,6 +519,9 @@ array (
         
         if($tableSeeks['nOtherTableSeek'] > 0) {
             $this->stream->seek($tableSeeks['nOtherTableSeek']);
+            
+            $OtherTable = new OtherTable($this->stream);
+            $OtherTable->read();
         }
         
         var_dump($aSeekTable);exit;

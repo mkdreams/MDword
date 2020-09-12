@@ -130,6 +130,8 @@ class Word
         
         //update Toc
         $this->documentEdit->updateToc();
+
+        $this->deleteComments();
         
         foreach($this->parts as $type => $list ) {
             foreach($list as $part) {

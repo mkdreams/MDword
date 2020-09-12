@@ -434,4 +434,25 @@ class PartBase
     protected function showXml($node) {
         echo $this->DOMDocument->saveXML($node);exit;
     }
+    
+    protected function htmlspecialcharsBase($string) {
+        $string = $this->my_html_entity_decode($string);
+        $string = filterUtf8(filterSpecailCodeForWord($string));
+        
+        return htmlspecialchars($string,ENT_COMPAT, 'UTF-8');
+    }
+    
+    protected function my_html_entity_decode($string) {
+        static $stringMd5 = '';
+        
+        $md5 = md5($string);
+        if($stringMd5 !== $md5) {
+            $stringMd5 = $md5;
+            $string = html_entity_decode($string);
+            $string = $this->my_html_entity_decode($string);
+        }else{
+            $stringMd5 = '';
+        }
+        return $string;
+    }
 }
