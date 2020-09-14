@@ -366,6 +366,13 @@ class WordProcessor
         unlink($tempFileName);
     }
     
+    public function saveAsContent() {
+        $tempFileName = $this->words[$this->wordsIndex]->save();
+        $content = file_get_contents($tempFileName);
+        unlink($tempFileName);
+        return $content;
+    }
+    
     public function saveAsToPathForTrace($dir,$baseName)
     {
         static $idx = 0;
@@ -448,5 +455,14 @@ class WordProcessor
             }
             
         }
+    }
+    
+    public function getBlockList() {
+        /**
+         * @var Word $word
+         */
+        $word = $this->words[$this->wordsIndex];
+        
+        return $word->blocks;
     }
 }
