@@ -35,7 +35,7 @@ $words = $common->getDirFiles($dir,function($dir,$wordName) {
     return base64_encode(file_get_contents($dir.DIRECTORY_SEPARATOR.$wordName));
 });
 
-$imagesStream = $common->CurlSend($wordToImageApi,['words'=>json_encode($words)],180000);
+$imagesStream = $common->CurlSend($wordToImageApi,'',['words'=>json_encode($words)],180000);
 $images = json_decode($imagesStream,true);
 $frames = $durations = [];
 if(!is_array($images['images'])) {

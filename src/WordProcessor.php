@@ -462,6 +462,9 @@ class WordProcessor
          * @var Word $word
          */
         $word = $this->words[$this->wordsIndex];
+        $DocumentEdit = $this->getDocumentEdit();
+        
+        var_dump($word->blocks,$DocumentEdit->blocks);exit;
         
         return $word->blocks;
     }

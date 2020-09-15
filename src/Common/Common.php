@@ -28,7 +28,7 @@ class Common
         return $files;
     }
     
-    public function CurlSend($url,$post=[],$timeoutMs=30000) {
+    public function CurlSend($url,$headers='',$post=[],$timeoutMs=30000) {
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, FALSE);//https
         curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, FALSE);//https
@@ -42,8 +42,8 @@ class Common
             curl_setopt($ch, CURLOPT_POST, 1);//post方式提交
             if(is_array($post))
                 curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($post));//要提交的信息
-                else
-                    curl_setopt($ch, CURLOPT_POSTFIELDS, $post);//要提交的信息
+            else
+                curl_setopt($ch, CURLOPT_POSTFIELDS, $post);//要提交的信息
                     
         }
         

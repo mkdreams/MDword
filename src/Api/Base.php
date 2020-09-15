@@ -3,11 +3,15 @@ namespace MDword\Api;
 require_once(__DIR__.DIRECTORY_SEPARATOR.'..'.DIRECTORY_SEPARATOR.'Config'.DIRECTORY_SEPARATOR.'Main.php');
 
 use MDword\WordProcessor;
+use MDword\Common\Common;
 
 class Base{
     protected $parameters = [];
+    protected $common = null;
     protected $wordProcessor = null;
     public function __construct() {
+        $this->common = new Common();
+        
         $this->parseParameters();
         $this->wordProcessor = new WordProcessor();
         $this->wordProcessor->load($this->parameters['docUrl']);
@@ -15,31 +19,40 @@ class Base{
     
     private function parseParameters() {
         $this->parameters = [
-            'docUrl'=>MDWORD_TEST_DIRECTORY.'/samples/block/temple.docx',
+            'docUrl'=>MDWORD_TEST_DIRECTORY.'/samples/api/temple.docx',
             'datas'=>[
                 'data1'=>[
                     'type'=>'json',
-                    'data'=>[
-                        ['price'=>100,'change'=>5,'changepercent'=>0.05],
-                        ['price'=>200,'change'=>-10,'changepercent'=>-0.05],
-                        ['price'=>500,'change'=>100,'changepercent'=>0.20],
-                    ]
+                    'dataInfo'=>[
+                        'type'=>'local',
+                        'data'=>json_encode([
+                            ['price'=>100,'change'=>5,'changepercent'=>0.05],
+                            ['price'=>200,'change'=>-10,'changepercent'=>-0.05],
+                            ['price'=>500,'change'=>100,'changepercent'=>0.20],
+                        ])
+                    ],
                 ],
                 'data2'=>[
-                    'type'=>'http',
-                    'url'=>'http://47.52.91.57:8081/bds/ipoNews?accessToken=nxNDMvVTu7yfE0MyzmkLJ6MvwEvOaQsn',
-                    'headers'=>'',
-                    'postData'=>'{"rows":10,"sLanguage":"TC","page":1}',
+                    'type'=>'json',
+                    'dataInfo'=>[
+                        'type'=>'http',
+                        'url'=>'http://restapi2.farseerbi.com/bds/ipoNews?accessToken=3eZF3JrHUtbd5kXc1CVVrLAQf7XUJVWs',
+                        'headers'=>'',
+                        'postData'=>['rows'=>10,'sLanguage'=>'TC','page'=>1],
+                    ],
                 ],
                 'data3'=>[
-                    'type'=>'xml'
+                    'type'=>'csv',
+                    'dataInfo'=>[
+                        'type'=>'http',
+                        'url'=>MDWORD_TEST_DIRECTORY.'/samples/api/simple data.csv',
+                        'headers'=>'',
+                        'postData'=>'',
+                    ],
                 ],
                 'data4'=>[
-                    'type'=>'excel'
+                    'type'=>'xml'
                 ],
-                'data5'=>[
-                    'type'=>'csv'
-                ]
             ],
             'binds'=>[
                 'item'=>[
@@ -54,6 +67,39 @@ class Base{
                         ],
                         'changepercent'=>[
                             'keyList'=>['changepercent'],
+                        ],
+                    ]
+                ],
+                'rows'=>[
+                    'dataKeyName'=>'data2',
+                    'keyList'=>['rows'],
+                    'childrens'=>[
+                        'title'=>[
+                            'keyList'=>['newsSubj'],
+                        ],
+                        'company name'=>[
+                            'keyList'=>['stockName'],
+                        ],
+                        'date'=>[
+                            'keyList'=>['newsDate'],
+                        ],
+                    ]
+                ],
+                'rows2'=>[
+                    'dataKeyName'=>'data3',
+                    'keyList'=>[],
+                    'childrens'=>[
+                        'type2'=>[
+                            'keyList'=>[0],
+                        ],
+                        'title2'=>[
+                            'keyList'=>[1],
+                        ],
+                        'influence2'=>[
+                            'keyList'=>[6],
+                        ],
+                        'date2'=>[
+                            'keyList'=>[3],
                         ],
                     ]
                 ],
