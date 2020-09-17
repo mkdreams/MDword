@@ -250,11 +250,26 @@ class Document extends PartBase
     
     private function getStyle($name='',$type=MDWORD_TEXT) {
         static $styles = [];
+        static $defaultStyle = null;
         
         $stylekey = $name.$type;
         
         if(isset($styles[$stylekey])) {
             return $styles[$stylekey];
+        }
+        
+        if(is_null($defaultStyle)) {
+            $defaultStyle = [];
+            $stylesEdit = $this->word->wordProcessor->getStylesEdit();
+            $tempStyles = $stylesEdit->DOMDocument->getElementsByTagName('style');
+            foreach($tempStyles as $style) {
+                if($this->getAttr($style, 'default') == 1 && $this->getAttr($style, 'type') == 'paragraph') {
+                    if($rPr = $style->getElementsByTagName('rPr')) {
+                        $rPr = $rPr->item(0);
+                        $defaultStyle['rPr'] = $rPr;
+                    }
+                }
+            }
         }
         
         $nodeIdxs = $this->getBlocks($name);
@@ -271,7 +286,7 @@ class Document extends PartBase
                     $rPr = $rPrs->item(0);
                 }
                 
-                $styles[$stylekey] = $rPr;
+                $styles[$stylekey] = $this->mergerPr($rPr, $defaultStyle['rPr']);
                 return $rPr;
                 break;
             case MDWORD_IMG:
@@ -297,13 +312,22 @@ class Document extends PartBase
                 }
                 
                 if(is_array($value)) {
-                    foreach($value as $valueArr) {
+                    foreach($value as $index => $valueArr) {
                         $copy = clone $targetNode;
 //                         $this->word->log->writeLog(json_encode($valueArr,JSON_UNESCAPED_UNICODE).': '.memory_get_usage()/1024/1024);
                         if(is_array($valueArr)) {
                             switch ($valueArr['type']){
                                 case MDWORD_BREAK:
                                     $valueArr['text'] = intval($valueArr['text']);
+                                    
+                                    if(isset($value[$index-1]) && $value[$index-1]['type'] === MDWORD_IMG) {
+                                        $valueArr['text']--;
+                                    }
+                                    
+                                    if($valueArr['text'] <= 0) {
+                                        break;
+                                    }
+                                    
                                     $copyP = $this->updateMDWORD_BREAK($targetNode->parentNode,$valueArr['text'],false);
                                     $this->markDelete($targetNode);
                                     
@@ -361,12 +385,22 @@ class Document extends PartBase
                                         }
                                     }
                                     
+                                    if(isset($value[$index-1]) && $value[$index-1]['type'] !== MDWORD_BREAK) {
+                                        $this->markDelete($targetNode);
+                                        $copyP = $this->updateMDWORD_BREAK($targetNode->parentNode,1,false);
+                                        $targetNode = $copyP->getElementsByTagName('r')->item(0);
+                                        $this->removeMarkDelete($targetNode);
+                                    }
+                                    
                                     $targetNode->getElementsByTagName('t')->item(0)->nodeValue= '';
                                     $targetNode->appendChild($copyDrawing);
                                     
                                     $copyP = $this->updateMDWORD_BREAK($targetNode->parentNode,1,false);
                                     $targetNode = $copyP->getElementsByTagName('r')->item(0);
                                     $this->removeMarkDelete($targetNode);
+                                    if(!isset($value[$index+1])) {
+                                        $this->markDelete($copyP);
+                                    }
                                     break;
                                 default:
                                     if(isset($valueArr['style'])) {

@@ -59,6 +59,14 @@ class PartBase
         }
     }
     
+    public function createElementNS($item,$name,$value,$ns='w') {
+        if(isset($this->xmlns[$ns])) {
+            return $this->DOMDocument->createElementNS($this->xmlns[$ns],$name,$value);
+        }else{
+            return $this->DOMDocument->createElement($name,$value);
+        }
+    }
+    
     public function hasAttr($item,$name,$ns='w') {
         return $item->hasAttributeNS($this->xmlns[$ns],$name);
     }
@@ -454,5 +462,46 @@ class PartBase
             $stringMd5 = '';
         }
         return $string;
+    }
+    
+    /**
+     * @param \DOMDocument $rPr
+     * @param \DOMDocument $default
+     */
+    public function mergerPr($rPr,$default) {
+        if(is_null($rPr)) {
+            return null;
+        }
+        
+        foreach($default->childNodes as $node) {
+            $localName = $node->localName;
+            $items = $rPr->getElementsByTagName($localName);
+            if($items->length > 0) {
+                $item = $items->item(0);
+                $rPrAttrs = $this->getAttributes($item);
+                foreach($node->attributes as $attribute) {
+                    if(!isset($rPrAttrs[$attribute->nodeName]) && !isset($rPrAttrs[$attribute->nodeName.'Theme'])) {
+                        $this->setAttr($item, $attribute->localName, $attribute->value);
+                    }
+                }
+            }else{
+                $copyNode = $this->createElementNS($rPr,$node->nodeName,null);
+                foreach($node->attributes as $attribute) {
+                    $this->setAttr($copyNode, $attribute->localName, $attribute->value);
+                }
+                $this->appendChild($rPr, $copyNode);
+            }
+        }
+        
+        return $rPr;
+    }
+    
+    private function getAttributes($node) {
+        $attrs = [];
+        foreach($node->attributes as $attribute) {
+            $attrs[$attribute->nodeName] = [$attribute->prefix,$attribute->name,$attribute->value];
+        }
+        
+        return $attrs;
     }
 }

@@ -10,5 +10,6 @@ class Styles extends PartBase
         parent::__construct($word);
         
         $this->DOMDocument = $DOMDocument;
+        $this->initNameSpaces();
     }
 }

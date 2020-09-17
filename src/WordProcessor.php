@@ -7,6 +7,7 @@ use MDword\Edit\Part\Comments;
 use MDword\Common\Bind;
 use MDword\Edit\Part\Header;
 use MDword\Edit\Part\Footer;
+use MDword\Edit\Part\Styles;
 
 class WordProcessor
 {
@@ -346,7 +347,7 @@ class WordProcessor
         $stylesEdit = $this->words[$this->wordsIndex]->stylesEdit;
         if(is_null($stylesEdit)) {
             $document = $this->words[$this->wordsIndex]->parts[4][0]['DOMElement'];
-            $stylesEdit = new Document($this->words[$this->wordsIndex],$document);
+            $stylesEdit = new Styles($this->words[$this->wordsIndex],$document);
             $this->words[$this->wordsIndex]->stylesEdit = $stylesEdit;
             $this->words[$this->wordsIndex]->stylesEdit->partName = $this->words[$this->wordsIndex]->parts[4][0]['PartName'];
         }
