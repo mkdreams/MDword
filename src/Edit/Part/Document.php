@@ -1018,4 +1018,44 @@ class Document extends PartBase
         }
         $this->idxExtendIdxs[$id] = array_merge($this->idxExtendIdxs[$id],$newIds);
     }
+    
+    public function getBlockTree() {
+        $domIdxToName = [];
+        foreach($this->blocks as $name => $blocks) {
+            foreach($blocks as $block) {
+                $idxBegin = null;
+                $idxEnd = null;
+                
+                foreach ($block as $index => $id) {
+                    $node = $this->domList[$id];
+                    if($this->isTc($node) && $index > 0) {
+                        $node = $node->parentNode;
+                    }
+                    
+                    if($node->idxBegin < $idxBegin || is_null($idxBegin)) {
+                        $idxBegin = $node->idxBegin;
+                    }
+                    if($node->idxEnd > $idxEnd || is_null($idxEnd)) {
+                        $idxEnd = $node->idxEnd;
+                    }
+                    
+                }
+                $domIdxToName[$idxBegin] = [0,$name];
+                $domIdxToName[$idxEnd] = [1,$name];
+            }
+        }
+        ksort($domIdxToName);
+        
+        $tree = [];
+        foreach($domIdxToName as $info) {
+            if($info[0] === 0) {
+            }
+            
+            if($info[0] === 1) {
+                
+            }
+        }
+        
+        var_dump($domIdxToName);exit;
+    }
 }
