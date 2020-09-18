@@ -150,7 +150,7 @@ class Document extends PartBase
         foreach($titles as $index => $title) {
             $anchor = $title['anchor'][0]['name'];
             $copy = $title['copy'];
-            $copy->getElementsByTagName('t')->item(0)->nodeValue = $this->htmlspecialcharsBase($title['text']);
+            $t = $copy->getElementsByTagName('t')->item(0);$this->setAttr($t, 'space', 'preserve','xml');$t->nodeValue  = $this->htmlspecialcharsBase($title['text']);
             
             if($tItme = $copy->getElementsByTagName('t')->item(1)) {
                 $tItme->nodeValue = '';
@@ -348,7 +348,7 @@ class Document extends PartBase
                                     break;
                                 case MDWORD_LINK:
                                     if(!is_null($valueArr['text'])) {
-                                        $copy->getElementsByTagName('t')->item(0)->nodeValue= $this->htmlspecialcharsBase($valueArr['text']);
+                                        $t = $copy->getElementsByTagName('t')->item(0);$this->setAttr($t, 'space', 'preserve','xml');$t->nodeValue = $this->htmlspecialcharsBase($valueArr['text']);
                                     }
                                     $this->insertBefore($copy, $targetNode);
                                     $this->markDelete($targetNode);
@@ -419,12 +419,12 @@ class Document extends PartBase
                                             $this->markDelete($rPrOrg);
                                         }
                                     }
-                                    $copy->getElementsByTagName('t')->item(0)->nodeValue= $this->htmlspecialcharsBase($valueArr['text']);
+                                    $t = $copy->getElementsByTagName('t')->item(0);$this->setAttr($t, 'space', 'preserve','xml');$t->nodeValue = $this->htmlspecialcharsBase($valueArr['text']);
                                     $this->insertBefore($copy, $targetNode);
                                     break;
                             }
                         }else{
-                            $copy->getElementsByTagName('t')->item(0)->nodeValue= $this->htmlspecialcharsBase($valueArr);
+                            $t = $copy->getElementsByTagName('t')->item(0);$this->setAttr($t, 'space', 'preserve','xml');$t->nodeValue = $this->htmlspecialcharsBase($valueArr);
                             $this->insertBefore($copy, $targetNode);
                         }
                         
@@ -432,7 +432,7 @@ class Document extends PartBase
                     
                 }else{
                     $copy = clone $targetNode;
-                    $copy->getElementsByTagName('t')->item(0)->nodeValue= $this->htmlspecialcharsBase($value);
+                    $t = $copy->getElementsByTagName('t')->item(0);$this->setAttr($t, 'space', 'preserve','xml');$t->nodeValue = $this->htmlspecialcharsBase($value);
                     $this->treeToList($copy);
                     $this->extendIds($targetNode->idxBegin,[$copy->idxBegin]);
                     $this->insertBefore($copy, $targetNode);
@@ -1039,6 +1039,7 @@ class Document extends PartBase
                         $idxEnd = $node->idxEnd;
                     }
                     
+                    
                 }
                 $domIdxToName[$idxBegin] = [0,$name];
                 $domIdxToName[$idxEnd] = [1,$name];
@@ -1046,16 +1047,31 @@ class Document extends PartBase
         }
         ksort($domIdxToName);
         
+        return $this->blockNameTree($domIdxToName);
+    }
+    
+    private function blockNameTree($domIdxToName) {
         $tree = [];
-        foreach($domIdxToName as $info) {
-            if($info[0] === 0) {
+        $name = null;
+        foreach($domIdxToName as $key => $info) {
+            if($info[0] === 0 && is_null($name)) {
+                $name = $info[1];
+                $tree[$name] = $key;
+                $domIdxToNameTemp = [];
+                continue;
             }
             
-            if($info[0] === 1) {
-                
+            if($info[0] === 1 && $name === $info[1]) {
+                if(!empty($domIdxToNameTemp)) {
+                    $tree[$name] = $this->blockNameTree($domIdxToNameTemp);
+                }
+                $name = null;
+                continue;
             }
+            
+            $domIdxToNameTemp[$key] = $info;
         }
         
-        var_dump($domIdxToName);exit;
+        return $tree;
     }
 }
