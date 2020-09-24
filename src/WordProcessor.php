@@ -282,8 +282,7 @@ class WordProcessor
     }
     
     private function getHeaderEdit($partName='word/header1.xml') {
-        $headerEdit = $this->words[$this->wordsIndex]->headerEdits[$partName];
-        if(is_null($headerEdit)) {
+        if(!isset($this->words[$this->wordsIndex]->headerEdits[$partName])) {
             $index = $this->getPartsIndexByPartName(22,$partName);
             $document = $this->words[$this->wordsIndex]->parts[22][$index]['DOMElement'];
             $blocks = $this->words[$this->wordsIndex]->blocks[22][$partName];//header not add comment
@@ -291,7 +290,10 @@ class WordProcessor
             $headerEdit = new Header($this->words[$this->wordsIndex],$document,$blocks);
             $this->words[$this->wordsIndex]->headerEdits[$partName] = $headerEdit;
             $this->words[$this->wordsIndex]->headerEdits[$partName]->partName = $this->words[$this->wordsIndex]->parts[22][$index]['PartName'];
+        }else{
+            $headerEdit = $this->words[$this->wordsIndex]->headerEdits[$partName];
         }
+        
         return $headerEdit;
     }
     
@@ -314,8 +316,7 @@ class WordProcessor
     }
     
     private function getFooterEdit($partName='word/footer1.xml') {
-        $footerEdit = $this->words[$this->wordsIndex]->footerEdits[$partName];
-        if(is_null($footerEdit)) {
+        if(!isset($this->words[$this->wordsIndex]->footerEdits[$partName])) {
             $index = $this->getPartsIndexByPartName(23,$partName);
             $document = $this->words[$this->wordsIndex]->parts[23][$index]['DOMElement'];
             $blocks = $this->words[$this->wordsIndex]->blocks[23][$partName];//footer not add comment
@@ -324,6 +325,8 @@ class WordProcessor
             $footerEdit = new Footer($this->words[$this->wordsIndex],$document,$blocks);
             $this->words[$this->wordsIndex]->footerEdits[$partName] = $footerEdit;
             $this->words[$this->wordsIndex]->footerEdits[$partName]->partName = $this->words[$this->wordsIndex]->parts[23][$index]['PartName'];
+        }else{
+            $footerEdit = $this->words[$this->wordsIndex]->footerEdits[$partName];
         }
         return $footerEdit;
     }
@@ -463,11 +466,33 @@ class WordProcessor
          * @var Word $word
          */
         $word = $this->words[$this->wordsIndex];
-        $DocumentEdit = $this->getDocumentEdit();
+        $tree = [];
+        foreach($word->parts as $type => $parts) {
+            
+            switch ($type) {
+                case 2:
+                    $func = 'getDocumentEdit';
+                    break;
+                case 22:
+                    $func = 'getHeaderEdit';
+                    break;
+                case 23:
+                    $func = 'getFooterEdit';
+                    break;
+                default:
+                    continue 2;
+                    break;
+            }
+            
+            foreach($parts as $part) {
+                /**
+                 * @var Document $document
+                 */
+                $document = $this->$func($part['PartName']);
+                $tree[$type][] = $document->getBlockTree();
+            }
+        }
         
-        $DocumentEdit->getBlockTree();
-//         var_dump($word->blocks,$DocumentEdit->blocks);exit;
-        
-        return $word->blocks;
+        return $tree;
     }
 }
