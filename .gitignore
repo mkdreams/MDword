@@ -4,5 +4,5 @@
 temp-*
 
 tests/Output/*
-tests/Log/*
+tests/Log/*.txt
 
