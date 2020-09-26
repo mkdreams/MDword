@@ -445,7 +445,7 @@ class PartBase
     
     protected function htmlspecialcharsBase($string) {
         $string = $this->my_html_entity_decode($string);
-        $string = filterUtf8(filterSpecailCodeForWord($string));
+        $string = $this->filterUtf8($this->filterSpecailCodeForWord($string));
         
         return htmlspecialchars($string,ENT_COMPAT, 'UTF-8');
     }
@@ -461,6 +461,21 @@ class PartBase
         }else{
             $stringMd5 = '';
         }
+        return $string;
+    }
+    
+    private function filterUtf8($string)
+    {
+        if ($string) {
+            preg_match_all('/[\x00-\x7F]|[\xC0-\xDF][\x80-\xBF]|[\xE0-\xEF][\x80-\xBF]{2}|[\xF0-\xF7][\x80-\xBF]{3}/s', $string, $matches);
+            return implode('', $matches[0]);
+        }
+        return $string;
+    }
+    
+    private function filterSpecailCodeForWord($string) {
+        $string = str_replace(array('￾'),'', $string);
+        $string = preg_replace('/[\x14-\x1F]|[\x08]/i', '', $string);
         return $string;
     }
     

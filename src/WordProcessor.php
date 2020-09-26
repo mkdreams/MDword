@@ -16,6 +16,7 @@ class WordProcessor
     public $isForTrace = false;
     
     public function __construct() {
+        error_reporting(E_ERROR | E_PARSE );
         require_once(dirname(__FILE__).DIRECTORY_SEPARATOR.'Config'.DIRECTORY_SEPARATOR.'Main.php');
     }
     
