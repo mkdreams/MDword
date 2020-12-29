@@ -885,7 +885,7 @@ class Document extends PartBase
     private function updateMDWORD_BREAK($p,$count=1,$replace=true) {
         $copyP = $this->createNodeByXml('<w:p></w:p>');
         if($pPr = $p->getElementsByTagName('pPr')->item(0)) {
-            $this->appendChild($copyP, $pPr);
+            $this->appendChild($copyP, clone $pPr);
         }
         
         $t = $p->getElementsByTagName('t')->item(0);
