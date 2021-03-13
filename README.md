@@ -27,7 +27,7 @@ composer require mkdreams/mdword
 require_once('Autoloader.php');
 ```
 + ### 给母版“temple.docx”添加批注
-![image](https://github.com/mkdreams/MDword/blob/master/tests/samples/simple%20for%20readme/word%20config.png) 
+![image](https://github.com/mkdreams/MDword/blob/master/tests/samples/simple for readme/word config.png) 
 + ### 调用方法（可参考此实例：[tests\samples\simple for readme](https://github.com/mkdreams/MDword/blob/master/tests/samples/simple%20for%20readme/index.php)）
 ```
 //新建类 加载 母版
@@ -72,6 +72,9 @@ $TemplateProcessor->saveAs($rtemplate);
 - [克隆](https://github.com/mkdreams/MDword/tree/master/tests/samples/clone)
 - [多种方式设置区块，解决无法添加批注问题](https://github.com/mkdreams/MDword/tree/master/tests/samples/block)
 - [PHPWORD写入到区块](https://github.com/mkdreams/MDword/tree/master/tests/samples/phpword)
+
+## 交流
+
 
 ## [项目进展](https://github.com/mkdreams/MDword/projects/1#column-10318470)
 
