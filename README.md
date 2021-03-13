@@ -27,7 +27,7 @@ composer require mkdreams/mdword
 require_once('Autoloader.php');
 ```
 + ### 给母版“temple.docx”添加批注
-![image](https://github.com/mkdreams/MDword/blob/master/tests/samples/simple for readme/word config.png) 
+![image](https://user-images.githubusercontent.com/12422458/111026036-1c647700-8423-11eb-9df2-e9a2e5530007.png) 
 + ### 调用方法（可参考此实例：[tests\samples\simple for readme](https://github.com/mkdreams/MDword/blob/master/tests/samples/simple%20for%20readme/index.php)）
 ```
 //新建类 加载 母版
@@ -63,7 +63,11 @@ $TemplateProcessor->saveAs($rtemplate);
 ```
 
 + ### 结果
-![image](https://github.com/mkdreams/MDword/blob/master/tests/samples/simple%20for%20readme/word%20result.png) 
+![image](https://user-images.githubusercontent.com/12422458/111026037-1d95a400-8423-11eb-81e2-941f6b854e34.png) 
+
++ ### 动图
+![image](https://user-images.githubusercontent.com/12422458/111026041-1ec6d100-8423-11eb-8e14-d8daf99a9704.gif) 
+
 
 ## 更多案例
 - [简单的综合案例](https://github.com/mkdreams/MDword/tree/master/tests/samples/simple%20for%20readme)
