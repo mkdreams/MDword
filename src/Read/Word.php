@@ -67,11 +67,11 @@ class Word
     public function load($archive) {
         $this->tempDocumentFilename = tempnam($this->getTempDir(), 'MDword');
         if (false === $this->tempDocumentFilename) {
-            throw new \Exception('temp path make faild!');
+            throw new \Exception('temp path make failed!');
         }
         
         if (false === copy($archive, $this->tempDocumentFilename)) {
-            throw new \Exception($archive.'copy file fiald!');
+            throw new \Exception($archive.' copy file failed!');
         }
         
         
