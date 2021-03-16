@@ -33,7 +33,8 @@ $bind->bindValue('item',[])
 })
 ;
 
-
+$TemplateProcessor->setValue('b', 'B');
+$TemplateProcessor->setValue('2', 'two');
 
 $TemplateProcessor->saveAs($rtemplate);
 

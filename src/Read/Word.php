@@ -215,7 +215,7 @@ class Word
         
         static $commentId = 0;
         $nameToCommendId = [];
-        $xml = preg_replace_callback('/(<w\:r[> ](?:(?!<w:r[> ])[\S\s])*?<w\:t[ ]{0,1}[^>]*?>)([^><]*?)(<\/w\:t>[\s\S]*?<\/w\:r>)/i', function($matchs) use(&$commentId,&$nameToCommendId,$ContentType,$PartName){
+        $xml = preg_replace_callback('/(<[w|m]\:r[> ](?:(?!<[w|m]:r[> ])[\S\s])*?<[w|m]\:t[ ]{0,1}[^>]*?>)([^><]*?)(<\/[w|m]\:t>[\s\S]*?<\/[w|m]\:r>)/i', function($matchs) use(&$commentId,&$nameToCommendId,$ContentType,$PartName){
             return preg_replace_callback('/\$\{([\s\S]+?)\}/i', function($match) use(&$commentId,&$nameToCommendId,$matchs,$ContentType,$PartName){
                 $name = $match[1];
                 $length = strlen($name);
