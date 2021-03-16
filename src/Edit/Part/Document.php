@@ -356,6 +356,13 @@ class Document extends PartBase
                                     break;
                                 case MDWORD_IMG:
                                     $drawing = $this->getStyle($valueArr['style'],MDWORD_IMG);
+                                    $pStyle = $this->getStyle($valueArr['style']);
+                                    if(!is_null($pStyle)) {
+                                        $pPrStyle = $pStyle->parentNode->parentNode->getElementsByTagName('pPr')->item(0);
+                                        $pPrCopy = clone $pPrStyle;
+                                        $this->insertBefore($pPrCopy, $targetNode);
+                                    }
+
                                     if(is_null($drawing)) {
                                         $drawing = $this->createNodeByXml('image');
                                     }
@@ -395,7 +402,7 @@ class Document extends PartBase
                                     $targetNode->getElementsByTagName('t')->item(0)->nodeValue= '';
                                     $targetNode->appendChild($copyDrawing);
                                     
-                                    $copyP = $this->updateMDWORD_BREAK($targetNode->parentNode,1,false);
+                                    $copyP = $this->updateMDWORD_BREAK($targetNode->parentNode,1,false,false);
                                     $targetNode = $copyP->getElementsByTagName('r')->item(0);
                                     $this->removeMarkDelete($targetNode);
                                     if(!isset($value[$index+1])) {
@@ -882,10 +889,12 @@ class Document extends PartBase
     }
     
     
-    private function updateMDWORD_BREAK($p,$count=1,$replace=true) {
+    private function updateMDWORD_BREAK($p,$count=1,$replace=true,$isCopyP=true) {
         $copyP = $this->createNodeByXml('<w:p></w:p>');
-        if($pPr = $p->getElementsByTagName('pPr')->item(0)) {
-            $this->appendChild($copyP, clone $pPr);
+        if($isCopyP){
+            if($pPr = $p->getElementsByTagName('pPr')->item(0)) {
+                $this->appendChild($copyP, clone $pPr);
+            }
         }
         
         $t = $p->getElementsByTagName('t')->item(0);
