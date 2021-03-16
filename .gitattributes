@@ -1,2 +1,5 @@
 # Auto detect text files and perform LF normalization
 * text=auto
+tests/tools/ export-ignore
+tests/Output/ export-ignore
+tests/Log/ export-ignore
