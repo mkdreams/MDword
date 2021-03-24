@@ -70,10 +70,10 @@ class Word
             throw new \Exception('temp path make failed!');
         }
         
-        if (false === copy($archive, $this->tempDocumentFilename)) {
+        
+        if (false === file_put_contents($this->tempDocumentFilename, file_get_contents($archive)) || !is_file($this->tempDocumentFilename)) {
             throw new \Exception($archive.' copy file failed!');
         }
-        
         
         $this->zip = new \ZipArchive();
         $this->zip->open($this->tempDocumentFilename);
