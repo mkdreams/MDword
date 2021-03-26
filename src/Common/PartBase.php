@@ -28,7 +28,9 @@ class PartBase
     protected $idxExtendIdxs = [];
     
     protected $xmlns = [];
-    
+
+    private static $controlCharacters = array();
+
     public function __construct($word=null) {
         $this->rootPath = dirname(__DIR__);
         
@@ -446,7 +448,9 @@ class PartBase
     protected function htmlspecialcharsBase($string) {
         $string = $this->my_html_entity_decode($string);
         $string = $this->filterUtf8($this->filterSpecailCodeForWord($string));
-        
+
+        $string = $this->controlCharacterPHP2OOXML($string);
+
         return htmlspecialchars($string,ENT_COMPAT, 'UTF-8');
     }
     
@@ -479,6 +483,37 @@ class PartBase
         return $string;
     }
     
+     /**
+     * Convert from PHP control character to OpenXML escaped control character
+     *
+     * @param string $value Value to escape
+     * @return string
+     */
+    public static function controlCharacterPHP2OOXML($value = '')
+    {
+        if (empty(self::$controlCharacters)) {
+            self::buildControlCharacters();
+        }
+
+        return str_replace(array_values(self::$controlCharacters), array_keys(self::$controlCharacters), $value);
+    }
+
+    /**
+     * Build control characters array.
+     *
+     * @return void
+     */
+    private static function buildControlCharacters()
+    {
+        for ($i = 0; $i <= 19; ++$i) {
+            if ($i != 9 && $i != 10 && $i != 13) {
+                $find = '_x' . sprintf('%04s', strtoupper(dechex($i))) . '_';
+                $replace = chr($i);
+                self::$controlCharacters[$find] = $replace;
+            }
+        }
+    }
+
     /**
      * @param \DOMDocument $rPr
      * @param \DOMDocument $default

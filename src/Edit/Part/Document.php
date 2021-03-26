@@ -290,7 +290,7 @@ class Document extends PartBase
                 return $rPr;
                 break;
             case MDWORD_IMG:
-                $targetNode = $this->getTarget($beginNode,$endNode,$parentNodeCount,$nextNodeCount,'drawing');
+                $targetNode = $this->getTarget($nodeIdxs,'drawing');
                 $styles[$stylekey] = $targetNode;
                 return $targetNode;
         }
