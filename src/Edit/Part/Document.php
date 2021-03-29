@@ -512,25 +512,18 @@ class Document extends PartBase
                 $this->removeMarkDelete($targetNode);
                 break;
             case MDWORD_CLONEP:
-                $p = $lastNode = $this->getParentToNode($beginNode,'p');
-                $needCloneNodes = [$p];
-                for($i=1;$i<=$value;$i++) {
-                    foreach($needCloneNodes as $targetNode) {
-                        $copy = clone $targetNode;
-                        $this->updateCommentsId($copy, $i, $value);
-                        if($nextSibling = $lastNode->nextSibling) {
-                            $this->insertBefore($copy, $nextSibling);
-                        }else{
-                            $parentNode = $lastNode->parentNode;
-                            $parentNode->appendChild($copy);
-                        }
-                        
-                        $lastNode = $copy;
+                $p = $this->getParentToNode($nodeIdxs[0],'p');
+                $nodeIdxs = [$p->idxBegin];
+                $lastNodeIdx = end($nodeIdxs);
+                for($i=1;$i<$value;$i++) {
+                    foreach($nodeIdxs as $nodeIdx) {
+                        $lastNodeIdx = $this->cloneNode($nodeIdx,$lastNodeIdx,$name,$i);
                     }
                 }
                 
-                foreach($needCloneNodes as $targetNode) {
-                    $this->updateCommentsId($targetNode, 0);
+                //刷新被克隆对象
+                foreach($nodeIdxs as $nodeIdx) {
+                    $lastNodeIdx = $this->cloneNode($nodeIdx,$lastNodeIdx,$name,0);
                 }
                 break;
             case MDWORD_CLONETO:
