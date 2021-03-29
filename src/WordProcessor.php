@@ -362,12 +362,11 @@ class WordProcessor
     public function saveAs($fileName)
     {
         $tempFileName = $this->words[$this->wordsIndex]->save();
-        
         if (file_exists($fileName)) {
             unlink($fileName);
         }
         
-        copy($tempFileName, $fileName);
+        file_put_contents($fileName, file_get_contents($tempFileName));
         unlink($tempFileName);
     }
     
