@@ -28,7 +28,7 @@ require_once('Autoloader.php');
 ```
 + ### 给母版“temple.docx”添加批注
 ![image](https://user-images.githubusercontent.com/12422458/111026036-1c647700-8423-11eb-9df2-e9a2e5530007.png) 
-+ ### 调用方法（可参考此实例：[tests\samples\simple for readme](https://github.com/mkdreams/MDword/blob/master/tests/samples/simple%20for%20readme/index.php)）
++ ### 调用方法（更多更丰富的调用方式，参考案例：[tests\samples\simple for readme](https://github.com/mkdreams/MDword/blob/master/tests/samples/simple%20for%20readme/index.php)，例如：目录、序号等）
 ```
 //新建类 加载 母版
 $TemplateProcessor = new WordProcessor();
