@@ -359,9 +359,9 @@ class WordProcessor
         return $stylesEdit;
     }
     
-    public function saveAs($fileName)
+    public function saveAs($fileName,$remainComments=false)
     {
-        $tempFileName = $this->words[$this->wordsIndex]->save();
+        $tempFileName = $this->words[$this->wordsIndex]->save($remainComments);
         if (file_exists($fileName)) {
             unlink($fileName);
         }
@@ -494,5 +494,51 @@ class WordProcessor
         }
         
         return $tree;
+    }
+
+    public function getUsedCommentIds() {
+        /**
+         * @var Word $word
+         */
+        $word = $this->words[$this->wordsIndex];
+        static $r = null;
+
+        if($r !== null) {
+            return $r;
+        }
+
+        $r = [];
+
+        foreach($word->parts as $type => $parts) {
+            
+            switch ($type) {
+                case 2:
+                    $func = 'getDocumentEdit';
+                    break;
+                case 22:
+                    $func = 'getHeaderEdit';
+                    break;
+                case 23:
+                    $func = 'getFooterEdit';
+                    break;
+                default:
+                    continue 2;
+                    break;
+            }
+            
+            foreach($parts as $part) {
+                /**
+                 * @var Document $document
+                 */
+                $document = $this->$func($part['PartName']);
+                foreach($document->commentsblocks as $id => $comment) {
+                    if(isset($document->usedBlock[$comment])) {
+                        $r[$id] = 1;
+                    }
+                }
+            }
+        }
+        
+        return $r;
     }
 }

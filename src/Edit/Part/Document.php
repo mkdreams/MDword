@@ -9,6 +9,7 @@ class Document extends PartBase
     public $commentsblocks;
     public $charts = [];
     public $blocks = [];
+    public $usedBlock = [];
     private $anchors = [];
     private $hyperlinkParentNodeArr = [];
     
@@ -861,6 +862,9 @@ class Document extends PartBase
         if(!isset($this->blocks[$name])) {
             return [];
         }
+
+        //record use block
+        $this->usedBlock[$name] = 1;
         
         $blocks = [];
         foreach($this->blocks[$name] as $key => $indexs) {

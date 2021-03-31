@@ -128,14 +128,14 @@ class Word
         return $tempDir;
     }
     
-    public function save()
+    public function save($remainComments = false)
     {
-        $this->deleteComments();
+        $this->deleteComments($remainComments);
         
         //update Toc
         $this->documentEdit->updateToc();
 
-        $this->deleteComments();
+        $this->deleteComments($remainComments);
         
         foreach($this->parts as $type => $list ) {
             foreach($list as $part) {
@@ -209,7 +209,7 @@ class Word
     
     
     private function standardXml($xml,$ContentType,$PartName) {
-        $xml = preg_replace_callback('/\$\{[\s\S]+?\}/i', function($match){
+        $xml = preg_replace_callback('/\$[^$]*?\{[\s\S]+?\}/i', function($match){
             return preg_replace('/\s/', '', strip_tags($match[0]));
         }, $xml);
         
@@ -222,15 +222,17 @@ class Word
                 if($name[$length-1] === '/') {
                     $name = trim($name,'/');
                     $this->blocks[$ContentType][$PartName]['r'.$commentId] = $name;
-                    return $matchs[3].'<w:commentRangeStart w:id="r'.$commentId.'"/>'.$matchs[1].$name.$matchs[3].'<w:commentRangeEnd w:id="r'.$commentId++.'"/>'.$matchs[1];
-                }elseif($name[0] === '/') {//begin
+                    return $matchs[3].'<w:commentRangeStart w:id="r'.$commentId.'"/>'.$matchs[1].$match[0].$matchs[3].'<w:commentRangeEnd w:id="r'.$commentId++.'"/>'.$matchs[1];
+                //end
+                }elseif($name[0] === '/') {
                     $name = trim($name,'/');
-                    return $matchs[3].'<w:commentRangeStart w:id="r'.$nameToCommendId[$name].'"/>'.$matchs[1];
-                }else{//end
+                    return $match[0].$matchs[3].'<w:commentRangeEnd w:id="r'.$nameToCommendId[$name].'"/>'.$matchs[1];
+                //start
+                }else{
                     $name = trim($name,'/');
                     $this->blocks[$ContentType][$PartName]['r'.$commentId] = $name;
                     $nameToCommendId[$name] = $commentId;
-                    return $matchs[3].'<w:commentRangeEnd w:id="r'.$commentId++.'"/>'.$matchs[1];
+                    return $matchs[3].'<w:commentRangeStart w:id="r'.$commentId++.'"/>'.$matchs[1].$match[0];
                 }
                 
             }, $matchs[0]);
@@ -256,36 +258,52 @@ class Word
         return $xml;
     }
     
-    private function deleteComments() {
-        $parts = [];
-        if(isset($this->parts[15])) {
-            $parts = array_merge($parts,$this->parts[15]);
-            unset($this->parts[15]);
-        }
-        if(isset($this->parts[16])) {
-            $parts = array_merge($parts,$this->parts[16]);
-            unset($this->parts[16]);
-        }
-        if(isset($this->parts[17])) {
-            $parts = array_merge($parts,$this->parts[17]);
-            unset($this->parts[17]);
-        }
-        
-        foreach($parts as $part) {
-            $this->zip->deleteName($part['PartName']);
+    private function deleteComments($remainComments = true) {
+        if($remainComments) {
+            $edit = $this->commentsEdit[0];
+            $willDeleted = [];
+            $usedCommentIds = $this->wordProcessor->getUsedCommentIds();
+            $edit->treeToListCallback($edit->DOMDocument,function($node) use($edit,$usedCommentIds,&$willDeleted) {
+                if($node->localName == 'comment' && isset($usedCommentIds[$edit->getAttr($node,'id')])) {
+                    $willDeleted[] = $node;
+                }else{
+                    return $node;
+                }
+            });
+
+            foreach($willDeleted as $node) {
+                $edit->removeChild($node);
+            }
+        }else{
+            $parts = [];
+            if(isset($this->parts[15])) {
+                $parts = array_merge($parts,$this->parts[15]);
+                unset($this->parts[15]);
+            }
+            if(isset($this->parts[16])) {
+                $parts = array_merge($parts,$this->parts[16]);
+                unset($this->parts[16]);
+            }
+            if(isset($this->parts[17])) {
+                $parts = array_merge($parts,$this->parts[17]);
+                unset($this->parts[17]);
+            }
+            foreach($parts as $part) {
+                $this->zip->deleteName($part['PartName']);
+            }
         }
 
         foreach($this->needUpdateParts as $part) {
             $func = $part['func'];
             switch ($func) {
                 case 'getHeaderEdit':
-                    $this->deleteMded($this->headerEdits[$part['partName']]);
+                    $this->deleteMded($this->headerEdits[$part['partName']],$remainComments);
                     break;
                 case 'getDocumentEdit':
-                    $this->deleteMded($this->documentEdit);
+                    $this->deleteMded($this->documentEdit,$remainComments);
                     break;
                 case 'getFooterEdit':
-                    $this->deleteMded($this->footerEdits[$part['partName']]);
+                    $this->deleteMded($this->footerEdits[$part['partName']],$remainComments);
                     break;
             }
         }
@@ -294,7 +312,7 @@ class Word
 //         echo $this->documentEdit->DOMDocument->saveXML();exit;
     }
     
-    private function deleteMded($edit) {
+    private function deleteMded($edit,$remainComments=false) {
         $deleteTags = [
             'commentRangeStart'=>1,
             'commentRangeEnd'=>1,
@@ -302,13 +320,26 @@ class Word
         ];
         
         $willDeleted = [];
-        $edit->treeToListCallback($edit->DOMDocument,function($node) use($edit,$deleteTags,&$willDeleted) {
-            if($edit->getAttr($node,'md',null) || isset($deleteTags[$node->localName])) {
-                $willDeleted[] = $node;
-            }else{
-                return $node;
-            }
-        });
+        $usedCommentIds = $this->wordProcessor->getUsedCommentIds();
+        if($remainComments) {
+            $edit->treeToListCallback($edit->DOMDocument,function($node) use($edit,$deleteTags,$usedCommentIds,&$willDeleted) {
+                if($edit->getAttr($node,'md',null)) {
+                    $willDeleted[] = $node;
+                }elseif(isset($deleteTags[$node->localName]) && ($id = $edit->getAttr($node,'id'))[0] !== 'r' && isset($usedCommentIds[$id])){
+                    $willDeleted[] = $node;
+                }else{
+                    return $node;
+                }
+            });
+        }else{
+            $edit->treeToListCallback($edit->DOMDocument,function($node) use($edit,$deleteTags,$usedCommentIds,&$willDeleted) {
+                if($edit->getAttr($node,'md',null) || isset($deleteTags[$node->localName])) {
+                    $willDeleted[] = $node;
+                }else{
+                    return $node;
+                }
+            });
+        }
             
         foreach($willDeleted as $node) {
             $edit->removeChild($node);
