@@ -373,6 +373,10 @@ class Document extends PartBase
                                     $rId = $refInfo['rId'];
                                     $imageInfo = $refInfo['imageInfo'];
                                     
+                                    $docPr = $copyDrawing->getElementsByTagName('docPr')->item(0);
+                                    preg_match("(\d+)",$rId,$idMatch);
+                                    $this->setAttr($docPr, 'id', $idMatch[0], null);
+
                                     $blip = $copyDrawing->getElementsByTagName('blip')->item(0);
                                     $this->setAttr($blip, 'embed', $rId,'r');
                                     
@@ -475,6 +479,10 @@ class Document extends PartBase
                 $rId = $refInfo['rId'];
                 $imageInfo = $refInfo['imageInfo'];
                 
+                $docPr = $drawing->getElementsByTagName('docPr')->item(0);
+                preg_match("(\d+)",$rId,$idMatch);
+                $this->setAttr($docPr, 'id', $idMatch[0], null);
+
                 $blip = $drawing->getElementsByTagName('blip')->item(0);
                 $this->setAttr($blip, 'embed', $rId,'r');
                 
@@ -508,9 +516,9 @@ class Document extends PartBase
                 $this->markDelete($t);
                 $targetNode->appendChild($drawing);
                 
-                $copyP = $this->updateMDWORD_BREAK($targetNode->parentNode,1,false);
-                $targetNode = $copyP->getElementsByTagName('r')->item(0);
-                $this->removeMarkDelete($targetNode);
+                // $copyP = $this->updateMDWORD_BREAK($targetNode->parentNode,1,false);
+                // $targetNode = $copyP->getElementsByTagName('r')->item(0);
+                // $this->removeMarkDelete($targetNode);
                 break;
             case MDWORD_CLONEP:
                 $p = $this->getParentToNode($nodeIdxs[0],'p');
