@@ -303,10 +303,10 @@ class WordProcessor
         if(is_null($documentEdit)) {
             $index = $this->getPartsIndexByPartName(2,$partName);
             $document = $this->words[$this->wordsIndex]->parts[2][$index]['DOMElement'];
-            $blocks = [];
-            foreach($this->words[$this->wordsIndex]->commentsEdit as $coments) {
-                if($coments->partName === 'word/comments.xml') {
-                    $blocks = $this->my_array_merge($this->words[$this->wordsIndex]->blocks[2][$partName],$coments->blocks);
+            $blocks = $this->words[$this->wordsIndex]->blocks[2][$partName];
+            foreach($this->words[$this->wordsIndex]->commentsEdit as $comments) {
+                if($comments->partName === 'word/comments.xml') {
+                    $blocks = $this->my_array_merge($blocks,$comments->blocks);
                 }
             }
             $documentEdit = new Document($this->words[$this->wordsIndex],$document,$blocks);
