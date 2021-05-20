@@ -85,7 +85,7 @@ $TemplateProcessor->saveAs($rtemplate);
 
 - [Many ways to set blocks, solving the lack of notes](https://github.com/mkdreams/MDword/tree/master/tests/samples/block)
 
-- [Write element that is wrote by PHPword to the block](https://github.com/mkdreams/MDword/tree/master/tests/samples/phpword)
+- [Write element that is written by PHPword to the block](https://github.com/mkdreams/MDword/tree/master/tests/samples/phpword)
 
 ## Communication
 ### Note: Exchange idea on MDword.
