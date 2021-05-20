@@ -2,7 +2,7 @@
 ## [中文文档](https://github.com/mkdreams/MDword/tree/master/README-CN.md)
 
 ##  Project General Name
-Template: a word which is revised.
+Template: a word which will be revised.
 Block: the part which will be replaced or cloned.
 
 ## Project Introduction
