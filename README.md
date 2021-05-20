@@ -26,6 +26,7 @@ composer require mkdreams/mdword
 // Method 2, Autoloading Template
 require_once('Autoloader.php');
 ```
+
 + ### Add annotations or use “${value/}” to the template. Please note that there is a “/” at the end.
 ![image](https://user-images.githubusercontent.com/12422458/111026036-1c647700-8423-11eb-9df2-e9a2e5530007.png) 
 + ### Invocation Methods (more and richer approaches, for example: [tests\samples\simple for readme](https://github.com/mkdreams/MDword/blob/master/tests/samples/simple%20for%20readme/index.php), such as catalog, sequence number, etc.)
