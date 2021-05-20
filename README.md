@@ -1,44 +1,44 @@
-# MDword
+# MDword 
+## [中文文档](https://github.com/mkdreams/MDword/README-CN.md)
 
-## 项目通用名称
-母版：在某个word基础上修改的,这个word命名为“母版”   
-区块：也就是要被替换或者克隆的部分呢
+##  Project General Name
+Template: a word which is revised.
+Block: the part which will be replaced or cloned.
 
+## Project Introduction
+Main Use: to generate word dynamically.  
+Advantage: focus only on dynamic data and logic, rather than adjusting the style, which can modulate the template with the help of office word.
 
-## 项目介绍
-主要用途：动态生成word  
-优势：生成word只需关注动态数据及逻辑，无需关注式样的调整（式样可以借助office word调整母版即可）
+## Comparison between MDword & PHPword
++ ### Similarities
+1. PHP Package.
+2. Both can be used to generate office word.
 
-## 与PHPWord的爱恨情仇
-+ ### 共同点
-1. PHP编写的库（资源包）
-2. 用于生成office word
++ ### Differences
+1. Elements need to be written one by one in PHPword. However, it is more efficient for MDword to achieve that by revising the template.
+2. For updating text styles, adding covers, headers and footers, MDword just modifies the template by office word, while PHPword complicate the task-adjusting every element.
 
-+ ### 不同点
-1. PHPWord 需要一个元素一个元素的写入，而MDword则是在母版的基础上修改，编码效率更高
-2. 修改文字式样，增加封面，修改页眉页脚MDword只需用word编辑软件调整母版，而PHPWord需要繁琐的去调整每个元素
-
-## 教程
-+ ### 安装
+## Tutotials
++ ### Installation
 ```
-//方法一
+// Method 1
 composer require mkdreams/mdword
-//方法二，手动引入自动加载类
+// Method 2, Autoloading Template
 require_once('Autoloader.php');
 ```
-+ ### 给母版“temple.docx”添加批注
++ ### Add annotations or use “${value/}” to the template. Please note that there is a “/” at the end.
 ![image](https://user-images.githubusercontent.com/12422458/111026036-1c647700-8423-11eb-9df2-e9a2e5530007.png) 
-+ ### 调用方法（更多更丰富的调用方式，参考案例：[tests\samples\simple for readme](https://github.com/mkdreams/MDword/blob/master/tests/samples/simple%20for%20readme/index.php)，例如：目录、序号等）
++ ### Invocation Methods (more and richer approaches, for example: [tests\samples\simple for readme](https://github.com/mkdreams/MDword/blob/master/tests/samples/simple%20for%20readme/index.php), such as catalog, sequence number, etc.)
 ```
-//新建类 加载 母版
+// New class,load template
 $TemplateProcessor = new WordProcessor();
 $template = 'temple.docx';
 $TemplateProcessor->load($template);
 
-//赋值
+// Set Value
 $TemplateProcessor->setValue('value', 'r-value');
 
-//克隆并复制
+// Clone 
 $TemplateProcessor->clones('people', 3);
 
 $TemplateProcessor->setValue('name#0', 'colin0');
@@ -55,36 +55,41 @@ $TemplateProcessor->setValue('age#0', '280');
 $TemplateProcessor->setValue('age#1', '281');
 $TemplateProcessor->setValue('age#2', '282');
 
-//图片复制
+// set value for image
 $TemplateProcessor->setImageValue('image', dirname(__FILE__).'/logo.jpg');
 
-//删除某行
+// Delete a paragraph
 $TemplateProcessor->deleteP('style');
 
-//保存
+// Save
 $rtemplate = __DIR__.'/r-temple.docx';
 $TemplateProcessor->saveAs($rtemplate);
 ```
 
-+ ### 结果
++ ### Result
 ![image](https://user-images.githubusercontent.com/12422458/111026037-1d95a400-8423-11eb-81e2-941f6b854e34.png) 
 
-+ ### 动图
++ ### GIFs
 ![image](https://user-images.githubusercontent.com/12422458/111026041-1ec6d100-8423-11eb-8e14-d8daf99a9704.gif) 
 
 
-## 更多案例
-- [简单的综合案例](https://github.com/mkdreams/MDword/tree/master/tests/samples/simple%20for%20readme)
-- [带式样的文字](https://github.com/mkdreams/MDword/tree/master/tests/samples/text)
-- [添加图片](https://github.com/mkdreams/MDword/tree/master/tests/samples/image)
-- [克隆](https://github.com/mkdreams/MDword/tree/master/tests/samples/clone)
-- [多种方式设置区块，解决无法添加批注问题](https://github.com/mkdreams/MDword/tree/master/tests/samples/block)
-- [PHPWORD写入到区块](https://github.com/mkdreams/MDword/tree/master/tests/samples/phpword)
+##More samples
+- [Simple Comprehhensive cases](https://github.com/mkdreams/MDword/tree/master/tests/samples/simple%20for%20readme)   
 
-## 交流
-###  请备注：MDword交流
+- [Formatted texts](https://github.com/mkdreams/MDword/tree/master/tests/samples/text)
+
+- [Add images](https://github.com/mkdreams/MDword/tree/master/tests/samples/image)
+
+- [Clone](https://github.com/mkdreams/MDword/tree/master/tests/samples/clone)
+
+- [Many ways to set blocks, solving the lack of notes](https://github.com/mkdreams/MDword/tree/master/tests/samples/block)
+
+- [Write element that is wrote by PHPword to the block](https://github.com/mkdreams/MDword/tree/master/tests/samples/phpword)
+
+## Communication
+### Note: Exchange idea on MDword.
 ![image](https://user-images.githubusercontent.com/12422458/111025926-5a14d000-8422-11eb-86a3-db8a0ad712f0.png) 
 
+## [Project Plans](https://github.com/mkdreams/MDword/projects/1#column-10318470)
 
-## [项目计划](https://github.com/mkdreams/MDword/projects/1#column-10318470)
 
