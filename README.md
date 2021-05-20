@@ -74,7 +74,7 @@ $TemplateProcessor->saveAs($rtemplate);
 ![image](https://user-images.githubusercontent.com/12422458/111026041-1ec6d100-8423-11eb-8e14-d8daf99a9704.gif) 
 
 
-##More samples
+## More samples
 - [Simple Comprehhensive cases](https://github.com/mkdreams/MDword/tree/master/tests/samples/simple%20for%20readme)   
 
 - [Formatted texts](https://github.com/mkdreams/MDword/tree/master/tests/samples/text)
