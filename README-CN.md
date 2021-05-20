@@ -1,4 +1,5 @@
 # MDword
+## [English document](https://github.com/mkdreams/MDword/README.md)
 
 ## 项目通用名称
 母版：在某个word基础上修改的,这个word命名为“母版”   
