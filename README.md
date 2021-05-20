@@ -1,5 +1,5 @@
 # MDword 
-## [中文文档](https://github.com/mkdreams/MDword/README-CN.md)
+## [中文文档](https://github.com/mkdreams/MDword/tree/master/README-CN.md)
 
 ##  Project General Name
 Template: a word which is revised.
