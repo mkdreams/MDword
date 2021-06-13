@@ -325,10 +325,13 @@ class Word
             $edit->treeToListCallback($edit->DOMDocument,function($node) use($edit,$deleteTags,$usedCommentIds,&$willDeleted) {
                 if($edit->getAttr($node,'md',null)) {
                     $willDeleted[] = $node;
-                }elseif(isset($deleteTags[$node->localName]) && ($id = $edit->getAttr($node,'id'))[0] !== 'r' && isset($usedCommentIds[$id])){
-                    $willDeleted[] = $node;
                 }else{
-                    return $node;
+                    $id = $edit->getAttr($node,'id');
+                    if(isset($deleteTags[$node->localName]) && $id[0] !== 'r' && isset($usedCommentIds[$id])) {
+                        $willDeleted[] = $node;
+                    }else{
+                        return $node;
+                    }
                 }
             });
         }else{
