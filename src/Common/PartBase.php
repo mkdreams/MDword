@@ -247,9 +247,8 @@ class PartBase
     
     
     protected function initCommentRange() {
-        $this->treeToList($this->DOMDocument->documentElement);
-        
-        $commentRangeStartItems = $this->DOMDocument->getElementsByTagName('commentRangeStart');
+        // $commentRangeStartItems = $this->DOMDocument->getElementsByTagName('commentRangeStart');
+        $commentRangeStartItems = $this->DOMDocument->documentElement->tagList['w:commentRangeStart'];
         $tempBlocks = [];
         foreach($commentRangeStartItems as $commentRangeStartItem) {
             $id = $this->getAttr($commentRangeStartItem, 'id');
@@ -278,16 +277,25 @@ class PartBase
             return $index;
         }
         $node->idxBegin = $index;
+        $node->tagList = [];
         $this->domList[$index++] = $node;
         if(($node->hasChildNodes())) {
             foreach($node->childNodes as $childNode) {
                 if($childNode->nodeType !== 3) {
-                    $this->treeToList($childNode);
+                    $node->tagList[$childNode->tagName][] = $childNode;
+                    $tags = $this->treeToList($childNode);
+                    foreach($tags as $tag => $vals) {
+                        foreach($vals as $val) {
+                            $node->tagList[$tag][] = $val; 
+                        }
+                    }
                 }
             }
         }
         
         $node->idxEnd = $index-1;
+
+        return $node->tagList;
     }
     
     public function treeToListCallback($node,$callback) {
@@ -337,9 +345,11 @@ class PartBase
     }
     
     protected function getCommentRangeEnd($parentNode,$id) {
-        $commentRangeEndItems = $parentNode->getElementsByTagName('commentRangeEnd');
+        // $commentRangeEndItems = $parentNode->getElementsByTagName('commentRangeEnd');
+        $commentRangeEndItems = $parentNode->tagList['w:commentRangeEnd'];
         
         foreach($commentRangeEndItems as $commentRangeEndItem) {
+            // var_dump($commentRangeEndItem);exit;
             $eid = $this->getAttr($commentRangeEndItem, 'id');
             
             if($id === $eid) {

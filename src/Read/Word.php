@@ -131,10 +131,9 @@ class Word
     public function save($remainComments = false)
     {
         $this->deleteComments($remainComments);
-        
         //update Toc
         $this->documentEdit->updateToc();
-
+        
         $this->deleteComments($remainComments);
         
         foreach($this->parts as $type => $list ) {

@@ -19,32 +19,33 @@ class Document extends PartBase
         $this->DOMDocument = $DOMDocument;
         $this->commentsblocks = $blocks;
         
+        $this->treeToList($this->DOMDocument->documentElement);
         $this->initNameSpaces();
         $this->initLevelToAnchor();
+        
         if(!$this->word->wordProcessor->isForTrace) {
             $this->blocks = $this->initCommentRange();
         }
     }
     
     private function initLevelToAnchor() {
-        $sdtContent = $this->DOMDocument->getElementsByTagName('sdtContent')->item(0);
+        $sdtContent = $this->DOMDocument->documentElement->tagList['w:sdtContent'][0];
         if(is_null($sdtContent)) {
             $sdtContent = $this->DOMDocument;
         }
-        $hyperlinks = $sdtContent->getElementsByTagName('hyperlink');
+
+        $hyperlinks = $sdtContent->tagList['w:hyperlink'];
         $this->hyperlinkParentNodeArr = [];
         foreach($hyperlinks as $hyperlink) {
             $parentNode = $hyperlink->parentNode;
             $this->hyperlinkParentNodeArr[$this->getAttr($hyperlink, 'anchor')] = $parentNode;
         }
-        
-        
-        $pPrs = $this->DOMDocument->getElementsByTagName('pPr');
-        
-        foreach ($pPrs as $pPr) {
-            $pStyle = $pPr->getElementsByTagName('pStyle');
-            if($pStyle->length > 0) {
-                $pStyle = $pStyle->item(0);
+        $pPrs = $this->DOMDocument->documentElement->tagList['w:pPr'];
+        $pPrLen = count($pPrs);
+        for($i = 0;$i<$pPrLen;$i++) {
+            $pPr = $pPrs[$i];
+            $pStyle = $pPr->firstChild;
+            if($pStyle->localName === 'pStyle') {
                 $val = intval($this->getAttr($pStyle, 'val'));
                 if(isset($this->anchors[$val])) {
                     continue;
@@ -143,7 +144,7 @@ class Document extends PartBase
         if(empty($titles)) {
             return ;
         }
-        $sdtContent = $this->DOMDocument->getElementsByTagName('sdtContent')->item(0);
+        $sdtContent = $this->DOMDocument->documentElement->tagList['w:sdtContent'][0];
         if(is_null($sdtContent)) {
             return ;
         }
@@ -205,8 +206,7 @@ class Document extends PartBase
     
     private function getTitles() {
         $titles = [];
-        $edit = $this;
-        $this->treeToListCallback($this->DOMDocument,function($node) use($edit,&$titles) {
+        $this->treeToListCallback($this->DOMDocument,function($node) use(&$titles) {
             if($node->localName === 'pStyle') {
                 $val = intval($this->getAttr($node, 'val'));
                 if(isset($this->anchors[$val])) {
@@ -315,7 +315,6 @@ class Document extends PartBase
                 if(is_array($value)) {
                     foreach($value as $index => $valueArr) {
                         $copy = clone $targetNode;
-//                         $this->word->log->writeLog(json_encode($valueArr,JSON_UNESCAPED_UNICODE).': '.memory_get_usage()/1024/1024);
                         if(is_array($valueArr)) {
                             switch ($valueArr['type']){
                                 case MDWORD_BREAK:
@@ -583,7 +582,6 @@ class Document extends PartBase
                 break;
             case MDWORD_BREAK:
                 $p = $lastNode = $this->getParentToNode($nodeIdxs[0],'p');
-//                 var_dump($p);exit;
                 $this->updateMDWORD_BREAK($p,$value,true);
                 break;
             case MDWORD_PAGE_BREAK:

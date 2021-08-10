@@ -313,6 +313,7 @@ class WordProcessor
             $this->words[$this->wordsIndex]->documentEdit = $documentEdit;
             $this->words[$this->wordsIndex]->documentEdit->partName = $this->words[$this->wordsIndex]->parts[2][$index]['PartName'];
         }
+       
         return $documentEdit;
     }
     
