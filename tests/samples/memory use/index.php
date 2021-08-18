@@ -5,12 +5,13 @@ use MDword\WordProcessor;
 
 $bm = memory_get_usage();
 $template = __DIR__.'/../simple for readme/temple.docx';
-for($i=0;$i<10;$i++) {
+for($i=0;$i<10000;$i++) {
     $rtemplate = __DIR__.'/r-temple-'.$i.'.docx';
-    main($template,$rtemplate);
+    // main($template,$rtemplate);
 }
+unset($i,$template,$rtemplate);
 $em = memory_get_usage();
-var_dump(($em-$mb)/1024/1024);
+var_dump(($em-$bm)/1024/1024);
 
 function main($template,$rtemplate) {
     $TemplateProcessor = new WordProcessor();
@@ -83,6 +84,7 @@ function main($template,$rtemplate) {
     $TemplateProcessor->deleteP('red');
     
     $TemplateProcessor->saveAs($rtemplate);
+    $TemplateProcessor->free();
     unset($TemplateProcessor);
 }
 
