@@ -22,25 +22,33 @@ class Document extends PartBase
         $this->treeToList($this->DOMDocument->documentElement);
         $this->initNameSpaces();
         $this->initLevelToAnchor();
-        
         if(!$this->word->wordProcessor->isForTrace) {
             $this->blocks = $this->initCommentRange();
         }
     }
     
     private function initLevelToAnchor() {
-        $sdtContent = $this->DOMDocument->documentElement->tagList['w:sdtContent'][0];
-        if(is_null($sdtContent)) {
+        if(isset($this->DOMDocument->documentElement->tagList['w:sdtContent'])) {
+            $sdtContent = $this->DOMDocument->documentElement->tagList['w:sdtContent'][0];
+        }else{
             $sdtContent = $this->DOMDocument;
         }
 
-        $hyperlinks = $sdtContent->tagList['w:hyperlink'];
+        if(isset($sdtContent->tagList['w:hyperlink'])) {
+            $hyperlinks = $sdtContent->tagList['w:hyperlink'];
+        }else{
+            $hyperlinks = [];
+        }
         $this->hyperlinkParentNodeArr = [];
         foreach($hyperlinks as $hyperlink) {
             $parentNode = $hyperlink->parentNode;
             $this->hyperlinkParentNodeArr[$this->getAttr($hyperlink, 'anchor')] = $parentNode;
         }
-        $pPrs = $this->DOMDocument->documentElement->tagList['w:pPr'];
+        if(isset($this->DOMDocument->documentElement->tagList['w:pPr'])) {
+            $pPrs = $this->DOMDocument->documentElement->tagList['w:pPr'];
+        }else{
+            $pPrs = [];
+        }
         $pPrLen = count($pPrs);
         for($i = 0;$i<$pPrLen;$i++) {
             $pPr = $pPrs[$i];
@@ -144,8 +152,10 @@ class Document extends PartBase
         if(empty($titles)) {
             return ;
         }
-        $sdtContent = $this->DOMDocument->documentElement->tagList['w:sdtContent'][0];
-        if(is_null($sdtContent)) {
+
+        if(isset($this->DOMDocument->documentElement->tagList['w:sdtContent'])) {
+            $sdtContent = $this->DOMDocument->documentElement->tagList['w:sdtContent'][0];
+        }else{
             return ;
         }
         

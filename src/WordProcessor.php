@@ -298,22 +298,30 @@ class WordProcessor
         return $headerEdit;
     }
     
-    private function getDocumentEdit($partName='word/document.xml') {
-        $documentEdit = $this->words[$this->wordsIndex]->documentEdit;
-        if(is_null($documentEdit)) {
+    public function getDocumentEdit($partName='word/document.xml') {
+        if(is_null($this->words[$this->wordsIndex]->documentEdit)) {
             $index = $this->getPartsIndexByPartName(2,$partName);
             $document = $this->words[$this->wordsIndex]->parts[2][$index]['DOMElement'];
-            $blocks = $this->words[$this->wordsIndex]->blocks[2][$partName];
+            if(isset($this->words[$this->wordsIndex]->blocks[2]) && isset($this->words[$this->wordsIndex]->blocks[2][$partName])) {
+                $blocks = $this->words[$this->wordsIndex]->blocks[2][$partName];
+            }else{
+                $blocks = [];
+            }
+            
             foreach($this->words[$this->wordsIndex]->commentsEdit as $comments) {
                 if($comments->partName === 'word/comments.xml') {
-                    $blocks = $this->my_array_merge($blocks,$comments->blocks);
+                    if(isset($comments->blocks)) {
+                        $blocks = $this->my_array_merge($blocks,$comments->blocks);
+                    }
                 }
             }
             $documentEdit = new Document($this->words[$this->wordsIndex],$document,$blocks);
             $this->words[$this->wordsIndex]->documentEdit = $documentEdit;
             $this->words[$this->wordsIndex]->documentEdit->partName = $this->words[$this->wordsIndex]->parts[2][$index]['PartName'];
+        }else{
+            $documentEdit = $this->words[$this->wordsIndex]->documentEdit;
         }
-       
+
         return $documentEdit;
     }
     
@@ -541,5 +549,13 @@ class WordProcessor
         }
         
         return $r;
+    }
+
+    public function free(){
+        foreach($this->words as $key => $word) {
+            $word->free();
+            unset($this->words[$key]);
+        }
+        // unset($this->words);
     }
 }

@@ -299,7 +299,7 @@ class Word
                     $this->deleteMded($this->headerEdits[$part['partName']],$remainComments);
                     break;
                 case 'getDocumentEdit':
-                    $this->deleteMded($this->documentEdit,$remainComments);
+                    $this->deleteMded($this->wordProcessor->getDocumentEdit(),$remainComments);
                     break;
                 case 'getFooterEdit':
                     $this->deleteMded($this->footerEdits[$part['partName']],$remainComments);
@@ -530,5 +530,22 @@ class Word
                 $this->documentEdit->setChartRel($relArr);
             }
         }
+    }
+
+    public function free() {
+        unset($this->Content_Types->word);
+        unset($this->Content_Types);
+
+        unset($this->zip,$this->log);
+        // $this->documentEdit->freeTreeToList($this->documentEdit->DOMDocument);
+        unset($this->documentEdit->DOMDocument);
+
+        unset($this->documentEdit);
+        unset($this->documentEdit->commentsEdit);
+        unset($this->commentsEdit);
+        unset($this->stylesEdit);
+        
+
+        // var_dump($this);
     }
 }

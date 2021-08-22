@@ -5,15 +5,31 @@ use MDword\WordProcessor;
 
 $bm = memory_get_usage();
 $template = __DIR__.'/../simple for readme/temple.docx';
-for($i=0;$i<10000;$i++) {
+$i = 0;
+// for($i=0;$i<10000;$i++) {
     $rtemplate = __DIR__.'/r-temple-'.$i.'.docx';
-    // main($template,$rtemplate);
-}
+    main($template,$rtemplate,$bm);
+    // main($template,$rtemplate,$bm);
+    // main($template,$rtemplate,$bm);
+    // main($template,$rtemplate,$bm);
+    // main($template,$rtemplate,$bm);
+    // main($template,$rtemplate,$bm);
+    // main($template,$rtemplate,$bm);
+    // main($template,$rtemplate,$bm);
+    // main($template,$rtemplate,$bm);
+    // main($template,$rtemplate,$bm);
+    // main($template,$rtemplate,$bm);
+    // main($template,$rtemplate,$bm);
+    // main($template,$rtemplate,$bm);
+    // main($template,$rtemplate,$bm);
+    // main($template,$rtemplate,$bm);
+    // main($template,$rtemplate,$bm);
+// }
 unset($i,$template,$rtemplate);
 $em = memory_get_usage();
 var_dump(($em-$bm)/1024/1024);
 
-function main($template,$rtemplate) {
+function main($template,$rtemplate,$bm) {
     $TemplateProcessor = new WordProcessor();
     $TemplateProcessor->load($template);
     
@@ -26,6 +42,7 @@ function main($template,$rtemplate) {
     
     //image
     $TemplateProcessor->setImageValue('image', dirname(__FILE__).'/logo.jpg');
+    
     
     //table
     $TemplateProcessor->clones('people', 3);
@@ -40,13 +57,13 @@ function main($template,$rtemplate) {
     $TemplateProcessor->setValue('age#1', '281');
     $TemplateProcessor->setValue('age#2', '282');
     
-    //list
+    // list
     $TemplateProcessor->cloneP('item',3);
     $TemplateProcessor->setValue('item#0','ITEM1');
     $TemplateProcessor->setValue('item#1','ITEM2');
     $TemplateProcessor->setValue('item#2','ITEM3');
     
-    //TOC and bind data
+    // TOC and bind data
     $redWords = 'WORD';
     $datas = [
         ['title'=>'MDword Github','date'=>date('Y-m-d'),'link'=>'https://github.com/mkdreams/MDword','content'=>'OFFICE WORD 动态数据 绑定数据 生成报告<br/>OFFICE WORD Dynamic data binding data generation report.'],
@@ -72,20 +89,23 @@ function main($template,$rtemplate) {
                 }
                 $texts[] = ['type'=>MDWORD_TEXT,'text'=>$tempText];
             }
-    
+            
             $texts[] = ['type'=>MDWORD_BREAK,'text'=>2];
         }
-    
+        
         return $texts;
     })
     ;
-    
     $TemplateProcessor->deleteP('style');
     $TemplateProcessor->deleteP('red');
+    $TemplateProcessor->saveAs($rtemplate);
+    $TemplateProcessor->free();
+    var_dump((memory_get_usage()-$bm)/1024/1024);return;
     
     $TemplateProcessor->saveAs($rtemplate);
     $TemplateProcessor->free();
-    unset($TemplateProcessor);
+    var_dump((memory_get_usage()-$bm)/1024/1024);return;
+    // $TemplateProcessor->free();
 }
 
 

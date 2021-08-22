@@ -5,22 +5,23 @@ use MDword\WordProcessor;
 
 class Bind
 {
-    private $data;
+    private $data = [];
     /**
      * @var WordProcessor
      */
-    private $wordProcessor;
+    private $wordProcessor = null;
     
     private $pre = '';
     
-    private $binds = [];
-    
     public function __construct($wordProcessor,$data,$pre='') {
-        $this->wordProcessor = $wordProcessor;
+        if(!is_null($wordProcessor)) {
+            $this->wordProcessor = $wordProcessor;
+        }
         $this->data = $data;
+
         $this->pre = $pre;
     }
-    
+
     public function bindValue($name,$keyList,$pBindName=null,$callbackOrValueType=null,$emptyCallBack=null) {
         static $binds = [];
         
@@ -43,6 +44,9 @@ class Bind
             $this->wordProcessor->clones($name.$this->pre,$count);
             $i = 0;
             foreach($data as $subData) {
+                if(!isset($binds[$name])) {
+                    $binds[$name] = [];
+                }
                 $binds[$name][] = new Bind($this->wordProcessor, $subData, $this->pre.'#'.$i++);
             }
             
@@ -66,5 +70,21 @@ class Bind
         }
         
         return $this;
+    }
+
+    public function free() {
+        $bindValueFunc = new \ReflectionMethod($this,'bindValue');
+        $statics = $bindValueFunc->getStaticVariables();
+
+        if(is_array($statics['binds'])) {
+            foreach($statics['binds'] as $key => $bind) {
+                foreach($statics['binds'][$key] as $key2 => $val) {
+                    unset($statics['binds'][$key][$key2]->wordProcessor);
+                    unset($statics['binds'][$key][$key2]->data);
+                }
+            }
+        }
+        unset($this->wordProcessor);
+        unset($this->data);
     }
 }

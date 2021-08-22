@@ -247,8 +247,11 @@ class PartBase
     
     
     protected function initCommentRange() {
-        // $commentRangeStartItems = $this->DOMDocument->getElementsByTagName('commentRangeStart');
-        $commentRangeStartItems = $this->DOMDocument->documentElement->tagList['w:commentRangeStart'];
+        if(isset($this->DOMDocument->documentElement->tagList['w:commentRangeStart'])) {
+            $commentRangeStartItems = $this->DOMDocument->documentElement->tagList['w:commentRangeStart'];
+        }else{
+            $commentRangeStartItems = [];
+        }
         $tempBlocks = [];
         foreach($commentRangeStartItems as $commentRangeStartItem) {
             $id = $this->getAttr($commentRangeStartItem, 'id');
@@ -345,9 +348,11 @@ class PartBase
     }
     
     protected function getCommentRangeEnd($parentNode,$id) {
-        // $commentRangeEndItems = $parentNode->getElementsByTagName('commentRangeEnd');
-        $commentRangeEndItems = $parentNode->tagList['w:commentRangeEnd'];
-        
+        if(isset($parentNode->tagList['w:commentRangeEnd'])) {
+            $commentRangeEndItems = $parentNode->tagList['w:commentRangeEnd'];
+        }else{
+            $commentRangeEndItems = [];
+        }
         foreach($commentRangeEndItems as $commentRangeEndItem) {
             // var_dump($commentRangeEndItem);exit;
             $eid = $this->getAttr($commentRangeEndItem, 'id');
