@@ -569,4 +569,15 @@ class PartBase
         
         return $attrs;
     }
+
+    public function free() {
+        $bindValueFunc = new \ReflectionMethod($this,'treeToList');
+        $statics = $bindValueFunc->getStaticVariables();
+        $statics['index'] = 0;
+
+        $bindValueFunc = new \ReflectionMethod($this,'getTreeToListBeginIdOldToNew');
+        $statics = $bindValueFunc->getStaticVariables();
+        $statics['beginIdOldToNew'] = [];
+        $statics['index'] = [];
+    }
 }

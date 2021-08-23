@@ -10,6 +10,8 @@ class Bind
      * @var WordProcessor
      */
     private $wordProcessor = null;
+
+    private $binds = [];
     
     private $pre = '';
     
@@ -23,11 +25,9 @@ class Bind
     }
 
     public function bindValue($name,$keyList,$pBindName=null,$callbackOrValueType=null,$emptyCallBack=null) {
-        static $binds = [];
-        
         //loop
-        if(!is_null($pBindName) && isset($binds[$pBindName])) {
-            foreach($binds[$pBindName] as $bind) {
+        if(!is_null($pBindName) && isset($this->binds[$pBindName])) {
+            foreach($this->binds[$pBindName] as $bind) {
                 $bind->bindValue($name,$keyList,null,$callbackOrValueType,$emptyCallBack);
             }
             
@@ -44,10 +44,10 @@ class Bind
             $this->wordProcessor->clones($name.$this->pre,$count);
             $i = 0;
             foreach($data as $subData) {
-                if(!isset($binds[$name])) {
-                    $binds[$name] = [];
+                if(!isset($this->binds[$name])) {
+                    $this->binds[$name] = [];
                 }
-                $binds[$name][] = new Bind($this->wordProcessor, $subData, $this->pre.'#'.$i++);
+                $this->binds[$name][] = new Bind($this->wordProcessor, $subData, $this->pre.'#'.$i++);
             }
             
             if($count === 0 && !is_null($emptyCallBack)) {
@@ -70,21 +70,5 @@ class Bind
         }
         
         return $this;
-    }
-
-    public function free() {
-        $bindValueFunc = new \ReflectionMethod($this,'bindValue');
-        $statics = $bindValueFunc->getStaticVariables();
-
-        if(is_array($statics['binds'])) {
-            foreach($statics['binds'] as $key => $bind) {
-                foreach($statics['binds'][$key] as $key2 => $val) {
-                    unset($statics['binds'][$key][$key2]->wordProcessor);
-                    unset($statics['binds'][$key][$key2]->data);
-                }
-            }
-        }
-        unset($this->wordProcessor);
-        unset($this->data);
     }
 }

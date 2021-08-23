@@ -537,15 +537,13 @@ class Word
         unset($this->Content_Types);
 
         unset($this->zip,$this->log);
-        // $this->documentEdit->freeTreeToList($this->documentEdit->DOMDocument);
+        $this->documentEdit->free();
         unset($this->documentEdit->DOMDocument);
 
         unset($this->documentEdit);
         unset($this->documentEdit->commentsEdit);
         unset($this->commentsEdit);
         unset($this->stylesEdit);
-        
 
-        // var_dump($this);
     }
 }

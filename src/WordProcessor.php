@@ -368,7 +368,7 @@ class WordProcessor
         return $stylesEdit;
     }
     
-    public function saveAs($fileName,$remainComments=false)
+    public function saveAs($fileName,$remainComments=false,$autoClean=true)
     {
         $tempFileName = $this->words[$this->wordsIndex]->save($remainComments);
         if (file_exists($fileName)) {
@@ -377,6 +377,10 @@ class WordProcessor
         
         file_put_contents($fileName, file_get_contents($tempFileName));
         unlink($tempFileName);
+
+        if($autoClean === true) {
+            $this->free();
+        }
     }
     
     public function saveAsContent() {
@@ -556,6 +560,5 @@ class WordProcessor
             $word->free();
             unset($this->words[$key]);
         }
-        // unset($this->words);
     }
 }

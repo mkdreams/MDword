@@ -74,6 +74,17 @@ $TemplateProcessor->saveAs($rtemplate);
 + ### 动图
 ![image](https://user-images.githubusercontent.com/12422458/111026041-1ec6d100-8423-11eb-8e14-d8daf99a9704.gif) 
 
+## 内存使用情况（[统计脚本](https://github.com/mkdreams/MDword/blob/main/tests/samples/memory%20use/index.php)）
+|  运行次数   | 内存使用量 |  备注 |
+|  ----  | ----  | ----  |
+| 1  | 0.050590515136719 M | 首次需要加载PHP类等 |
+| 2  | 0.050949096679688 M |  |
+| 3  | 0.050949096679688 M |  |
+| 4  | 0.050949096679688 M |  |
+| 5  | 0.050949096679688 M |  |
+| 6  | 0.050949096679688 M |  |
+| 7  | 0.050949096679688 M |  |
+| 8  | 0.050949096679688 M |  |
 
 ## 更多案例
 - [简单的综合案例](https://github.com/mkdreams/MDword/tree/master/tests/samples/simple%20for%20readme)
@@ -82,6 +93,8 @@ $TemplateProcessor->saveAs($rtemplate);
 - [克隆](https://github.com/mkdreams/MDword/tree/master/tests/samples/clone)
 - [多种方式设置区块，解决无法添加批注问题](https://github.com/mkdreams/MDword/tree/master/tests/samples/block)
 - [PHPWORD写入到区块](https://github.com/mkdreams/MDword/tree/master/tests/samples/phpword)
+
+
 
 ## 交流
 ###  请备注：MDword交流

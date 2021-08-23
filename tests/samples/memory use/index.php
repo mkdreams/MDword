@@ -1,33 +1,22 @@
 <?php 
 require_once(__DIR__.'/../../../Autoloader.php');
-
 use MDword\WordProcessor;
 
-$bm = memory_get_usage();
 $template = __DIR__.'/../simple for readme/temple.docx';
 $i = 0;
-// for($i=0;$i<10000;$i++) {
-    $rtemplate = __DIR__.'/r-temple-'.$i.'.docx';
-    main($template,$rtemplate,$bm);
-    // main($template,$rtemplate,$bm);
-    // main($template,$rtemplate,$bm);
-    // main($template,$rtemplate,$bm);
-    // main($template,$rtemplate,$bm);
-    // main($template,$rtemplate,$bm);
-    // main($template,$rtemplate,$bm);
-    // main($template,$rtemplate,$bm);
-    // main($template,$rtemplate,$bm);
-    // main($template,$rtemplate,$bm);
-    // main($template,$rtemplate,$bm);
-    // main($template,$rtemplate,$bm);
-    // main($template,$rtemplate,$bm);
-    // main($template,$rtemplate,$bm);
-    // main($template,$rtemplate,$bm);
-    // main($template,$rtemplate,$bm);
-// }
-unset($i,$template,$rtemplate);
-$em = memory_get_usage();
-var_dump(($em-$bm)/1024/1024);
+$nowMemorys = [];
+$bm = memory_get_usage();
+for($i=0;$i<8;$i++) {
+    $nowMemorys[] = main($template,__DIR__.'/r-temple-'.$i.'.docx',$bm);
+}
+
+$markdown = "|  运行次数   | 内存使用量 |  备注 |\r\n|  ----  | ----  | ----  |";
+foreach ($nowMemorys as $k => $v) {
+    $markdown .= "\r\n| ".($k+1)."  | ".$v." M | ".($k==0?"首次需要加载PHP类等":(""))." |";
+}
+echo $markdown;
+// var_dump($nowMemorys);
+
 
 function main($template,$rtemplate,$bm) {
     $TemplateProcessor = new WordProcessor();
@@ -99,13 +88,8 @@ function main($template,$rtemplate,$bm) {
     $TemplateProcessor->deleteP('style');
     $TemplateProcessor->deleteP('red');
     $TemplateProcessor->saveAs($rtemplate);
-    $TemplateProcessor->free();
-    var_dump((memory_get_usage()-$bm)/1024/1024);return;
-    
-    $TemplateProcessor->saveAs($rtemplate);
-    $TemplateProcessor->free();
-    var_dump((memory_get_usage()-$bm)/1024/1024);return;
-    // $TemplateProcessor->free();
+
+    return (memory_get_usage()-$bm)/1024/1024;
 }
 
 
