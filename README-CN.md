@@ -75,9 +75,9 @@ $TemplateProcessor->saveAs($rtemplate);
 ![image](https://user-images.githubusercontent.com/12422458/111026041-1ec6d100-8423-11eb-8e14-d8daf99a9704.gif) 
 
 ## 内存使用情况（[统计脚本](https://github.com/mkdreams/MDword/blob/main/tests/samples/memory%20use/index.php)）
-|  运行次数   | 内存使用量 |  备注 |
+|  连续运行第几次   | 累积内存使用情况 |  备注 |
 |  ----  | ----  | ----  |
-| 1  | 0.050590515136719 M | 首次需要加载PHP类等 |
+| 1  | 0.050590515136719 M | 首次需要加载PHP类 |
 | 2  | 0.050949096679688 M |  |
 | 3  | 0.050949096679688 M |  |
 | 4  | 0.050949096679688 M |  |

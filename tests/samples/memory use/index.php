@@ -10,9 +10,9 @@ for($i=0;$i<8;$i++) {
     $nowMemorys[] = main($template,__DIR__.'/r-temple-'.$i.'.docx',$bm);
 }
 
-$markdown = "|  运行次数   | 内存使用量 |  备注 |\r\n|  ----  | ----  | ----  |";
+$markdown = "|  连续运行第几次   | 累积内存使用情况 |  备注 |\r\n|  ----  | ----  | ----  |";
 foreach ($nowMemorys as $k => $v) {
-    $markdown .= "\r\n| ".($k+1)."  | ".$v." M | ".($k==0?"首次需要加载PHP类等":(""))." |";
+    $markdown .= "\r\n| ".($k+1)."  | ".$v." M | ".($k==0?"首次需要加载PHP类":(""))." |";
 }
 echo $markdown;
 // var_dump($nowMemorys);
