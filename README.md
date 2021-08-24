@@ -15,7 +15,8 @@ Advantage: focus only on dynamic data and logic, rather than adjusting the style
 2. Both can be used to generate office word.
 
 + ### Differences
-1. PHPword is focus on "Elements be written one by one". todo.
+1. PHPword concentrates on writing elements one by one. However,
+it is more powerful and efficient for Mdword just to revise  them on the template.
 2. For updating text styles, adding covers, headers and footers, MDword just modifies the template by office word, while PHPword complicate the task-adjusting every element.
 3. Directories(Table of content) can be automatically generated.
 
