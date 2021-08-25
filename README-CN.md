@@ -74,6 +74,18 @@ $TemplateProcessor->saveAs($rtemplate);
 + ### 动图
 ![image](https://user-images.githubusercontent.com/12422458/111026041-1ec6d100-8423-11eb-8e14-d8daf99a9704.gif) 
 
+## 性能情况（[统计脚本](https://github.com/mkdreams/MDword/blob/main/tests/samples/performance/index.php)）
+|  测试项   |  用时(S)   |
+|  ----   |  ----   |
+|  1页母版赋值100次   |  0.04   |
+|  1页母版赋值500次   |  0.16   |
+|  1页母版赋值1000次   |  0.33   |
+|  1页母版赋值10000次   |  7.80   |
+|  1750页母版赋值100次   |  4.61   |
+|  1750页母版赋值500次   |  4.94   |
+|  1750页母版赋值1000次   |  5.43   |
+|  1750页母版赋值10000次   |  17.39   |
+
 ## 内存使用情况（[统计脚本](https://github.com/mkdreams/MDword/blob/main/tests/samples/memory%20use/index.php)）
 |  连续运行第几次   | 累积内存使用情况 |  备注 |
 |  ----  | ----  | ----  |
@@ -85,6 +97,7 @@ $TemplateProcessor->saveAs($rtemplate);
 | 6  | 0.050949096679688 M |  |
 | 7  | 0.050949096679688 M |  |
 | 8  | 0.050949096679688 M |  |
+
 
 ## 更多案例
 - [简单的综合案例](https://github.com/mkdreams/MDword/tree/master/tests/samples/simple%20for%20readme)
