@@ -537,6 +537,9 @@ class PartBase
         if(is_null($rPr)) {
             return null;
         }
+        if(is_null($default)) {
+            return null;
+        }
         
         foreach($default->childNodes as $node) {
             $localName = $node->localName;

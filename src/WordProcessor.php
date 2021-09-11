@@ -16,7 +16,7 @@ class WordProcessor
     public $isForTrace = false;
     
     public function __construct() {
-        error_reporting(E_ERROR | E_PARSE );
+        // error_reporting(E_ERROR | E_PARSE );
         require_once(dirname(__FILE__).DIRECTORY_SEPARATOR.'Config'.DIRECTORY_SEPARATOR.'Main.php');
     }
     
@@ -74,7 +74,7 @@ class WordProcessor
      * delete p include the block 
      * @param string $name
      */
-    public function deleteP(string $name) {
+    public function deleteP($name) {
         foreach($this->words[$this->wordsIndex]->needUpdateParts as $part) {
             $func = $part['func'];
             $partName = $part['partName'];
@@ -90,7 +90,7 @@ class WordProcessor
      * delete tr include the block
      * @param string $name
      */
-    public function deleteTr(string $name) {
+    public function deleteTr($name) {
         foreach($this->words[$this->wordsIndex]->needUpdateParts as $part) {
             $func = $part['func'];
             $partName = $part['partName'];
@@ -106,7 +106,7 @@ class WordProcessor
      * delete block
      * @param string $name
      */
-    public function delete(string $name) {
+    public function delete($name) {
         foreach($this->words[$this->wordsIndex]->needUpdateParts as $part) {
             $func = $part['func'];
             $partName = $part['partName'];
