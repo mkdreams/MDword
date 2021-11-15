@@ -141,9 +141,9 @@ class Word
                 if(is_object($part['DOMElement'])) {
                     //delete space before break page
                     if($type === 2) {
-                        $this->zip->addFromString($part['PartName'], $this->autoDeleteSpaceBeforeBreakPage($part['DOMElement']->saveXML()));
+                        $this->zip->addFromString($part['PartName'], $this->SimSunExtBSupport($this->autoDeleteSpaceBeforeBreakPage($part['DOMElement']->saveXML())));
                     }else{
-                        $this->zip->addFromString($part['PartName'], $part['DOMElement']->saveXML());
+                        $this->zip->addFromString($part['PartName'], $this->SimSunExtBSupport($part['DOMElement']->saveXML()));
                     }
                 }
             }
@@ -255,6 +255,13 @@ class Word
         $xml = preg_replace('/\<w\:p\/\>\<w\:sectPr\>/','<w:sectPr>',$xml);
         
         return $xml;
+    }
+
+    private function SimSunExtBSupport($xml) {
+        //4字节支持字体转化
+        preg_match_all('/\<w:rFonts[\s\S]*?\/\>/i',$xml,$matches);
+        $font = empty($matches[0])?'<w:rPr><w:rFonts w:ascii="宋体" w:hAnsi="宋体" w:eastAsia="宋体" w:cs="宋体"/></w:rPr>':'<w:rPr>'.end($matches[0]).'</w:rPr>';
+        return preg_replace('/\{%\{\}%\}([\s\S]{4})/', '<w:rPr><w:rFonts w:ascii="SimSun-ExtB" w:eastAsia="SimSun-ExtB" w:hAnsi="SimSun-ExtB" w:cs="SimSun-ExtB" w:hint="eastAsia"/></w:rPr>$1'.$font, $xml);
     }
     
     private function deleteComments($remainComments = true) {
