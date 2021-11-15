@@ -5,9 +5,7 @@ class Log
 {
     private $logPath;
     public function __construct() {
-        $this->logPath = dirname(__FILE__,3).'/tests/Log/'.date('Ymd').'.log';
-        //empty file
-        file_put_contents($this->logPath,'');
+        $this->logPath = dirname(dirname(dirname(__FILE__))).'/tests/Log/'.date('Ymd').'.log';
     }
     
     public function writeLog($content) {

@@ -199,7 +199,11 @@ class Document extends PartBase
         foreach($fldChars as $fldChar) {
             $fldCharType = $this->getAttr($fldChar, 'fldCharType');
             if(empty($this->getAttr($fldChar->parentNode, 'md',null))) {
-                $fldCharsCount[$fldCharType]++;
+                if(isset($fldCharsCount[$fldCharType])) {
+                    $fldCharsCount[$fldCharType]++;
+                }else{
+                    $fldCharsCount[$fldCharType] = 1;
+                }
             }
         }
         
