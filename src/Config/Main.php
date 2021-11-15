@@ -20,3 +20,4 @@ define('MDWORD_PHPWORD', 10);
 define('MDWORD_CLONE', 7);
 define('MDWORD_CLONEP', 8);
 define('MDWORD_CLONETO', 9);
+define('MDWORD_TABLE', 11);

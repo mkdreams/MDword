@@ -120,6 +120,11 @@ class Rels extends PartBase
                 $target = 'media/image'.$rIdMax.'.'.$mimeArr[1];
                 $rId = 'rId'.$rIdMax;
                 $Relationship = $this->createNodeByXml('<Relationship Id="'.$rId.'" Type="'.$type.'" Target="'.$target.'" />');
+                if($this->DOMDocument->getElementsByTagName('Relationships')->length == 0){
+                    $Relationships = $this->createNodeByXml('<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"></Relationships>');
+                    $this->DOMDocument->encoding = 'UTF-8';
+                    $this->DOMDocument->appendChild($Relationships);
+                }
                 $this->DOMDocument->getElementsByTagName('Relationships')->item(0)->appendChild($Relationship);
                 
                 $target = $this->partInfo['dirname'].'/'.$target;

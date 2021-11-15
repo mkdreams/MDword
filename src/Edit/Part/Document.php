@@ -308,6 +308,10 @@ class Document extends PartBase
                 $targetNode = $this->getTarget($nodeIdxs,'drawing');
                 $styles[$stylekey] = $targetNode;
                 return $targetNode;
+            case MDWORD_TABLE:    
+                $targetNode = $this->getTarget($nodeIdxs,'tcPr');
+                $styles[$stylekey] = $targetNode;
+                return $targetNode;
         }
     }
     
@@ -385,7 +389,10 @@ class Document extends PartBase
                                     $refInfo = $this->updateRef($valueArr['text'],null,MDWORD_IMG);
                                     $rId = $refInfo['rId'];
                                     $imageInfo = $refInfo['imageInfo'];
-                                    
+                                    if($imageInfo[1] > 800){
+                                        $imageInfo[0] = intval($imageInfo[0]*(800/$imageInfo[1]));
+                                        $imageInfo[1] = 800;
+                                    }
                                     $docPr = $copyDrawing->getElementsByTagName('docPr')->item(0);
                                     preg_match("(\d+)",$rId,$idMatch);
                                     $this->setAttr($docPr, 'id', $idMatch[0], null);
@@ -442,6 +449,19 @@ class Document extends PartBase
                                         }else{
                                             $this->insertBefore($rPrCopy, $rPrOrg);
                                             $this->markDelete($rPrOrg);
+                                        }
+                                    }
+                                    if(isset($valueArr['table_style'])){
+                                        $trStyle = $this->getStyle($valueArr['table_style'],MDWORD_TABLE);
+                                    }
+                                    if(!is_null($trStyle)){
+                                        $trCopy = clone $trStyle;
+                                        $tcPrStyle = $targetNode->parentNode->parentNode->getElementsByTagName('tcPr')->item(0);
+                                        if(is_null($tcPrStyle)){
+                                            $this->insertBefore($trCopy, $targetNode->parentNode);
+                                        }else{
+                                            $this->insertBefore($trCopy, $targetNode->parentNode);
+                                            $this->markDelete($tcPrStyle);
                                         }
                                     }
                                     $t = $copy->getElementsByTagName('t')->item(0);$this->setAttr($t, 'space', 'preserve','xml');$t->nodeValue = $this->htmlspecialcharsBase($valueArr['text']);

@@ -354,7 +354,6 @@ class PartBase
             $commentRangeEndItems = [];
         }
         foreach($commentRangeEndItems as $commentRangeEndItem) {
-            // var_dump($commentRangeEndItem);exit;
             $eid = $this->getAttr($commentRangeEndItem, 'id');
             
             if($id === $eid) {

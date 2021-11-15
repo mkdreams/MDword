@@ -139,6 +139,9 @@ class Word
         foreach($this->parts as $type => $list ) {
             foreach($list as $part) {
                 if(is_object($part['DOMElement'])) {
+                    if(empty($part['DOMElement']->documentElement)){
+                        continue;
+                    }
                     //delete space before break page
                     if($type === 2) {
                         $this->zip->addFromString($part['PartName'], $this->SimSunExtBSupport($this->autoDeleteSpaceBeforeBreakPage($part['DOMElement']->saveXML())));
