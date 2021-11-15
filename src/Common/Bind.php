@@ -5,29 +5,28 @@ use MDword\WordProcessor;
 
 class Bind
 {
-    private $data = [];
+    private $data;
     /**
      * @var WordProcessor
      */
-    private $wordProcessor = null;
-
-    private $binds = [];
+    private $wordProcessor;
     
     private $pre = '';
     
+    private $binds = [];
+    
     public function __construct($wordProcessor,$data,$pre='') {
-        if(!is_null($wordProcessor)) {
-            $this->wordProcessor = $wordProcessor;
-        }
+        $this->wordProcessor = $wordProcessor;
         $this->data = $data;
-
         $this->pre = $pre;
     }
-
+    
     public function bindValue($name,$keyList,$pBindName=null,$callbackOrValueType=null,$emptyCallBack=null) {
+        static $binds = [];
+        
         //loop
-        if(!is_null($pBindName) && isset($this->binds[$pBindName])) {
-            foreach($this->binds[$pBindName] as $bind) {
+        if(!is_null($pBindName) && isset($binds[$pBindName])) {
+            foreach($binds[$pBindName] as $bind) {
                 $bind->bindValue($name,$keyList,null,$callbackOrValueType,$emptyCallBack);
             }
             
@@ -44,10 +43,7 @@ class Bind
             $this->wordProcessor->clones($name.$this->pre,$count);
             $i = 0;
             foreach($data as $subData) {
-                if(!isset($this->binds[$name])) {
-                    $this->binds[$name] = [];
-                }
-                $this->binds[$name][] = new Bind($this->wordProcessor, $subData, $this->pre.'#'.$i++);
+                $binds[$name][] = new Bind($this->wordProcessor, $subData, $this->pre.'#'.$i++);
             }
             
             if($count === 0 && !is_null($emptyCallBack)) {
