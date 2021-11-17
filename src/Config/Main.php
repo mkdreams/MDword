@@ -16,6 +16,8 @@ define('MDWORD_LINK', 4);
 define('MDWORD_IMG', 5);
 define('MDWORD_DELETE', 6);
 define('MDWORD_PHPWORD', 10);
+define('MDWORD_REF', 12);
+define('MDWORD_PAGEREF', 13);
 
 define('MDWORD_CLONE', 7);
 define('MDWORD_CLONEP', 8);

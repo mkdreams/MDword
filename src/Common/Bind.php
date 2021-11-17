@@ -33,11 +33,20 @@ class Bind
             return $this;
         }
         
-        $data = $this->data;
+        if('INNER_VARS' !== $pBindName) {
+            $data = $this->data;
+        }else{
+            $data = $this->wordProcessor->getInnerVars();
+        }
         foreach($keyList as $key) {
             $data = $data[$key];
         }
+
+        // if('INNER_VARS' === $pBindName) {
+        //     var_dump($data);exit;
+        // }
         
+
         if(is_array($data)) {
             $count = count($data);
             $this->wordProcessor->clones($name.$this->pre,$count);

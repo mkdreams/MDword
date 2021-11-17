@@ -12,6 +12,8 @@ class Document extends PartBase
     public $usedBlock = [];
     private $anchors = [];
     private $hyperlinkParentNodeArr = [];
+
+    public $levels;
     
     public function __construct($word,\DOMDocument $DOMDocument,$blocks = []) {
         parent::__construct($word);
@@ -220,48 +222,76 @@ class Document extends PartBase
     
     private function getTitles() {
         $titles = [];
+
+        if(!isset($this->levels)) {
+            $this->levels = [];
+        }
+
         $this->treeToListCallback($this->DOMDocument,function($node) use(&$titles) {
+            //jump delete
+            if($this->getAttr($node,'md',null)) {
+                return null;
+            }
+
             if($node->localName === 'pStyle') {
                 $val = intval($this->getAttr($node, 'val'));
+                $pPr = $node->parentNode;
+                
                 if(isset($this->anchors[$val])) {
-                    $pPr = $node->parentNode;
                     $anchorInfo = [];
                     $anchorInfo = $this->updateBookMark($pPr->parentNode);
+
                     $anchorNode = $this->anchors[$val];
                     $copy = clone $anchorNode;
     
-                    $titles[] = ['copy'=>$copy,'anchor'=>$anchorInfo,'text'=>$pPr->parentNode->textContent];
+                    $titles[] = ['copy'=>$copy,'anchor'=>$anchorInfo,'text'=>$this->getTextContent($pPr->parentNode)];
                 }
+
+                if($val > 0) {
+                    $anchorInfo = [];
+                    $anchorInfo = $this->updateBookMark($pPr->parentNode);
+
+                    $this->levels[] = ['index'=>count($this->levels),'level'=>$val,'name'=>$anchorInfo[0]['name'],'text'=>$this->getTextContent($pPr->parentNode)];
+                }
+                return null;
             }else{
                 return $node;
             }
         });
-        
+
         return $titles;
     }
-    
-    private function getTocLevels() {
-        $instrText = $this->DOMDocument->getElementsByTagName('instrText');
-        if(!$instrText->length) {
-           return []; 
+
+
+    public function getLevels() {
+        if(!isset($this->levels)) {
+            $this->getTitles();
         }
-        
-        $instrText = $instrText->item(0);
-        $nodeValue = $instrText->nodeValue;
-        preg_match('/TOC[\s\S]+?"(\d+)\-(\d+)\"/i', $nodeValue,$match);
-        
-        $begin = intval($match[1]);
-        $end = intval($match[2]);
-        
-        $levels = [];
-        if($begin > 0 && $end > 0 && $end > $begin) {
-            for($begin;$begin<=$end;$begin++) {
-                $levels[] = $begin;
-            }
-        }
-        
-        return $levels;
+        return $this->levels;
     }
+
+    // private function getTocLevels() {
+    //     $instrText = $this->DOMDocument->getElementsByTagName('instrText');
+    //     if(!$instrText->length) {
+    //        return []; 
+    //     }
+        
+    //     $instrText = $instrText->item(0);
+    //     $nodeValue = $instrText->nodeValue;
+    //     preg_match('/TOC[\s\S]+?"(\d+)\-(\d+)\"/i', $nodeValue,$match);
+        
+    //     $begin = intval($match[1]);
+    //     $end = intval($match[2]);
+        
+    //     $levels = [];
+    //     if($begin > 0 && $end > 0 && $end > $begin) {
+    //         for($begin;$begin<=$end;$begin++) {
+    //             $levels[] = $begin;
+    //         }
+    //     }
+        
+    //     return $levels;
+    // }
     
     private function getStyle($name='',$type=MDWORD_TEXT) {
         static $styles = [];
@@ -326,6 +356,7 @@ class Document extends PartBase
                         return false;
                     }
                 });
+
                 if(is_null($targetNode)) {
                     break;
                 }
@@ -625,19 +656,41 @@ class Document extends PartBase
             case MDWORD_LINK:
                 $this->updateMDWORD_LINK($beginNode, $endNode, $value);
                 break;
+            case MDWORD_REF:
+                $r = $this->getTarget($nodeIdxs,'r',function($node) {
+                    $t = $node->getElementsByTagName('t');
+                    if($t->length > 0) {
+                        return true;
+                    }else{
+                        return false;
+                    }
+                });
+                $this->updateMDWORD_REF($r,$value);
+                break;
+            case MDWORD_PAGEREF:
+                $r = $this->getTarget($nodeIdxs,'r',function($node) {
+                    $t = $node->getElementsByTagName('t');
+                    if($t->length > 0) {
+                        return true;
+                    }else{
+                        return false;
+                    }
+                });
+                $this->updateMDWORD_PAGEREF($r,$value);
+                break;
             case MDWORD_PHPWORD:
                 //get p
-                $targetNode = $this->getParentToNode($nodeIdxs[0]);
+                $p = $this->getParentToNode($nodeIdxs[0]);
                     
                 $XmlFromPhpword = new XmlFromPhpword($value,$this);
                 $nodes = $XmlFromPhpword->createNodesByBodyXml();
                 
                 foreach($nodes as $node) {
                     $copy = clone $node;
-                    $this->insertBefore($copy, $targetNode);
+                    $this->insertBefore($copy, $p);
                 }
                 
-                $this->markDelete($targetNode);
+                $this->markDelete($p);
                 
             default:
                 break;
@@ -718,12 +771,19 @@ class Document extends PartBase
         $ids = [];
         $infos = [];
         foreach($bookmarkStarts as $key => $bookmarkStart) {
-            $maxId = $maxId+1;
-            $name = '_Toc'.$maxId;
-            $ids[$key] = $maxId;
-            $this->setAttr($bookmarkStart, 'id', $maxId);
-            $this->setAttr($bookmarkStart, 'name', $name);
-            $infos[] = ['id'=>$maxId,'name'=>$name];
+            $name = $this->getAttr($bookmarkStart,'name');
+            if(strpos($name,'_MD') !== 0) {
+                $maxId = $maxId+1;
+                $name = '_MD_Toc'.$maxId;
+                $this->setAttr($bookmarkStart, 'id', $maxId);
+                $this->setAttr($bookmarkStart, 'name', $name);
+                $id = $maxId;
+            }else{
+                $id = $this->getAttr($bookmarkStart,'id');
+            }
+            $infos[] = ['id'=>$id,'name'=>$name];
+
+            $ids[$key] = $id;
         }
         
         //end
@@ -741,17 +801,17 @@ class Document extends PartBase
             $rs = $item->getElementsByTagName('r');
             if($rs->length > 0) {
                 $maxId = $maxId+1;
-                $name = '_Toc'.$maxId;
+                $name = '_MD_Toc'.$maxId;
                 $bookmarkStart = $this->createNodeByXml('<w:bookmarkStart w:id="'.$maxId.'" w:name="'.$name.'"/>');
                 $this->insertBefore($bookmarkStart, $rs->item(0));
                 
                 $bookmarkEnd = $this->createNodeByXml('<w:bookmarkEnd w:id="'.$maxId.'"/>');
-                $this->insertAfter($bookmarkStart, $rs->item($rs->length-1));
+                $this->insertAfter($bookmarkEnd, $rs->item($rs->length-1));
                 
                 $infos[] = ['id'=>$maxId,'name'=>$name];
             }
         }
-        
+
         return $infos;
     }
     
@@ -996,6 +1056,31 @@ class Document extends PartBase
         return $p;
     }
     
+    private function updateMDWORD_REF($r,$value,$type='REF') {
+        $begin = $this->createNodeByXml('<w:r><w:fldChar w:fldCharType="begin"/></w:r>');
+
+        $preserve = $this->createNodeByXml('<w:r><w:instrText xml:space="preserve"> '.$type.' '.$value['name'].' \h </w:instrText></w:r>');
+        
+        $separate = $this->createNodeByXml('<w:r><w:fldChar w:fldCharType="separate"/></w:r>');
+        
+        $end = $this->createNodeByXml('<w:r><w:fldChar w:fldCharType="end"/></w:r>');
+        
+        $this->insertBefore($begin,$r);
+        $this->insertBefore($preserve,$r);
+        $this->insertBefore($separate,$r);
+        $this->insertAfter($end,$r);
+
+        $t = $r->getElementsByTagName('t')->item(0);
+        $t->nodeValue = $this->htmlspecialcharsBase($value['text']);
+    }
+
+    private function updateMDWORD_PAGEREF($r,$value) {
+        if(!isset($value['text'])) {
+            $value['text'] = 'Please Update Field';
+        }
+        $this->updateMDWORD_REF($r,$value,'PAGEREF');
+    }
+
     private function updateMDWORD_LINK($beginNode,$endNode,$link) {
         $hyperlinkNodeBegin = $this->createNodeByXml('<w:r><w:fldChar w:fldCharType="begin"/></w:r>');
         $link = $this->htmlspecialcharsBase($link);

@@ -314,6 +314,25 @@ class PartBase
             }
         }
     }
+
+    public function getTextContent($nodes) {
+        $text = '';
+        $this->treeToListCallback($nodes,function($node) use (&$text) {
+            //jump delete
+            if($this->getAttr($node,'md',null)) {
+                return null;
+            }
+
+            if($node->localName === 't') {
+                $text .= $node->textContent;
+                return null;
+            }
+
+            return $node;
+        });
+
+        return $text;
+    }
     
     
     protected function replace($node, $targetNode) {
