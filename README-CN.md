@@ -106,6 +106,7 @@ $TemplateProcessor->saveAs($rtemplate);
 - [克隆](https://github.com/mkdreams/MDword/tree/master/tests/samples/clone)
 - [多种方式设置区块，解决无法添加批注问题](https://github.com/mkdreams/MDword/tree/master/tests/samples/block)
 - [PHPWORD写入到区块](https://github.com/mkdreams/MDword/tree/master/tests/samples/phpword)
+- [目录嵌入到表格](https://github.com/mkdreams/MDword/blob/main/tests/samples/toc)
 
 
 

@@ -89,6 +89,8 @@ $TemplateProcessor->saveAs($rtemplate);
 
 - [Write element that is written by PHPword to the block](https://github.com/mkdreams/MDword/tree/master/tests/samples/phpword)
 
+- [Put TOC in a table](https://github.com/mkdreams/MDword/blob/main/tests/samples/toc)
+
 ## Communication
 ### Note: Exchange idea on MDword.
 ![image](https://user-images.githubusercontent.com/12422458/111025926-5a14d000-8422-11eb-86a3-db8a0ad712f0.png) 
