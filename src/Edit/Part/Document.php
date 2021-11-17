@@ -678,6 +678,28 @@ class Document extends PartBase
                 });
                 $this->updateMDWORD_PAGEREF($r,$value);
                 break;
+            case MDWORD_NOWPAGE:
+                $r = $this->getTarget($nodeIdxs,'r',function($node) {
+                    $t = $node->getElementsByTagName('t');
+                    if($t->length > 0) {
+                        return true;
+                    }else{
+                        return false;
+                    }
+                });
+                $this->updateMDWORD_PRESERVE($r,isset($value['text'])?$value['text']:null,'PAGE');
+                break;
+            case MDWORD_TOTALPAGE:
+                $r = $this->getTarget($nodeIdxs,'r',function($node) {
+                    $t = $node->getElementsByTagName('t');
+                    if($t->length > 0) {
+                        return true;
+                    }else{
+                        return false;
+                    }
+                });
+                $this->updateMDWORD_PRESERVE($r,isset($value['text'])?$value['text']:null,'NUMPAGES');
+                break;
             case MDWORD_PHPWORD:
                 //get p
                 $p = $this->getParentToNode($nodeIdxs[0]);
@@ -1056,14 +1078,27 @@ class Document extends PartBase
         return $p;
     }
     
-    private function updateMDWORD_REF($r,$value,$type='REF') {
-        $begin = $this->createNodeByXml('<w:r><w:fldChar w:fldCharType="begin"/></w:r>');
+    
 
-        $preserve = $this->createNodeByXml('<w:r><w:instrText xml:space="preserve"> '.$type.' '.$value['name'].' \h </w:instrText></w:r>');
+    private function updateMDWORD_PRESERVE($r,$text=null,$preserve='') {
+        //fixed update fields style change
+        $rPr = $r->getElementsByTagName('rPr')->item(0);
+        if(!is_null($rPr)) {
+            $rPrXml = $this->DOMDocument->saveXML($rPr);
+        }else{
+            $rPrXml = '';
+        }
+
+        if(is_null($text)) {
+            $text = 'Please Update Field';
+        }
+        $begin = $this->createNodeByXml('<w:r>'.$rPrXml.'<w:fldChar w:fldCharType="begin"/></w:r>');
+
+        $preserve = $this->createNodeByXml('<w:r>'.$rPrXml.'<w:instrText xml:space="preserve">'.$preserve.'</w:instrText></w:r>');
         
-        $separate = $this->createNodeByXml('<w:r><w:fldChar w:fldCharType="separate"/></w:r>');
+        $separate = $this->createNodeByXml('<w:r>'.$rPrXml.'<w:fldChar w:fldCharType="separate"/></w:r>');
         
-        $end = $this->createNodeByXml('<w:r><w:fldChar w:fldCharType="end"/></w:r>');
+        $end = $this->createNodeByXml('<w:r>'.$rPrXml.'<w:fldChar w:fldCharType="end"/></w:r>');
         
         $this->insertBefore($begin,$r);
         $this->insertBefore($preserve,$r);
@@ -1071,13 +1106,14 @@ class Document extends PartBase
         $this->insertAfter($end,$r);
 
         $t = $r->getElementsByTagName('t')->item(0);
-        $t->nodeValue = $this->htmlspecialcharsBase($value['text']);
+        $t->nodeValue = $this->htmlspecialcharsBase($text);
+    }
+
+    private function updateMDWORD_REF($r,$value,$type='REF') {
+        $this->updateMDWORD_PRESERVE($r,isset($value['text'])?$value['text']:null,' '.$type.' '.$value['name'].' \h ');
     }
 
     private function updateMDWORD_PAGEREF($r,$value) {
-        if(!isset($value['text'])) {
-            $value['text'] = 'Please Update Field';
-        }
         $this->updateMDWORD_REF($r,$value,'PAGEREF');
     }
 

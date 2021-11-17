@@ -59,5 +59,12 @@ $TemplateProcessor->setValue('table_page#0',['name'=>$InnerVars['levels'][1]['na
 $TemplateProcessor->setValue('table_page#1',['name'=>$InnerVars['levels'][2]['name']],MDWORD_PAGEREF);
 $TemplateProcessor->setValue('table_page#2',['name'=>$InnerVars['levels'][3]['name']],MDWORD_PAGEREF);
 
+//page
+$TemplateProcessor->setValue('now_page',['name'=>'bookmarket_toc'],MDWORD_NOWPAGE);
+$TemplateProcessor->setValue('total_page',['name'=>'bookmarket_toc'],MDWORD_TOTALPAGE);
+
+$TemplateProcessor->setValue('toc_page',['name'=>'bookmarket_toc'],MDWORD_PAGEREF);
+
+
 $TemplateProcessor->saveAs($rtemplate);
 
