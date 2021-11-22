@@ -57,7 +57,7 @@ class WordProcessor
             $documentEdit->setValue($name, $value, $type);
         }
     }
-
+    
     public function setValues($values,$pre='') {
         foreach ($values as $index => $valueArr) {
             foreach($valueArr as $name => $value) {

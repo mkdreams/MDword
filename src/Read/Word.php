@@ -130,7 +130,6 @@ class Word
     
     public function save($remainComments = false)
     {
-        // $this->deleteComments($remainComments);
         //update Toc
         $this->documentEdit->updateToc();
         
@@ -548,12 +547,15 @@ class Word
 
         unset($this->zip,$this->log);
         $this->documentEdit->free();
-        unset($this->documentEdit->DOMDocument);
 
-        unset($this->documentEdit);
+        unset($this->documentEdit->DOMDocument);
         unset($this->documentEdit->commentsEdit);
+        
         unset($this->commentsEdit);
         unset($this->stylesEdit);
-
+        
+        //fixed bug:not use unset
+        // unset($this->documentEdit);
+        $this->documentEdit = null;
     }
 }

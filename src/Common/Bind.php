@@ -13,8 +13,6 @@ class Bind
     
     private $pre = '';
     
-    private $binds = [];
-    
     public function __construct($wordProcessor,$data,$pre='') {
         $this->wordProcessor = $wordProcessor;
         $this->data = $data;
@@ -42,16 +40,14 @@ class Bind
             $data = $data[$key];
         }
 
-        // if('INNER_VARS' === $pBindName) {
-        //     var_dump($data);exit;
-        // }
-        
-
         if(is_array($data)) {
             $count = count($data);
             $this->wordProcessor->clones($name.$this->pre,$count);
             $i = 0;
             foreach($data as $subData) {
+                if(!isset($binds[$name])) {
+                    $binds[$name] = [];
+                }
                 $binds[$name][] = new Bind($this->wordProcessor, $subData, $this->pre.'#'.$i++);
             }
             

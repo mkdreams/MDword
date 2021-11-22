@@ -13,7 +13,7 @@ class Document extends PartBase
     private $anchors = [];
     private $hyperlinkParentNodeArr = [];
 
-    public $levels;
+    public $levels = [];
     
     public function __construct($word,\DOMDocument $DOMDocument,$blocks = []) {
         parent::__construct($word);
@@ -223,7 +223,7 @@ class Document extends PartBase
     private function getTitles() {
         $titles = [];
 
-        if(!isset($this->levels)) {
+        if(count($this->levels) === 0) {
             $this->levels = [];
         }
 
@@ -264,35 +264,12 @@ class Document extends PartBase
 
 
     public function getLevels() {
-        if(!isset($this->levels)) {
+        if(count($this->levels) === 0) {
             $this->getTitles();
         }
         return $this->levels;
     }
 
-    // private function getTocLevels() {
-    //     $instrText = $this->DOMDocument->getElementsByTagName('instrText');
-    //     if(!$instrText->length) {
-    //        return []; 
-    //     }
-        
-    //     $instrText = $instrText->item(0);
-    //     $nodeValue = $instrText->nodeValue;
-    //     preg_match('/TOC[\s\S]+?"(\d+)\-(\d+)\"/i', $nodeValue,$match);
-        
-    //     $begin = intval($match[1]);
-    //     $end = intval($match[2]);
-        
-    //     $levels = [];
-    //     if($begin > 0 && $end > 0 && $end > $begin) {
-    //         for($begin;$begin<=$end;$begin++) {
-    //             $levels[] = $begin;
-    //         }
-    //     }
-        
-    //     return $levels;
-    // }
-    
     private function getStyle($name='',$type=MDWORD_TEXT) {
         static $styles = [];
         static $defaultStyle = null;
@@ -356,7 +333,6 @@ class Document extends PartBase
                         return false;
                     }
                 });
-
                 if(is_null($targetNode)) {
                     break;
                 }
@@ -713,7 +689,7 @@ class Document extends PartBase
                 }
                 
                 $this->markDelete($p);
-                
+                break;
             default:
                 break;
         }
