@@ -59,6 +59,7 @@ function main($template,$rtemplate,$bm) {
         ['title'=>'Wake up India, you\'re harming yourself','date'=>'2020-08-05','link'=>'http://epaper.chinadaily.com.cn/a/202008/06/WS5f2b56e4a3107831ec7540e6.html','content'=>'On Tuesday, reports said that the Indian government had announced a ban on Baidu and Weibo, two popular smartphone apps developed in China.<br/>Combined with the recent ban on short video sharing apps such as TikTok and Kwai, and social media app WeChat, India has now blocked its residents from using almost all popular Chinese apps.<br/>That apart, in the past few months, India has provoked border clashes with China, set limitations on Chinese enterprises and imposed higher tariffs on some products imported from China.'],
     ];
     $bind = $TemplateProcessor->getBind($datas);
+
     $bind->bindValue('news',[])
     ->bindValue('title',['title'],'news')
     ->bindValue('date',['date'],'news')
@@ -85,10 +86,11 @@ function main($template,$rtemplate,$bm) {
         return $texts;
     })
     ;
+    $bind::$binds = [];
+    
     $TemplateProcessor->deleteP('style');
     $TemplateProcessor->deleteP('red');
     $TemplateProcessor->saveAs($rtemplate);
-
     return (memory_get_usage()-$bm)/1024/1024;
 }
 

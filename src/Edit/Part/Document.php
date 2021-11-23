@@ -457,6 +457,8 @@ class Document extends PartBase
                                     }
                                     if(isset($valueArr['table_style'])){
                                         $trStyle = $this->getStyle($valueArr['table_style'],MDWORD_TABLE);
+                                    }else{
+                                        $trStyle = null;
                                     }
                                     if(!is_null($trStyle)){
                                         $trCopy = clone $trStyle;

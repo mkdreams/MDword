@@ -12,6 +12,8 @@ class Bind
     private $wordProcessor;
     
     private $pre = '';
+
+    public static $binds = [];
     
     public function __construct($wordProcessor,$data,$pre='') {
         $this->wordProcessor = $wordProcessor;
@@ -20,11 +22,9 @@ class Bind
     }
     
     public function bindValue($name,$keyList,$pBindName=null,$callbackOrValueType=null,$emptyCallBack=null) {
-        static $binds = [];
-        
         //loop
-        if(!is_null($pBindName) && isset($binds[$pBindName])) {
-            foreach($binds[$pBindName] as $bind) {
+        if(!is_null($pBindName) && isset(self::$binds[$pBindName])) {
+            foreach(self::$binds[$pBindName] as $bind) {
                 $bind->bindValue($name,$keyList,null,$callbackOrValueType,$emptyCallBack);
             }
             
@@ -39,16 +39,16 @@ class Bind
         foreach($keyList as $key) {
             $data = $data[$key];
         }
-
+        
         if(is_array($data)) {
             $count = count($data);
             $this->wordProcessor->clones($name.$this->pre,$count);
             $i = 0;
             foreach($data as $subData) {
-                if(!isset($binds[$name])) {
-                    $binds[$name] = [];
+                if(!isset(self::$binds[$name])) {
+                    self::$binds[$name] = [];
                 }
-                $binds[$name][] = new Bind($this->wordProcessor, $subData, $this->pre.'#'.$i++);
+                self::$binds[$name][] = new Bind($this->wordProcessor, $subData, $this->pre.'#'.$i++);
             }
             
             if($count === 0 && !is_null($emptyCallBack)) {
