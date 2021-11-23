@@ -228,11 +228,6 @@ class Document extends PartBase
         }
 
         $this->treeToListCallback($this->DOMDocument,function($node) use(&$titles) {
-            //jump delete
-            if($this->getAttr($node,'md',null)) {
-                return null;
-            }
-
             if($node->localName === 'pStyle') {
                 $val = intval($this->getAttr($node, 'val'));
                 $pPr = $node->parentNode;
@@ -245,9 +240,11 @@ class Document extends PartBase
                     $copy = clone $anchorNode;
     
                     $titles[] = ['copy'=>$copy,'anchor'=>$anchorInfo,'text'=>$this->getTextContent($pPr->parentNode)];
-                }
 
-                if($val > 0) {
+                    if($val > 0) {
+                        $this->levels[] = ['index'=>count($this->levels),'level'=>$val,'name'=>$anchorInfo[0]['name'],'text'=>$this->getTextContent($pPr->parentNode)];
+                    }
+                }elseif($val > 0) {
                     $anchorInfo = [];
                     $anchorInfo = $this->updateBookMark($pPr->parentNode);
 
@@ -630,7 +627,7 @@ class Document extends PartBase
                 $this->updateMDWORD_BREAK_PAGE($p,$value,true);
                 break;
             case MDWORD_LINK:
-                $this->updateMDWORD_LINK($beginNode, $endNode, $value);
+                $this->updateMDWORD_LINK($nodeIdxs[0], $nodeIdxs[strlen($nodeIdxs)-1], $value);
                 break;
             case MDWORD_REF:
                 $r = $this->getTarget($nodeIdxs,'r',function($node) {

@@ -130,6 +130,9 @@ class Word
     
     public function save($remainComments = false)
     {
+        //clean before update
+        $this->deleteComments($remainComments);
+        
         //update Toc
         $this->documentEdit->updateToc();
         
