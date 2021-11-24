@@ -1,5 +1,5 @@
 # MDword
-## [English document](https://github.com/mkdreams/MDword/tree/master/README.md)
+## [English document](https://github.com/mkdreams/MDword/blob/main/README.md)
 
 ## 项目通用名称
 母版：在某个word基础上修改的,这个word命名为“母版”   
@@ -30,7 +30,7 @@ require_once('Autoloader.php');
 ```
 + ### 给母版“temple.docx”添加批注
 ![image](https://user-images.githubusercontent.com/12422458/111026036-1c647700-8423-11eb-9df2-e9a2e5530007.png) 
-+ ### 调用方法（更多更丰富的调用方式，参考案例：[tests\samples\simple for readme](https://github.com/mkdreams/MDword/blob/master/tests/samples/simple%20for%20readme/index.php)，例如：目录、序号等）
++ ### 调用方法（更多更丰富的调用方式，参考案例：[tests\samples\simple for readme](https://github.com/mkdreams/MDword/blob/main/tests/samples/simple%20for%20readme/index.php)，例如：目录、序号等）
 ```
 //新建类 加载 母版
 $TemplateProcessor = new WordProcessor();
@@ -100,13 +100,13 @@ $TemplateProcessor->saveAs($rtemplate);
 
 
 ## 更多案例
-- [简单的综合案例](https://github.com/mkdreams/MDword/tree/master/tests/samples/simple%20for%20readme)
-- [带式样的文字](https://github.com/mkdreams/MDword/tree/master/tests/samples/text)
-- [添加图片](https://github.com/mkdreams/MDword/tree/master/tests/samples/image)
-- [克隆](https://github.com/mkdreams/MDword/tree/master/tests/samples/clone)
-- [多种方式设置区块，解决无法添加批注问题](https://github.com/mkdreams/MDword/tree/master/tests/samples/block)
-- [PHPWORD写入到区块](https://github.com/mkdreams/MDword/tree/master/tests/samples/phpword)
-- [目录嵌入到表格](https://github.com/mkdreams/MDword/blob/main/tests/samples/toc)
+- [简单的综合案例](https://github.com/mkdreams/MDword/tree/main/tests/samples/simple%20for%20readme)
+- [带式样的文字](https://github.com/mkdreams/MDword/tree/main/tests/samples/text)
+- [添加图片](https://github.com/mkdreams/MDword/tree/main/tests/samples/image)
+- [克隆](https://github.com/mkdreams/MDword/tree/main/tests/samples/clone)
+- [多种方式设置区块，解决无法添加批注问题](https://github.com/mkdreams/MDword/tree/main/tests/samples/block)
+- [PHPWORD写入到区块](https://github.com/mkdreams/MDword/tree/main/tests/samples/phpword)
+- [目录嵌入到表格](https://github.com/mkdreams/MDword/tree/main/tests/samples/toc)
 
 
 

@@ -1,5 +1,5 @@
 # MDword 
-## [中文文档](https://github.com/mkdreams/MDword/tree/master/README-CN.md)
+## [中文文档](https://github.com/mkdreams/MDword/blob/main/README-CN.md)
 
 ##  Project General Name
 Template: a word which will be revised.  
@@ -31,7 +31,7 @@ require_once('Autoloader.php');
 
 + ### Add annotations or use “${value/}” to the template. Please note that there is a “/” at the end.
 ![image](https://user-images.githubusercontent.com/12422458/111026036-1c647700-8423-11eb-9df2-e9a2e5530007.png) 
-+ ### Invocation Methods (more and richer approaches, for example: [tests\samples\simple for readme](https://github.com/mkdreams/MDword/blob/master/tests/samples/simple%20for%20readme/index.php), such as catalog, sequence number, etc.)
++ ### Invocation Methods (more and richer approaches, for example: [tests\samples\simple for readme](https://github.com/mkdreams/MDword/blob/main/tests/samples/simple%20for%20readme/index.php), such as catalog, sequence number, etc.)
 ```
 // New class,load template
 $TemplateProcessor = new WordProcessor();
@@ -77,19 +77,19 @@ $TemplateProcessor->saveAs($rtemplate);
 
 
 ## More samples
-- [Simple Comprehhensive cases](https://github.com/mkdreams/MDword/tree/master/tests/samples/simple%20for%20readme)   
+- [Simple Comprehhensive cases](https://github.com/mkdreams/MDword/tree/main/tests/samples/simple%20for%20readme)   
 
-- [Formatted texts](https://github.com/mkdreams/MDword/tree/master/tests/samples/text)
+- [Formatted texts](https://github.com/mkdreams/MDword/tree/main/tests/samples/text)
 
-- [Add images](https://github.com/mkdreams/MDword/tree/master/tests/samples/image)
+- [Add images](https://github.com/mkdreams/MDword/tree/main/tests/samples/image)
 
-- [Clone](https://github.com/mkdreams/MDword/tree/master/tests/samples/clone)
+- [Clone](https://github.com/mkdreams/MDword/tree/main/tests/samples/clone)
 
-- [Many ways to set blocks, solving the lack of notes](https://github.com/mkdreams/MDword/tree/master/tests/samples/block)
+- [Many ways to set blocks, solving the lack of notes](https://github.com/mkdreams/MDword/tree/main/tests/samples/block)
 
-- [Write element that is written by PHPword to the block](https://github.com/mkdreams/MDword/tree/master/tests/samples/phpword)
+- [Write element that is written by PHPword to the block](https://github.com/mkdreams/MDword/tree/main/tests/samples/phpword)
 
-- [Put TOC in a table](https://github.com/mkdreams/MDword/blob/main/tests/samples/toc)
+- [Put TOC in a table](https://github.com/mkdreams/MDword/tree/main/tests/samples/toc)
 
 ## Communication
 ### Note: Exchange idea on MDword.
