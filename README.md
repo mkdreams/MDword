@@ -1,4 +1,7 @@
 # MDword 
+
+[![Join the chat at https://gitter.im/mkdreams/MDword](https://badges.gitter.im/mkdreams/MDword.svg)](https://gitter.im/mkdreams/MDword?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 ## [中文文档](https://github.com/mkdreams/MDword/blob/main/README-CN.md)
 
 ##  Project General Name
