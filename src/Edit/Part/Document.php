@@ -393,6 +393,7 @@ class Document extends PartBase
                                     $refInfo = $this->updateRef($valueArr['text'],null,MDWORD_IMG);
                                     $rId = $refInfo['rId'];
                                     $imageInfo = $refInfo['imageInfo'];
+                                    //max width 800
                                     if($imageInfo[1] > 800){
                                         $imageInfo[0] = intval($imageInfo[0]*(800/$imageInfo[1]));
                                         $imageInfo[1] = 800;
@@ -502,21 +503,60 @@ class Document extends PartBase
                     }
                     break;
                 }
-                
+
                 $drawing = $this->getTarget($nodeIdxs,'drawing');
                 if(!is_null($drawing)) {
                     $refInfo = $this->updateRef($value,null,MDWORD_IMG);
                     $rId = $refInfo['rId'];
                     $blip = $drawing->getElementsByTagName('blip')->item(0);
                     $this->setAttr($blip, 'embed', $rId ,'r');
+
+                    //update cy
+                    $extents = $drawing->getElementsByTagName('extent');
+                    foreach($extents as $extent) {
+                        $cx = $this->getAttr($extent, 'cx', null);
+                        if($cx > 0) {
+                            break;
+                        }
+                    }
+                    
+                    if($cx <= 0 && $spPr = $drawing->getElementsByTagName('spPr')->item(0)) {
+                        $exts = $spPr->getElementsByTagName('ext');
+                        foreach($exts as $extent) {
+                            $cx = $this->getAttr($extent, 'cx', null);
+                            if($cx > 0) {
+                                break;
+                            }
+                        }
+                    }
+
+                    if($cx > 0) {
+                        $orgCy = intval($cx/($refInfo['imageInfo'][0]*9530)*($refInfo['imageInfo'][1]*9530));
+                        $extents = $drawing->getElementsByTagName('extent');
+                        foreach($extents as $extent) {
+                            $this->setAttr($extent, 'cy', $orgCy, null);
+                        }
+                        
+                        if($spPr = $drawing->getElementsByTagName('spPr')->item(0)) {
+                            $exts = $spPr->getElementsByTagName('ext');
+                            foreach($exts as $extent) {
+                                $this->setAttr($extent, 'cy', $orgCy, null);
+                            }
+                        }
+                    }
                     break;
                 }
-                
                 $drawing = $this->createNodeByXml('image');
                 
                 $refInfo = $this->updateRef($value,null,MDWORD_IMG);
                 $rId = $refInfo['rId'];
                 $imageInfo = $refInfo['imageInfo'];
+
+                //max width 800
+                if($imageInfo[1] > 800){
+                    $imageInfo[0] = intval($imageInfo[0]*(800/$imageInfo[1]));
+                    $imageInfo[1] = 800;
+                }
                 
                 $docPr = $drawing->getElementsByTagName('docPr')->item(0);
                 preg_match("(\d+)",$rId,$idMatch);

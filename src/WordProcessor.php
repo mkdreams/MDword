@@ -157,7 +157,7 @@ class WordProcessor
              */
             $edit = null;
             foreach($includeImageEdits as list($edit,$rids)) {
-                $edit->setValue($rids, $value,MDWORD_IMG);
+                $edit->setValue($rids, $value, MDWORD_IMG);
             }
             
             return ;
