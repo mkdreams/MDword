@@ -43,7 +43,6 @@ $datas = [
         'title'=>'MDword Github','date'=>date('Y-m-d'),
         'link'=>'https://github.com/mkdreams/MDword',
         'images'=>dirname(__FILE__).'/logo.jpg,'.dirname(__FILE__).'/img.png',
-        // 'images'=>dirname(__FILE__).'/img.png',
         'content'=>'OFFICE WORD 动态数据 绑定数据 生成报告<br/>OFFICE WORD Dynamic data binding data generation report.'
     ],
     [
