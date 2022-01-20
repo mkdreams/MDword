@@ -272,9 +272,12 @@ class PartBase
 
             if(strpos($id,'r') === 0) {
                 foreach($tempOneBlock as $nodeId) {
+                    if(!isset($this->domList[$nodeId])) {
+                        continue;
+                    }
                     $ts = $this->domList[$nodeId]->getElementsByTagName('t');
                     foreach($ts as $t) {
-                        $t->nodeValue = preg_replace('/\$\{([\s\S]+?)\}/','',$t->nodeValue);
+                        $t->nodeValue = '';
                     }
                 }
             }
