@@ -264,10 +264,22 @@ class PartBase
             }else{
                 $size = sizeof($tempBlocks[$name])+1;
             }
-            $tempBlocks[$name][] = array_map(function($trace) use ($name,$size) {
+
+            $tempOneBlock = array_map(function($trace) use ($name,$size) {
                 $this->domIdxToName[$trace->idxBegin][] = [$size,$name];
                 return $trace->idxBegin;
             }, $traces);
+
+            if(strpos($id,'r') === 0) {
+                foreach($tempOneBlock as $nodeId) {
+                    $ts = $this->domList[$nodeId]->getElementsByTagName('t');
+                    foreach($ts as $t) {
+                        $t->nodeValue = preg_replace('/\$\{([\s\S]+?)\}/','',$t->nodeValue);
+                    }
+                }
+            }
+
+            $tempBlocks[$name][] = $tempOneBlock;
         }
         
         return $tempBlocks;
