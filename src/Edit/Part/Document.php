@@ -173,9 +173,12 @@ class Document extends PartBase
             $this->setAttr($hyperlink, 'anchor', $title['anchor'][0]['name']);
             
             $instrTexts = $copy->getElementsByTagName('instrText');
+            $instrTextToc = 'TOC \o "1-3" \h \z \u';
             foreach($instrTexts as $instrText) {
                 if(strpos($instrText->nodeValue, 'PAGEREF') > 0) {
                     $instrText->nodeValue = " PAGEREF $anchor \h ";
+                }elseif(strpos($instrText->nodeValue, 'TOC') > 0){
+                    $instrTextToc = $instrText->nodeValue;
                 }
             }
             
@@ -184,7 +187,7 @@ class Document extends PartBase
                 $this->insertBefore($fldCharBegin, $hyperlink);
                 
                 
-                $fldCharPreserve = $this->createNodeByXml('<w:r><w:instrText xml:space="preserve"> TOC \o "1-3" \h \z \u </w:instrText></w:r>');
+                $fldCharPreserve = $this->createNodeByXml('<w:r><w:instrText xml:space="preserve"> '.$instrTextToc.' </w:instrText></w:r>');
                 $this->insertBefore($fldCharPreserve, $hyperlink);
                 
                 $fldCharSeparate = $this->createNodeByXml('<w:r><w:fldChar w:fldCharType="separate"/></w:r>');
