@@ -65,6 +65,10 @@ class Word
     
     
     public function load($archive) {
+        if(!is_file($archive)) {
+            throw new \Exception('Template not exist!');
+        }
+
         $this->tempDocumentFilename = tempnam($this->getTempDir(), 'MDword');
         if (false === $this->tempDocumentFilename) {
             throw new \Exception('temp path make failed!');
