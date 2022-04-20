@@ -172,6 +172,11 @@ class Document extends PartBase
             $hyperlink = $copy->getElementsByTagName('hyperlink')->item(0);
             $this->setAttr($hyperlink, 'anchor', $title['anchor'][0]['name']);
             
+            //TOC jump in the browser or app. Such as: whatsapp
+            $hyperlink_temp = $this->createNodeByXml('<w:hyperlink w:anchor="'.$title['anchor'][0]['name'].'" w:history="1"></w:hyperlink>');
+            $hyperlink_r = $hyperlink->getElementsByTagName('r')->item(0);
+            $hyperlink_temp->appendChild($hyperlink_r);
+
             $instrTexts = $copy->getElementsByTagName('instrText');
             $instrTextToc = 'TOC \o "1-3" \h \z \u';
             foreach($instrTexts as $instrText) {
@@ -193,8 +198,9 @@ class Document extends PartBase
                 $fldCharSeparate = $this->createNodeByXml('<w:r><w:fldChar w:fldCharType="separate"/></w:r>');
                 $this->insertBefore($fldCharSeparate, $hyperlink);
             }
-            
-            
+
+            $this->insertBefore($hyperlink_temp,$hyperlink);
+
             $sdtContent->insertBefore($copy,$sdtContent->lastChild);
         }
         
