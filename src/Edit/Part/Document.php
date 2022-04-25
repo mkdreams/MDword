@@ -327,6 +327,37 @@ class Document extends PartBase
                 return $targetNode;
         }
     }
+
+    private function getPStyle($name='',$type=MDWORD_TEXT) {
+        static $styles = [];
+        
+        $stylekey = $name.$type;
+        
+        if(isset($styles[$stylekey])) {
+            return $styles[$stylekey];
+        }
+        
+        $nodeIdxs = $this->getBlocks($name);
+        if(!isset($nodeIdxs[0])) {
+            return null;
+        }
+        
+        $nodeIdxs = $nodeIdxs[0];
+        
+        switch ($type) {
+            case MDWORD_TEXT:
+                $r = $this->getTarget($nodeIdxs,'r');
+                if(is_null($r)) {
+                    return null;
+                }
+                if($pPrs = $r->parentNode->getElementsByTagName('pPr')) {
+                    $pPr = $pPrs->item(0);
+                }
+                $styles[$stylekey] = $pPr;
+                return $styles[$stylekey];
+                break;
+        }
+    }
     
     public function update(&$nodeIdxs,$name,$value,$type) {
         switch ($type) {
@@ -449,6 +480,22 @@ class Document extends PartBase
                                     }
                                     break;
                                 default:
+                                    if(isset($valueArr['pstyle'])) {
+                                        $pPr = $this->getPStyle($valueArr['pstyle']);
+                                    }else{
+                                        $pPr = null;
+                                    }
+                                    if(!is_null($pPr)) {
+                                        $pPrCopy = clone $pPr;
+                                        $pPrOrg = $targetNode->parentNode->getElementsByTagName('pPr')->item(0);
+                                        if(is_null($pPrOrg)) {// pPr insert before t
+                                            $this->insertBefore($pPrCopy, $targetNode->parentNode);
+                                        }else{
+                                            $this->insertBefore($pPrCopy, $targetNode->parentNode);
+                                            $this->markDelete($pPrOrg);
+                                        }
+                                    }
+
                                     if(isset($valueArr['style'])) {
                                         $rPr = $this->getStyle($valueArr['style']);
                                     }else{
