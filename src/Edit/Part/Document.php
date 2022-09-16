@@ -472,7 +472,7 @@ class Document extends PartBase
                                     $targetNode->getElementsByTagName('t')->item(0)->nodeValue= '';
                                     $targetNode->appendChild($copyDrawing);
                                     
-                                    $copyP = $this->updateMDWORD_BREAK($targetNode->parentNode,1,false,false);
+                                    $copyP = $this->updateMDWORD_BREAK($targetNode->parentNode,1,false,true);
                                     $targetNode = $copyP->getElementsByTagName('r')->item(0);
                                     $this->removeMarkDelete($targetNode);
                                     if(!isset($value[$index+1])) {
