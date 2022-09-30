@@ -512,11 +512,142 @@ class Document extends PartBase
                                             $this->markDelete($rPrOrg);
                                         }
                                     }
+
                                     if(isset($valueArr['table_style'])){
-                                        $trStyle = $this->getStyle($valueArr['table_style'],MDWORD_TABLE);
+                                        if(is_array($valueArr['table_style'])) {
+                                            //[name=>'table_style','vMerge'=>2,'gridSpan'=>2]
+                                            if(isset($valueArr['table_style']['name'])) {
+                                                $trStyle = $this->getStyle($valueArr['table_style']['name'],MDWORD_TABLE);
+                                            }else{
+                                                $trStyle = null;
+                                            }
+
+                                            $vMergeCount = intval($valueArr['table_style']['vMerge']);
+                                            $gridSpanCount = intval($valueArr['table_style']['gridSpan']);
+
+                                            $tc = $this->getParentToNode($targetNode,'tc');
+                                            if($vMergeCount > 1) {
+                                                $trNextSibling = $tc->parentNode;
+                                                $vMergeCount--;
+                                                $vMergeNextCount = 0;
+                                                $trNextSiblingNeedUpdateEnds = [$trNextSibling];
+                                                while($vMergeCount > 0) {
+                                                    $oldtrNextSibling = $trNextSibling;
+                                                    $trNextSibling = $trNextSibling->nextSibling;
+                                                    if(is_null($trNextSibling)) {
+                                                        $trNextSibling = $oldtrNextSibling;
+                                                        break;
+                                                    }
+                                                    $trNextSiblingNeedUpdateEnds[] = $trNextSibling;
+                                                    $vMergeNextCount++;
+                                                    $vMergeCount--;
+                                                }
+
+                                                if($vMergeNextCount > 0) {
+                                                    //tc index
+                                                    $tcIndex = 0;
+                                                    $previousSibling = $tc;
+                                                    while(true) {
+                                                        $previousSibling = $tc->previousSibling;
+                                                        if(is_null($previousSibling)) {
+                                                            break;
+                                                        }
+                                                        $tcIndex++;
+                                                    }
+
+                                                    if($gridSpanCount === 0) {
+                                                        $gridSpanCount = 1;
+                                                    }
+                                                    foreach($trNextSiblingNeedUpdateEnds as $idx => $trNextSibling) {
+                                                        if($idx === 0) {
+                                                            $vMergeXml = '<w:vMerge w:val="restart"/>';
+                                                        }else{
+                                                            $vMergeXml = '<w:vMerge/>';
+                                                        }
+                                                        if($gridSpanCount > 1) {
+                                                            $gridSpanXml = '<w:gridSpan w:val="'.$gridSpanCount.'"/>';
+                                                        }else{
+                                                            $gridSpanXml = '';
+                                                        }
+
+                                                        $endTc = $trNextSibling->getElementsByTagName('tc')->item($tcIndex);
+                                                        $tcPr = $endTc->getElementsByTagName('tcPr')->item(0);
+                                                        if(!is_null($tcPr)) {
+                                                            if($gridSpanXml !== '') {
+                                                                $gridSpan = $tcPr->getElementsByTagName('gridSpan')->item(0);
+                                                                if(is_null($gridSpan)) {
+                                                                    $this->appendChild($tcPr,$this->createNodeByXml($gridSpanXml));
+                                                                }
+                                                            }
+
+                                                            $vMerge = $tcPr->getElementsByTagName('vMerge')->item(0);
+                                                            if(is_null($vMerge)) {
+                                                                $this->appendChild($tcPr,$this->createNodeByXml($vMergeXml));
+                                                            }
+
+                                                        }else{
+                                                            $tcPr = $this->createNodeByXml('<w:tcPr>'.$gridSpanXml.$vMergeXml.'</w:tcPr>');
+                                                            if(is_null($endTc->firstChild)) {
+                                                                $this->appendChild($endTc,$tcPr);
+                                                            }else{
+                                                                $this->insertBefore($tcPr,$endTc->firstChild);
+                                                            }
+                                                        }
+
+                                                        $tcIndexTotal = $tcIndex+$gridSpanCount;
+                                                        for($i=$tcIndex;$i<$tcIndexTotal;$i++) {
+                                                            if($i === $tcIndex && $gridSpanCount > 1) {
+                                                                $tcNextSibling = $endTc;
+                                                                $gridSpanCountTemp = $gridSpanCount;
+                                                                while((--$gridSpanCountTemp) > 0) {
+                                                                    $tcNextSibling = $tcNextSibling->nextSibling;
+                                                                    if(is_null($tcNextSibling)) {
+                                                                        break;
+                                                                    }
+                
+                                                                    $this->markDelete($tcNextSibling);
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+    
+                                                    $trStyle = $tcPr;
+                                                }
+
+                                            }else if($gridSpanCount > 1) {
+                                                if(is_null($trStyle)) {
+                                                    $tcPr = $tc->getElementsByTagName('tcPr')->item(0);
+                                                }else{
+                                                    $tcPr = $trStyle;
+                                                }
+                                                if(!is_null($tcPr)) {
+                                                    $gridSpan = $tcPr->getElementsByTagName('gridSpan')->item(0);
+                                                    if(is_null($gridSpan)) {
+                                                        $this->appendChild($tcPr,$this->createNodeByXml('<w:gridSpan w:val="'.$valueArr['table_style']['gridSpan'].'"/>'));
+                                                    }
+                                                }else{
+                                                    $tcPr = $this->createNodeByXml('<w:tcPr><w:gridSpan w:val="'.$valueArr['table_style']['gridSpan'].'"/></w:tcPr>');
+                                                }
+
+                                                $tcNextSibling = $tc;
+                                                while((--$gridSpanCount) > 0) {
+                                                    $tcNextSibling = $tcNextSibling->nextSibling;
+                                                    if(is_null($tcNextSibling)) {
+                                                        break;
+                                                    }
+
+                                                    $this->markDelete($tcNextSibling);
+                                                }
+
+                                                $trStyle = $tcPr;
+                                            }
+                                        }else{
+                                            $trStyle = $this->getStyle($valueArr['table_style'],MDWORD_TABLE);
+                                        }
                                     }else{
                                         $trStyle = null;
                                     }
+
                                     if(!is_null($trStyle)){
                                         $trCopy = clone $trStyle;
                                         $tcPrStyle = $targetNode->parentNode->parentNode->getElementsByTagName('tcPr')->item(0);
@@ -981,7 +1112,11 @@ class Document extends PartBase
     }
     
     private function getParentToNode($beginNodeIndex,$type='p') {
-        $parentNode = $this->domList[$beginNodeIndex];
+        if(is_int($beginNodeIndex)) {
+            $parentNode = $this->domList[$beginNodeIndex];
+        }else{
+            $parentNode = $beginNodeIndex;
+        }
         while($parentNode->localName != $type && !is_null($parentNode)) {
             $parentNode = $parentNode->parentNode;
         }
@@ -1189,32 +1324,18 @@ class Document extends PartBase
     }
 
     private function updateMDWORD_LINK($beginNode,$endNode,$link) {
+        $hyperlinkNodeBegin = $this->createNodeByXml('<w:r><w:fldChar w:fldCharType="begin"/></w:r>');
         $link = $this->htmlspecialcharsBase($link);
-        if(strpos($link,'#') === 0) {
-            $link = ltrim($link,'#');
-            $hyperlinkNodeBegin = $this->createNodeByXml('<w:r><w:fldChar w:fldCharType="begin"/></w:r>');
-            $hyperlinkNodePreserve = $this->createNodeByXml('<w:r><w:instrText xml:space="preserve">HYPERLINK </w:instrText></w:r>');
-            $hyperlinkNodePreserveTwo = $this->createNodeByXml('<w:r><w:instrText xml:space="preserve"> \l "'.$link.'" </w:instrText></w:r>');
-            $hyperlinkNodeSeparate = $this->createNodeByXml('<w:r><w:fldChar w:fldCharType="separate"/></w:r>');
-            $hyperlinkNodeEnd = $this->createNodeByXml('<w:r><w:fldChar w:fldCharType="end"/></w:r>');
-            
-            $this->insertBefore($hyperlinkNodeBegin, $beginNode);
-            $this->insertBefore($hyperlinkNodePreserve, $beginNode);
-            $this->insertBefore($hyperlinkNodePreserveTwo, $beginNode);
-            $this->insertBefore($hyperlinkNodeSeparate, $beginNode);
-            $this->insertAfter($hyperlinkNodeEnd, $endNode);
-        }else{
-
-            $hyperlinkNodeBegin = $this->createNodeByXml('<w:r><w:fldChar w:fldCharType="begin"/></w:r>');
-            $hyperlinkNodePreserve = $this->createNodeByXml('<w:r><w:instrText xml:space="preserve"> HYPERLINK "'.$link.'" \o "'.$link.'" </w:instrText></w:r>');
-            $hyperlinkNodeSeparate = $this->createNodeByXml('<w:r><w:fldChar w:fldCharType="separate"/></w:r>');
-            $hyperlinkNodeEnd = $this->createNodeByXml('<w:r><w:fldChar w:fldCharType="end"/></w:r>');
-            
-            $this->insertBefore($hyperlinkNodeBegin, $beginNode);
-            $this->insertBefore($hyperlinkNodePreserve, $beginNode);
-            $this->insertBefore($hyperlinkNodeSeparate, $beginNode);
-            $this->insertAfter($hyperlinkNodeEnd, $endNode);
-        }
+        $hyperlinkNodePreserve = $this->createNodeByXml('<w:r><w:instrText xml:space="preserve"> HYPERLINK "'.$link.'" \o "'.$link.'" </w:instrText></w:r>');
+        
+        $hyperlinkNodeSeparate = $this->createNodeByXml('<w:r><w:fldChar w:fldCharType="separate"/></w:r>');
+        
+        $hyperlinkNodeEnd = $this->createNodeByXml('<w:r><w:fldChar w:fldCharType="end"/></w:r>');
+        
+        $this->insertBefore($hyperlinkNodeBegin, $beginNode);
+        $this->insertBefore($hyperlinkNodePreserve, $beginNode);
+        $this->insertBefore($hyperlinkNodeSeparate, $beginNode);
+        $this->insertAfter($hyperlinkNodeEnd, $endNode);
     }
 
     public function setChartRel($relArr){
