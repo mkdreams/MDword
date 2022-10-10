@@ -1324,18 +1324,32 @@ class Document extends PartBase
     }
 
     private function updateMDWORD_LINK($beginNode,$endNode,$link) {
-        $hyperlinkNodeBegin = $this->createNodeByXml('<w:r><w:fldChar w:fldCharType="begin"/></w:r>');
         $link = $this->htmlspecialcharsBase($link);
-        $hyperlinkNodePreserve = $this->createNodeByXml('<w:r><w:instrText xml:space="preserve"> HYPERLINK "'.$link.'" \o "'.$link.'" </w:instrText></w:r>');
-        
-        $hyperlinkNodeSeparate = $this->createNodeByXml('<w:r><w:fldChar w:fldCharType="separate"/></w:r>');
-        
-        $hyperlinkNodeEnd = $this->createNodeByXml('<w:r><w:fldChar w:fldCharType="end"/></w:r>');
-        
-        $this->insertBefore($hyperlinkNodeBegin, $beginNode);
-        $this->insertBefore($hyperlinkNodePreserve, $beginNode);
-        $this->insertBefore($hyperlinkNodeSeparate, $beginNode);
-        $this->insertAfter($hyperlinkNodeEnd, $endNode);
+        if(strpos($link,'#') === 0) {
+            $link = ltrim($link,'#');
+            $hyperlinkNodeBegin = $this->createNodeByXml('<w:r><w:fldChar w:fldCharType="begin"/></w:r>');
+            $hyperlinkNodePreserve = $this->createNodeByXml('<w:r><w:instrText xml:space="preserve">HYPERLINK </w:instrText></w:r>');
+            $hyperlinkNodePreserveTwo = $this->createNodeByXml('<w:r><w:instrText xml:space="preserve"> \l "'.$link.'" </w:instrText></w:r>');
+            $hyperlinkNodeSeparate = $this->createNodeByXml('<w:r><w:fldChar w:fldCharType="separate"/></w:r>');
+            $hyperlinkNodeEnd = $this->createNodeByXml('<w:r><w:fldChar w:fldCharType="end"/></w:r>');
+            
+            $this->insertBefore($hyperlinkNodeBegin, $beginNode);
+            $this->insertBefore($hyperlinkNodePreserve, $beginNode);
+            $this->insertBefore($hyperlinkNodePreserveTwo, $beginNode);
+            $this->insertBefore($hyperlinkNodeSeparate, $beginNode);
+            $this->insertAfter($hyperlinkNodeEnd, $endNode);
+        }else{
+
+            $hyperlinkNodeBegin = $this->createNodeByXml('<w:r><w:fldChar w:fldCharType="begin"/></w:r>');
+            $hyperlinkNodePreserve = $this->createNodeByXml('<w:r><w:instrText xml:space="preserve"> HYPERLINK "'.$link.'" \o "'.$link.'" </w:instrText></w:r>');
+            $hyperlinkNodeSeparate = $this->createNodeByXml('<w:r><w:fldChar w:fldCharType="separate"/></w:r>');
+            $hyperlinkNodeEnd = $this->createNodeByXml('<w:r><w:fldChar w:fldCharType="end"/></w:r>');
+            
+            $this->insertBefore($hyperlinkNodeBegin, $beginNode);
+            $this->insertBefore($hyperlinkNodePreserve, $beginNode);
+            $this->insertBefore($hyperlinkNodeSeparate, $beginNode);
+            $this->insertAfter($hyperlinkNodeEnd, $endNode);
+        }
     }
 
     public function setChartRel($relArr){
