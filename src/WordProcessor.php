@@ -413,7 +413,7 @@ class WordProcessor
         $WordProcessor->saveAs($fileName);
     }
     
-    public function setChartValue($name='',$fileName)
+    public function setChartValue($name,$fileName)
     {
         $reader = new Word();
         $reader->load($fileName);
