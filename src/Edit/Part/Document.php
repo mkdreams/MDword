@@ -543,17 +543,10 @@ class Document extends PartBase
                                                     $vMergeCount--;
                                                 }
 
+
                                                 if($vMergeNextCount > 0) {
                                                     //tc index
-                                                    $tcIndex = 0;
-                                                    $previousSibling = $tc;
-                                                    while(true) {
-                                                        $previousSibling = $tc->previousSibling;
-                                                        if(is_null($previousSibling)) {
-                                                            break;
-                                                        }
-                                                        $tcIndex++;
-                                                    }
+                                                    $tcIndex = $this->getIndex($tc->parentNode,$tc);
 
                                                     if($gridSpanCount === 0) {
                                                         $gridSpanCount = 1;

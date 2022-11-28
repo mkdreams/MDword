@@ -617,4 +617,18 @@ class PartBase
         $statics['beginIdOldToNew'] = [];
         $statics['index'] = [];
     }
+
+    public function getIndex($pNode,$subNode) {
+        $tag = $subNode->localName;
+        $tagNodes = $pNode->getElementsByTagName($tag);
+        $idx = -1;
+        foreach($tagNodes as $index => $tagNode) {
+            if($tagNode === $subNode) {
+                $idx = $index;
+                break;
+            }
+        }
+        
+        return $idx;
+    }
 }

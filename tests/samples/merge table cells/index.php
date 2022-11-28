@@ -23,4 +23,7 @@ $TemplateProcessor->setValue('age#0', [['text' => '280', 'table_style' => ['grid
 $TemplateProcessor->setValue('age#2', [['text' => '282', 'table_style' => ['gridSpan'=>2], 'type' => MDWORD_TEXT]]);
 
 
+$TemplateProcessor->setValue('vMerge', [['text' => 'vMerge', 'table_style' => ['vMerge'=>3], 'type' => MDWORD_TEXT]]);
+$TemplateProcessor->setValue('gridSpan', [['text' => 'gridSpan', 'table_style' => ['gridSpan'=>2], 'type' => MDWORD_TEXT]]);
+
 $TemplateProcessor->saveAs($rtemplate);
