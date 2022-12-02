@@ -603,8 +603,6 @@ class Document extends PartBase
                                                             }
                                                         }
                                                     }
-    
-                                                    $trStyle = $tcPr;
                                                 }
 
                                             }else if($gridSpanCount > 1) {
@@ -631,8 +629,6 @@ class Document extends PartBase
 
                                                     $this->markDelete($tcNextSibling);
                                                 }
-
-                                                $trStyle = $tcPr;
                                             }
                                         }else{
                                             $trStyle = $this->getStyle($valueArr['table_style'],MDWORD_TABLE);
