@@ -10,6 +10,13 @@ $rtemplate = __DIR__ . '/r-temple.docx';
 $TemplateProcessor = new WordProcessor();
 $TemplateProcessor->load($template);
 
+//plink
+$TemplateProcessor->setValue('plink', [
+    ['type'=>MDWORD_LINK,'text' => 'colin1','link'=>'https://baidu.com?v=1'],
+    ['type' =>MDWORD_LINK,'text' => 'colin2', 'style' => 'style','link'=>'https://baidu.com?v=2'],
+    ['type'=>MDWORD_LINK,'text' => 'colin3','link'=>'https://baidu.com?v=3'],
+]);
+
 //simple set value
 $TemplateProcessor->setValue('value', 'r-value');
 $TemplateProcessor->setValue('value', 'r-value2');
