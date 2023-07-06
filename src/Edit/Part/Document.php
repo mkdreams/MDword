@@ -409,12 +409,32 @@ class Document extends PartBase
                                     $this->updateMDWORD_BREAK_PAGE($targetNode->parentNode,$valueArr['text'],true);
                                     break;
                                 case MDWORD_LINK:
+                                    if(isset($valueArr['style'])) {
+                                        $rPr = $this->getStyle($valueArr['style']);
+                                    }else{
+                                        $rPr = null;
+                                    }
+                                    if(!is_null($rPr)) {
+                                        $rPrCopy = clone $rPr;
+                                        $rPrOrg = $copy->getElementsByTagName('rPr')->item(0);
+                                        if(is_null($rPrOrg)) {// rPr insert before t
+                                            $rPrOrg = $copy->getElementsByTagName('t')->item(0);
+                                            $this->insertBefore($rPrCopy, $rPrOrg);
+                                        }else{
+                                            $this->insertBefore($rPrCopy, $rPrOrg);
+                                            $this->markDelete($rPrOrg);
+                                        }
+                                    }
+
                                     if(!is_null($valueArr['text'])) {
                                         $t = $copy->getElementsByTagName('t')->item(0);$this->setAttr($t, 'space', 'preserve','xml');$t->nodeValue = $this->htmlspecialcharsBase($valueArr['text']);
                                     }
+
                                     $this->insertBefore($copy, $targetNode);
-                                    $this->markDelete($targetNode);
                                     $this->updateMDWORD_LINK($copy, $copy, $valueArr['link']);
+                                    if(!isset($value[$index+1])) {
+                                        $this->markDelete($targetNode);
+                                    }
                                     break;
                                 case MDWORD_IMG:
                                     $drawing = $this->getStyle($valueArr['style'],MDWORD_IMG);
