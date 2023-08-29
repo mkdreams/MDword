@@ -452,8 +452,8 @@ class WordProcessor
         
         return $arr;
     }
-    
-    public function showMedies() {
+
+    public function getMedies() {
         $word = $this->words[$this->wordsIndex];
         $numFiles = $word->zip->numFiles;
         $showList = [];
@@ -468,6 +468,12 @@ class WordProcessor
                 ];
             }
         }
+        
+        return $showList;
+    }
+    
+    public function showMedies() {
+        $showList = $this->getMedies();
         
         foreach($showList as $medias) {
             foreach($medias as $media) {
