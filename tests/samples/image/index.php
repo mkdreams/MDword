@@ -42,7 +42,7 @@ $TemplateProcessor->setImageValue('image replace', dirname(__FILE__).'/img.jpg')
 //replace image by md5
 $Medies = $TemplateProcessor->getMedies();
 foreach($Medies as $Medie) {
-    if('2529be7711acbb60c7e4ac1693c680a0' === $Medie['md5']) {
+    if('a2a9f8b099d7c5764da685b628468052' === $Medie['md5']) {
         $TemplateProcessor->setImageValue($Medie['md5'], dirname(__FILE__).'/img.jpg');
     }
 }

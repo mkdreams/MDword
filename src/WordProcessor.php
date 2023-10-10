@@ -469,7 +469,7 @@ class WordProcessor
             }
         }
         
-        return $showList;
+        return $showList['medias'];
     }
     
     public function showMedies() {

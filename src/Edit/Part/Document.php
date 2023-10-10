@@ -690,12 +690,61 @@ class Document extends PartBase
                 break;
             case MDWORD_IMG:
                 if(is_null($nodeIdxs)) {//md5
-                    $rids = $name;
                     if(empty($rids)) {
                         $this->word->log->writeLog('not find image by md5! md5: '.$name);
                     }
-                    foreach($rids as $rid) {
+
+                    $rids = $name;
+                    $handleFlag = false;
+                    $domTmp = $this->domList;
+                    $node = array_shift($domTmp);
+                    $drawings = $node->getElementsByTagName('drawing');
+                    $drawingArr = [];
+                    foreach($drawings as $drawing) {
+                        $blip = $drawing->getElementsByTagName('blip')->item(0);
+                        if ($blip){
+                            $rid = $this->getAttr($blip, 'embed', 'r');
+                            if (in_array($rid, $rids)){
+                                $drawingArr[$rid] = $drawing;
+                            }
+                        }
+                    }
+
+                    $imageInfo = @getimagesize($value);
+                    foreach ($drawingArr as $rid => $drawing) {
                         $this->updateRef($value,$rid);
+                        $extents = $drawing->getElementsByTagName('extent');
+                        foreach($extents as $extent) {
+                            $cx = $this->getAttr($extent, 'cx', null);
+                            if($cx > 0) {
+                                break;
+                            }
+                        }
+
+                        if($cx <= 0 && $spPr = $drawing->getElementsByTagName('spPr')->item(0)) {
+                            $exts = $spPr->getElementsByTagName('ext');
+                            foreach($exts as $extent) {
+                                $cx = $this->getAttr($extent, 'cx', null);
+                                if($cx > 0) {
+                                    break;
+                                }
+                            }
+                        }
+
+                        if($cx > 0) {
+                            $orgCy = intval($cx/($imageInfo[0]*9530)*($imageInfo[1]*9530));
+                            $extents = $drawing->getElementsByTagName('extent');
+                            foreach($extents as $extent) {
+                                $this->setAttr($extent, 'cy', $orgCy, null);
+                            }
+                            
+                            if($spPr = $drawing->getElementsByTagName('spPr')->item(0)) {
+                                $exts = $spPr->getElementsByTagName('ext');
+                                foreach($exts as $extent) {
+                                    $this->setAttr($extent, 'cy', $orgCy, null);
+                                }
+                            }
+                        }
                     }
                     break;
                 }
