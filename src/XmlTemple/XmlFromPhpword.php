@@ -113,6 +113,11 @@ class XmlFromPhpword extends AbstractWriter implements WriterInterface
         $body = $this->document->createNodeByXml($xml,function($documentElement) {
             return $documentElement->getElementsByTagName('body')->item(0);
         });
+
+        $sectPrs = $body->getElementsByTagName('sectPr');
+        if($sectPrs->length > 0) {
+            $this->document->markDelete($sectPrs->item($sectPrs->length-1));
+        }
         
         return $body->childNodes;
     }

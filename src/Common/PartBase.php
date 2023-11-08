@@ -82,7 +82,7 @@ class PartBase
         return $this->$name;
     }
     
-    protected function markDelete($item) {
+    public function markDelete($item) {
         if(!is_null($item)) {
             $item->setAttribute('md',(++$this->id));
         }
