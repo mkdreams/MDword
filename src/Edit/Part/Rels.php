@@ -10,7 +10,8 @@ class Rels extends PartBase
     public $imageMd5ToRid = [];
     
     protected $relationshipTypes =
-    //--RELATIONSHIPTYPES--array (
+    //--RELATIONSHIPTYPES--
+array (
   0 => 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/chart',
   1 => 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/settings',
   2 => 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/image',
@@ -72,9 +73,8 @@ class Rels extends PartBase
                             return false;
                         }
                         
-                        $Extension = pathinfo($file, PATHINFO_EXTENSION);
-                        $ExtensionArr = parse_url($Extension);
-                        $Extension = $ExtensionArr['path'];
+                        $mimeArr = explode('/', $imageInfo['mime'],2);
+                        $Extension = $mimeArr[1];
                         
                         $target = 'media/replace'.pathinfo($file, PATHINFO_FILENAME).'.'.$Extension;
                         $this->word->Content_Types->addDefault($Extension, $imageInfo['mime']);
@@ -115,9 +115,10 @@ class Rels extends PartBase
                 if($imageInfo === false) {
                     return false;
                 }
-                
                 $mimeArr = explode('/', $imageInfo['mime'],2);
-                $target = 'media/image'.$rIdMax.'.'.$mimeArr[1];
+                $Extension = $mimeArr[1];
+
+                $target = 'media/image'.$rIdMax.'.'.$Extension;
                 $rId = 'rId'.$rIdMax;
                 $Relationship = $this->createNodeByXml('<Relationship Id="'.$rId.'" Type="'.$type.'" Target="'.$target.'" />');
                 if($this->DOMDocument->getElementsByTagName('Relationships')->length == 0){
@@ -130,9 +131,6 @@ class Rels extends PartBase
                 $target = $this->partInfo['dirname'].'/'.$target;
                 $this->word->zip->addFromString($target, file_get_contents($file));
                 
-                $Extension = pathinfo($target, PATHINFO_EXTENSION);
-                $ExtensionArr = parse_url($Extension);
-                $Extension = $ExtensionArr['path'];
                 $this->word->Content_Types->addDefault($Extension, $imageInfo['mime']);
                 return ['rId'=>$rId,'imageInfo'=>$imageInfo];
                 break;
