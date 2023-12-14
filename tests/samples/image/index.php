@@ -35,7 +35,7 @@ $bind->bindValue('row#2',[])
 
 $TemplateProcessor->setImageValue('rowImage#2#0',dirname(__FILE__).'/img.jpg');
 
-$TemplateProcessor->setImageValue('image insert', dirname(__FILE__).'/img3.png');
+$TemplateProcessor->setValue('image insert', [['text' => dirname(__FILE__).'/words.png','type' => MDWORD_IMG,'width'=>300]]);
 
 $TemplateProcessor->setImageValue('image replace', dirname(__FILE__).'/img.jpg');
 

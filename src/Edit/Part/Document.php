@@ -453,10 +453,15 @@ class Document extends PartBase
                                     $refInfo = $this->updateRef($valueArr['text'],null,MDWORD_IMG);
                                     $rId = $refInfo['rId'];
                                     $imageInfo = $refInfo['imageInfo'];
-                                    //max width 800
-                                    if($imageInfo[1] > 800){
-                                        $imageInfo[0] = intval($imageInfo[0]*(800/$imageInfo[1]));
-                                        $imageInfo[1] = 800;
+                                    if(isset($valueArr['width'])) { 
+                                        $imageInfo[1] = intval($imageInfo[1]*($valueArr['width']/$imageInfo[0]));
+                                        $imageInfo[0] = $valueArr['width'];
+                                    }else{
+                                        //max width 550 px
+                                        if($imageInfo[0] > 550){
+                                            $imageInfo[1] = intval($imageInfo[1]*(550/$imageInfo[0]));
+                                            $imageInfo[0] = 550;
+                                        }
                                     }
                                     $docPr = $copyDrawing->getElementsByTagName('docPr')->item(0);
                                     preg_match("(\d+)",$rId,$idMatch);
