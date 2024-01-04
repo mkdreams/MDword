@@ -152,6 +152,10 @@ class Word
                     if($type === 2) {
                         $this->zip->addFromString($part['PartName'], $this->SimSunExtBSupport($this->autoDeleteSpaceBeforeBreakPage($part['DOMElement']->saveXML())));
                     }else{
+                        //add MDword flag
+                        if($type === 9 && ($description = $part['DOMElement']->getElementsByTagName('description')->item(0))) {
+                            $description->nodeValue='Made with MDword';
+                        }
                         $this->zip->addFromString($part['PartName'], $this->SimSunExtBSupport($part['DOMElement']->saveXML()));
                     }
                 }
