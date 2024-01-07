@@ -129,10 +129,10 @@ $TemplateProcessor->cloneP('num',count($numDatas));
 foreach($numDatas as $idx => $numData) {
     $TemplateProcessor->cloneP('num'.'#'.$idx,3);
 
-    $TemplateProcessor->setValue('num'.'#'.$idx.'#0',[['text' => $numData['title'], 'pstyle' => 'numstyle-level-1', 'type' => MDWORD_TEXT]]);
+    $TemplateProcessor->setValue('num'.'#'.$idx.'#0',[['text' => $numData['title'], 'pstyle' => 'numstyle-level-1', 'style' => 'numstyle-level-1', 'type' => MDWORD_TEXT]]);
 
     if(isset($numData['content'])) {
-        $TemplateProcessor->setValue('num'.'#'.$idx.'#1',[['text' => $numData['content'], 'pstyle' => 'numstyle-level-3', 'type' => MDWORD_TEXT]]);
+        $TemplateProcessor->setValue('num'.'#'.$idx.'#1',[['text' => $numData['content'], 'pstyle' => 'numstyle-level-3', 'style' => 'numstyle-level-3', 'type' => MDWORD_TEXT]]);
     }else{
         $TemplateProcessor->deleteP('num'.'#'.$idx.'#1');
     }
@@ -144,8 +144,8 @@ foreach($numDatas as $idx => $numData) {
         foreach($numData['sub'] as $subIdx => $subData) {
             $TemplateProcessor->cloneP($subName.'#'.$subIdx,2);
 
-            $TemplateProcessor->setValue($subName.'#'.$subIdx.'#0',[['text' => $subData['title'], 'pstyle' => 'numstyle-level-2', 'type' => MDWORD_TEXT]]);
-            $TemplateProcessor->setValue($subName.'#'.$subIdx.'#1',[['text' => $subData['content'], 'pstyle' => 'numstyle-level-3', 'type' => MDWORD_TEXT]]);
+            $TemplateProcessor->setValue($subName.'#'.$subIdx.'#0',[['text' => $subData['title'], 'pstyle' => 'numstyle-level-2', 'style' => 'numstyle-level-2', 'type' => MDWORD_TEXT]]);
+            $TemplateProcessor->setValue($subName.'#'.$subIdx.'#1',[['text' => $subData['content'], 'pstyle' => 'numstyle-level-3', 'style' => 'numstyle-level-3', 'type' => MDWORD_TEXT]]);
         }
     }else{
         $TemplateProcessor->deleteP($subName);
