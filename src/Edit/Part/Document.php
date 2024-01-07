@@ -36,15 +36,27 @@ class Document extends PartBase
             $sdtContent = $this->DOMDocument;
         }
 
-        if(isset($sdtContent->tagList['w:hyperlink'])) {
-            $hyperlinks = $sdtContent->tagList['w:hyperlink'];
+        //Compatible with pws
+
+        if(isset($sdtContent->tagList['w:instrText'])) {
+            $instrTexts = $sdtContent->tagList['w:instrText'];
         }else{
-            $hyperlinks = [];
+            $instrTexts = [];
         }
         $this->hyperlinkParentNodeArr = [];
-        foreach($hyperlinks as $hyperlink) {
-            $parentNode = $hyperlink->parentNode;
-            $this->hyperlinkParentNodeArr[$this->getAttr($hyperlink, 'anchor')] = $parentNode;
+        foreach($instrTexts as $instrText) {
+            $text = $instrText->nodeValue;
+            preg_match('/ PAGEREF ([\S]+?) \\\\h /i',$text,$match);
+            if(isset($match[1]) && !isset($this->hyperlinkParentNodeArr[$match[1]])) {
+                $this->hyperlinkParentNodeArr[$match[1]] = $this->getParentToNode($instrText);
+            }
+            preg_match('/ HYPERLINK \\\\l ([\S]+?) /i',$text,$match);
+            if(isset($match[1])) {
+                $match[1] = trim($match[1],'"');
+            }
+            if(isset($match[1]) && !isset($this->hyperlinkParentNodeArr[$match[1]])) {
+                $this->hyperlinkParentNodeArr[$match[1]] = $this->getParentToNode($instrText);
+            }
         }
         if(isset($this->DOMDocument->documentElement->tagList['w:pPr'])) {
             $pPrs = $this->DOMDocument->documentElement->tagList['w:pPr'];
@@ -70,28 +82,46 @@ class Document extends PartBase
                     if(isset($this->hyperlinkParentNodeArr[$name])) {
                         $hyperlinkParentNode = $this->hyperlinkParentNodeArr[$name];
                         $copy = clone $hyperlinkParentNode;
-                        $fldChars = $copy->getElementsByTagName('fldChar');
-                        foreach($fldChars as $fldChar) {
-                            $r = $fldChar->parentNode;
-                            $p = $r->parentNode;
-                            
-                            if($p->localName === 'hyperlink') {
-                                continue;
+                        if($copy->getElementsByTagName('hyperlink')->item(0)) {
+                            $fldChars = $copy->getElementsByTagName('fldChar');
+                            foreach($fldChars as $fldChar) {
+                                $r = $fldChar->parentNode;
+                                $p = $r->parentNode;
+                                
+                                if($p->localName === 'hyperlink') {
+                                    continue;
+                                }
+                                
+                                $this->markDelete($r);
                             }
                             
-                            $this->markDelete($r);
-                        }
-                        
-                        $instrTexts = $copy->getElementsByTagName('instrText');
-                        foreach($instrTexts as $instrText) {
-                            $r = $instrText->parentNode;
-                            $p = $r->parentNode;
-                            
-                            if($p->localName === 'hyperlink') {
-                                continue;
+                            $instrTexts = $copy->getElementsByTagName('instrText');
+                            foreach($instrTexts as $instrText) {
+                                $r = $instrText->parentNode;
+                                $p = $r->parentNode;
+                                
+                                if($p->localName === 'hyperlink') {
+                                    continue;
+                                }
+                                
+                                $this->markDelete($r);
                             }
-                            
-                            $this->markDelete($r);
+                        }else{
+                            $subBegainEnd = 0;
+                            $fldChars = $copy->getElementsByTagName('fldChar');
+                            foreach($fldChars as $fldChar) {
+                                $r = $fldChar->parentNode;
+                                $fldCharType = $this->getAttr($fldChar,'fldCharType');
+                                if($fldCharType === 'begin') {
+                                    $subBegainEnd++;
+                                }elseif($fldCharType === 'end') {
+                                    $subBegainEnd--;
+                                }
+                                
+                                if($subBegainEnd < 0) {
+                                    $this->markDelete($r);
+                                }
+                            }
                         }
                         
                         $this->anchors[$val] = $copy;
@@ -160,51 +190,70 @@ class Document extends PartBase
         }else{
             return ;
         }
-        
+
         foreach($titles as $index => $title) {
             $anchor = $title['anchor'][0]['name'];
             $copy = $title['copy'];
-            $t = $copy->getElementsByTagName('t')->item(0);$this->setAttr($t, 'space', 'preserve','xml');$t->nodeValue  = $this->htmlspecialcharsBase($title['text']);
+            $t = $copy->getElementsByTagName('t')->item(0);
+            $this->setAttr($t, 'space', 'preserve','xml');
+            $t->nodeValue  = $this->htmlspecialcharsBase($title['text']);
             
             if($tItme = $copy->getElementsByTagName('t')->item(1)) {
                 $tItme->nodeValue = '';
             }
-            $hyperlink = $copy->getElementsByTagName('hyperlink')->item(0);
-            $this->setAttr($hyperlink, 'anchor', $title['anchor'][0]['name']);
+
+            $hyperlink_r = $this->getParentToNode($copy->getElementsByTagName('t')->item(0),'r');
+
+            $isHyperlink = true;
+            if($hyperlink = $copy->getElementsByTagName('hyperlink')->item(0)) {
+                $this->setAttr($hyperlink, 'anchor', $title['anchor'][0]['name']);
+                $textNextNode = $hyperlink;
+            }else{
+                $textNextNode = $hyperlink_r->nextSibling;
+                $isHyperlink = false;
+            }
             
             //TOC jump in the browser or app. Such as: whatsapp
             $hyperlink_temp = $this->createNodeByXml('<w:hyperlink w:anchor="'.$title['anchor'][0]['name'].'" w:history="1"></w:hyperlink>');
-            $hyperlink_r = $hyperlink->getElementsByTagName('r')->item(0);
             $hyperlink_temp->appendChild($hyperlink_r);
 
             $instrTexts = $copy->getElementsByTagName('instrText');
             $instrTextToc = 'TOC \o "1-3" \h \z \u';
             foreach($instrTexts as $instrText) {
-                if(strpos($instrText->nodeValue, 'PAGEREF') > 0) {
+                if(strpos($instrText->nodeValue, 'PAGEREF') !== false) {
                     $instrText->nodeValue = " PAGEREF $anchor \h ";
-                }elseif(strpos($instrText->nodeValue, 'TOC') > 0){
-                    $instrTextToc = $instrText->nodeValue;
+                }elseif(strpos($instrText->nodeValue, 'HYPERLINK') !== false){
+                    $instrText->nodeValue = ' HYPERLINK \l '.$anchor.' ';
+                }elseif(strpos($instrText->nodeValue, 'TOC') !== false){
+                    $instrTextToc = trim($instrText->nodeValue);
+
+                    //index eq 0 not delete
+                    if($index !== 0) {
+                        $r = $instrText->parentNode;
+                        $this->markDelete($r->previousSibling);
+                        $this->markDelete($r);
+                        $this->markDelete($r->nextSibling);
+                    }
                 }
             }
             
-            if($index === 0) {//first add specail node
+            if($index === 0 && $isHyperlink === true) {//first add specail node
                 $fldCharBegin = $this->createNodeByXml('<w:r><w:fldChar w:fldCharType="begin" /></w:r>');
-                $this->insertBefore($fldCharBegin, $hyperlink);
+                $this->insertBefore($fldCharBegin, $textNextNode);
                 
                 
                 $fldCharPreserve = $this->createNodeByXml('<w:r><w:instrText xml:space="preserve"> '.$instrTextToc.' </w:instrText></w:r>');
-                $this->insertBefore($fldCharPreserve, $hyperlink);
+                $this->insertBefore($fldCharPreserve, $textNextNode);
                 
                 $fldCharSeparate = $this->createNodeByXml('<w:r><w:fldChar w:fldCharType="separate"/></w:r>');
-                $this->insertBefore($fldCharSeparate, $hyperlink);
+                $this->insertBefore($fldCharSeparate, $textNextNode);
             }
 
-            $this->insertBefore($hyperlink_temp,$hyperlink);
+            $this->insertBefore($hyperlink_temp,$textNextNode);
 
             $sdtContent->insertBefore($copy,$sdtContent->lastChild);
         }
-        
-        
+
         $fldChars = $sdtContent->getElementsByTagName('fldChar');
         $fldCharsCount = [];
         foreach($fldChars as $fldChar) {
@@ -222,7 +271,6 @@ class Document extends PartBase
             $fldCharEnd = $this->createNodeByXml('<w:r><w:fldChar w:fldCharType="end"/></w:r>');
             $copy->appendChild($fldCharEnd);
         }
-        
         
         foreach($this->hyperlinkParentNodeArr as $hyperlinkParentNode) {
             $this->removeChild($hyperlinkParentNode);
