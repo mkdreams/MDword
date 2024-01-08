@@ -454,6 +454,9 @@ class Document extends PartBase
                                     $this->removeMarkDelete($targetNode);
                                     break;
                                 case MDWORD_PAGE_BREAK:
+                                    if(!isset($valueArr['text'])) {
+                                        $valueArr['text'] = 1;
+                                    }
                                     $this->updateMDWORD_BREAK_PAGE($targetNode->parentNode,$valueArr['text'],true);
                                     break;
                                 case MDWORD_LINK:
