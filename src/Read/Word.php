@@ -17,7 +17,9 @@ class Word
      * @var Log
      */
     public $log = null;
-    
+    /**
+     * @var ContentTypes
+     */
     public $Content_Types = null;
     
     private $tempDocumentFilename = null;
@@ -220,7 +222,7 @@ class Word
     }
     
     
-    private function standardXml($xml,$ContentType,$PartName) {
+    public function standardXml($xml,$ContentType,$PartName) {
         $xml = preg_replace_callback('/\$[^$]*?\{[\s\S]+?\}/i', function($match){
             return preg_replace('/\s/', '', strip_tags($match[0]));
         }, $xml);
@@ -374,9 +376,13 @@ class Word
      * @return \DOMDocument
      */
     public function getXmlDom($filename,$standardXmlFunc=null) {
-        $xml = $this->zip->getFromName($filename);
-        if(!is_null($standardXmlFunc)) {
-            $xml = $standardXmlFunc($xml);
+        if(is_null($filename) && !is_null($standardXmlFunc)) {
+            $xml = $standardXmlFunc();
+        }else{
+            $xml = $this->zip->getFromName($filename);
+            if(!is_null($standardXmlFunc)) {
+                $xml = $standardXmlFunc($xml);
+            }
         }
         $domDocument = new \DOMDocument();
         $domDocument->loadXML($xml);

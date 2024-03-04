@@ -73,6 +73,22 @@ class WordProcessor
     public function getInnerVars() {
         return ['levels'=>$this->words[$this->wordsIndex]->documentEdit->getLevels()];
     }
+
+    /**
+     * delete section include the block。(only in document.xml)
+     * @param string $name
+     */
+    public function deleteSection($name) {
+        foreach($this->words[$this->wordsIndex]->needUpdateParts as $part) {
+            $func = $part['func'];
+            $partName = $part['partName'];
+            /**
+             * @var Document $documentEdit
+             */
+            $documentEdit = $this->$func($partName);
+            $documentEdit->setValue($name, 'section',MDWORD_DELETE);
+        }
+    }
     
     /**
      * delete p include the block 
@@ -220,6 +236,22 @@ class WordProcessor
         }
     }
     /**
+     * clone section
+     * @param string $name 
+     * @param int|array $count 1|[1,$nameTo]
+     */
+    public function cloneSection($name,$count=1) {
+        foreach($this->words[$this->wordsIndex]->needUpdateParts as $part) {
+            $func = $part['func'];
+            $partName = $part['partName'];
+            /**
+             * @var Document $documentEdit
+             */
+            $documentEdit = $this->$func($partName);
+            $documentEdit->setValue($name, $count, MDWORD_CLONESECTION);
+        }
+    }
+    /**
      * clone
      * @param string $name
      * @param int $count
@@ -286,7 +318,10 @@ class WordProcessor
         $documentEdit->updateToc();
     }
     
-    private function getHeaderEdit($partName='word/header1.xml') {
+    /**
+     * @var Document
+     */
+    public function getHeaderEdit($partName='word/header1.xml') {
         if(!isset($this->words[$this->wordsIndex]->headerEdits[$partName])) {
             $index = $this->getPartsIndexByPartName(22,$partName);
             $document = $this->words[$this->wordsIndex]->parts[22][$index]['DOMElement'];
@@ -329,7 +364,10 @@ class WordProcessor
         return $documentEdit;
     }
     
-    private function getFooterEdit($partName='word/footer1.xml') {
+     /**
+     * @var Document
+     */
+    public function getFooterEdit($partName='word/footer1.xml') {
         if(!isset($this->words[$this->wordsIndex]->footerEdits[$partName])) {
             $index = $this->getPartsIndexByPartName(23,$partName);
             $document = $this->words[$this->wordsIndex]->parts[23][$index]['DOMElement'];
@@ -346,9 +384,9 @@ class WordProcessor
     }
     
     private function getPartsIndexByPartName($type,$partName) {
-        static $data = null;
+        static $data = [];
         
-        if(is_null($data)) {
+        if(!isset($data[$partName])) {
             $data = [];
             foreach($this->words[$this->wordsIndex]->parts as $part) {
                 foreach($part as $index => $val) {

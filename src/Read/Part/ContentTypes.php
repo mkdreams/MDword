@@ -10,7 +10,8 @@ class ContentTypes extends PartBase
     protected $overrides = [];
     
     protected $contentTypes =
-    //--CONTENTTYPES--array (
+    //--CONTENTTYPES--
+array (
   0 => 'application/vnd.openxmlformats-package.relationships+xml',
   1 => 'application/xml',
   2 => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml',
@@ -108,7 +109,22 @@ class ContentTypes extends PartBase
     }
     
     public function addOverride($PartName='word/document.xml',$ContentTypeIdx=2) {
+        if(is_string($ContentTypeIdx)) {
+            $pos = array_search($ContentTypeIdx,$this->contentTypes);
+            if($pos === false) {
+                $this->contentTypes[] = $ContentTypeIdx;
+                $pos = sizeof($this->contentTypes) - 1;
+            }
+            $ContentTypeIdx = $pos;
+        }
         $this->overrides[$PartName] = ['PartName'=>$PartName,'ContentType'=>$ContentTypeIdx];
+
+        $overrides = $this->DOMDocument->getElementsByTagName('Override');
+        $lastOverride = $overrides->item($overrides->length-1);
+        $copy = clone $lastOverride;
+        $this->setAttr($copy,'PartName',$PartName,'');
+        $this->setAttr($copy,'ContentType',$this->contentTypes[$ContentTypeIdx],'');
+        $this->insertAfter($copy,$lastOverride);
     }
 
     public function setContent_types($newOverrides){

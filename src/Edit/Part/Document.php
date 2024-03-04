@@ -915,6 +915,100 @@ class Document extends PartBase
                     $lastNodeIdx = $this->cloneNode($nodeIdx,$lastNodeIdx,$name,0);
                 }
                 break;
+            case MDWORD_CLONESECTION:
+                if(is_array($value)) {
+                    $value = $value[0];
+                    $nameTo = $value[1];
+                }else{
+                    $nameTo = '';
+                }
+
+                list($sectionIdx,$nodeIdxs) = $this->getSectionNodeIdxs($nodeIdxs[0]);
+                // var_dump($sectionIdx,$nodeIdxs);exit;
+                $lastNodeIdx = end($nodeIdxs);
+                for($i=1;$i<$value;$i++) {
+                    foreach($nodeIdxs as $nodeIdx) {
+                        $lastNodeIdx = $this->cloneNode($nodeIdx,$lastNodeIdx,$name,$i);
+                        //section
+                        if($sectionIdx === $nodeIdx) {
+                            $headerReference = $this->domList[$lastNodeIdx]->getElementsByTagName('headerReference')->item(0);
+                            if(!is_null($headerReference)) {
+                                $rid = $this->getAttr($headerReference,'id','r');
+                                $cloneInfo = $this->getRels()->clone($rid);
+                                $this->setAttr($headerReference,'id',$cloneInfo['rId'],'r');
+
+                                $this->word->needUpdateParts[$cloneInfo['partName']] = [
+                                    'func'=>'getHeaderEdit',
+                                    'partName'=>$cloneInfo['partName'],
+                                ];
+
+                                $standardXmlFunc = function() use($cloneInfo) {
+                                    $xml = $this->word->standardXml($cloneInfo['xml'],22,$cloneInfo['partName']);
+                                    return $xml;
+                                };
+                                $this->word->parts[22][] = ['PartName'=>$cloneInfo['partName'],'DOMElement'=>$this->word->getXmlDom(null,$standardXmlFunc)];
+                                $headerEdit = $this->word->wordProcessor->getHeaderEdit($cloneInfo['partName']);
+                                foreach($headerEdit->domIdxToName as $nodeIdxTemp => $v) {
+                                    $headerEdit->cloneNode($nodeIdxTemp,$nodeIdxTemp,$name,0,$i);
+                                }
+                            }
+
+                            $footerReference = $this->domList[$lastNodeIdx]->getElementsByTagName('footerReference')->item(0);
+                            if(!is_null($footerReference)) {
+                                $rid = $this->getAttr($footerReference,'id','r');
+                                $cloneInfo = $this->getRels()->clone($rid);
+                                $this->setAttr($footerReference,'id',$cloneInfo['rId'],'r');
+
+                                $this->word->needUpdateParts[$cloneInfo['partName']] = [
+                                    'func'=>'getFooterEdit',
+                                    'partName'=>$cloneInfo['partName'],
+                                ];
+
+                                $standardXmlFunc = function() use($cloneInfo) {
+                                    $xml = $this->word->standardXml($cloneInfo['xml'],23,$cloneInfo['partName']);
+                                    return $xml;
+                                };
+                                $this->word->parts[23][] = ['PartName'=>$cloneInfo['partName'],'DOMElement'=>$this->word->getXmlDom(null,$standardXmlFunc)];
+                                $footerEdit = $this->word->wordProcessor->getFooterEdit($cloneInfo['partName']);
+                                foreach($footerEdit->domIdxToName as $nodeIdxTemp => $v) {
+                                    $footerEdit->cloneNode($nodeIdxTemp,$nodeIdxTemp,$name,0,$i);
+                                }
+                            }
+                        }
+                    }
+                }
+                
+                //刷新被克隆对象
+                foreach($nodeIdxs as $nodeIdx) {
+                    $lastNodeIdx = $this->cloneNode($nodeIdx,$lastNodeIdx,$name,0);
+                    //section
+                    if($sectionIdx === $nodeIdx) {
+                        $headerReference = $this->domList[$lastNodeIdx]->getElementsByTagName('headerReference')->item(0);
+                        if(!is_null($headerReference)) {
+                            $rid = $this->getAttr($headerReference,'id','r');
+                            $Relationship = $this->rels->ridToTarget[$rid];
+                            $type = $this->getAttr($Relationship, 'Type');
+                            $oldTarget = $Relationship->getAttribute('Target');
+                            $headerEdit = $this->word->wordProcessor->getHeaderEdit('word/'.$oldTarget);
+                            foreach($headerEdit->domIdxToName as $nodeIdxTemp => $v) {
+                                $headerEdit->cloneNode($nodeIdxTemp,$nodeIdxTemp,$name,0);
+                            }
+                        }
+
+                        $footerReference = $this->domList[$lastNodeIdx]->getElementsByTagName('footerReference')->item(0);
+                        if(!is_null($footerReference)) {
+                            $rid = $this->getAttr($footerReference,'id','r');
+                            $Relationship = $this->rels->ridToTarget[$rid];
+                            $type = $this->getAttr($Relationship, 'Type');
+                            $oldTarget = $Relationship->getAttribute('Target');
+                            $footerEdit = $this->word->wordProcessor->getFooterEdit('word/'.$oldTarget);
+                            foreach($footerEdit->domIdxToName as $nodeIdxTemp => $v) {
+                                $footerEdit->cloneNode($nodeIdxTemp,$nodeIdxTemp,$name,0);
+                            }
+                        }
+                    }
+                }
+                break;
             case MDWORD_CLONETO:
                 switch($value['type']) {
                     case MDWORD_DELETE:
@@ -952,12 +1046,17 @@ class Document extends PartBase
                             $this->markDelete($p);
                         }
                     }
-                }elseif($value == 'tr') {//to-do
+                }elseif($value == 'tr') {
                     foreach($nodeIdxs as $nodeIdx) {
                         $tr = $this->getParentToNode($nodeIdx,'tr');
                         if(!is_null($tr)) {
                             $this->markDelete($tr);
                         }
+                    }
+                }elseif($value == 'section') {
+                    list($sectionIdx,$nodeIdxs) = $this->getSectionNodeIdxs($nodeIdxs[0]);
+                    foreach($nodeIdxs as $nodeIdx) {
+                        $this->markDelete($this->domList[$nodeIdx]);
                     }
                 }
                 break;
@@ -1035,7 +1134,7 @@ class Document extends PartBase
         }
     }
     
-    private function cloneNode($nodeIdx,$endNodeIdx,$name,$idx) {
+    private function cloneNode($nodeIdx,$endNodeIdx,$name,$idx,$reIdx=0) {
         $node = $this->domList[$nodeIdx];
         if($idx === 0) {
             $begin = $node->idxBegin;
@@ -1046,7 +1145,7 @@ class Document extends PartBase
                     $cloneNodeIdx = $i+$offset;
                     $nameTemps = $this->domIdxToName[$i];
                     foreach($nameTemps as $key => $nameTemp) {
-                        $newName = $nameTemp[1].'#'.$idx;
+                        $newName = $nameTemp[1].'#'.$reIdx;
                         $nameTemps[$key] = [$nameTemp[0],$newName];
                         $this->blocks[$newName][$nameTemp[0]][] = $cloneNodeIdx;
                     }
@@ -1237,6 +1336,45 @@ class Document extends PartBase
         
         return $parentNode;
     }
+
+    private function getSectionNodeIdxs($beginNodeIndex) {
+        static $cache = [];
+
+        if(isset($cache[$beginNodeIndex])) {
+            return $cache[$beginNodeIndex];
+        }
+
+        $nodeP = $this->getParentToNode($beginNodeIndex);
+
+        $nodeIdxs = [$nodeP->idxBegin];
+        $previousSibling = $nextSibling = $nodeP;
+
+        $preIdxs = [];
+        while($previousSibling->previousSibling) {
+            $sectPr = $previousSibling->previousSibling->getElementsByTagName('sectPr');
+            if($sectPr->length > 0) {
+                break;
+            }
+            $previousSibling = $previousSibling->previousSibling;
+            $preIdxs[] = $previousSibling->idxBegin;
+        }
+
+        $endIdxs = [];
+        while($nextSibling->nextSibling) {
+            $nextSibling = $nextSibling->nextSibling;
+            $endIdxs[] = $nextSibling->idxBegin;
+            $sectPr = $nextSibling->getElementsByTagName('sectPr');
+            if($sectPr->length > 0) {
+                break;
+            }
+        }
+
+        $nodeIdxs = array_merge(array_reverse($preIdxs),$nodeIdxs,$endIdxs);
+
+        $cache[$beginNodeIndex] = [$nextSibling->idxBegin,$nodeIdxs];
+
+        return [$nextSibling->idxBegin,$nodeIdxs];
+    }
     
     private function initChart($rid='') {
         if(is_null($this->rels)) {
@@ -1276,6 +1414,13 @@ class Document extends PartBase
         }else{
             return $this->rels->replace($rid,$file);
         }
+    }
+
+    public function getRels() {
+        if(is_null($this->rels)) {
+            $this->initRels();
+        }
+        return $this->rels;
     }
     
     public function getRidByMd5($md5) {

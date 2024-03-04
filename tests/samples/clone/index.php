@@ -56,5 +56,10 @@ $bind->bindValue('tableitem',[])
 
 
 
+$TemplateProcessor->cloneSection('section2',2);
+$TemplateProcessor->setValue('section2#0','section2#012345');
+$TemplateProcessor->setValue('section2#1','section2#1');
+$TemplateProcessor->setValue('header2#1','header2#1');
+$TemplateProcessor->deleteSection('section2#0');
 $TemplateProcessor->saveAs($rtemplate);
 

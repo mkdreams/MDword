@@ -25,5 +25,6 @@ define('MDWORD_TOTALPAGE', 15);
 
 define('MDWORD_CLONE', 7);
 define('MDWORD_CLONEP', 8);
+define('MDWORD_CLONESECTION', 16);
 define('MDWORD_CLONETO', 9);
 define('MDWORD_TABLE', 11);

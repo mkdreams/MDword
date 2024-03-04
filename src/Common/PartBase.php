@@ -11,6 +11,9 @@ class PartBase
      */
     public $DOMDocument;
     
+    /**
+     * @var Rels
+     */
     public $rels = null;
     
     protected $rootPath;

@@ -8,6 +8,8 @@ class Rels extends PartBase
 {
     public $partInfo = null;
     public $imageMd5ToRid = [];
+    public $ridToTarget = [];
+    public $rIdMax = 0;
     
     protected $relationshipTypes =
     //--RELATIONSHIPTYPES--
@@ -46,13 +48,21 @@ array (
             if(!in_array($type = $this->getAttr($Relationship, 'Type'), $this->relationshipTypes)) {
                 $this->relationshipTypes[] = $type;
             }
-            
+
+            $rid = $this->getAttr($Relationship, 'Id');
+            $this->ridToTarget[$rid] = $Relationship;
+
+            $id = intval(str_replace('rId', '', $rid));
+            if($id > $this->rIdMax) {
+                $this->rIdMax = $id;
+            }
+
             if($this->relationshipTypes[2] === $this->getAttr($Relationship, 'Type')) {
                 $md5 = md5($this->word->zip->getFromName('word/'.$this->getAttr($Relationship, 'Target')));
-                $this->imageMd5ToRid[$md5][] = $this->getAttr($Relationship, 'Id');
+                $this->imageMd5ToRid[$md5][] = $rid;
             }
         }
-        
+
         if(MDWORD_DEBUG) {
             $build = new Build();
             $build->replace('RELATIONSHIPTYPES', $this->relationshipTypes, __FILE__);
@@ -92,21 +102,13 @@ array (
             }
         }
     }
+
+    public function clone($rid) {
+        return $this->insert($rid,'clone');
+    }
     
     public function insert($file,$fileType) {
-        static $rIdMax = null;
-        if(is_null($rIdMax)) {
-            $rIdMax = 1;
-            $Relationships = $this->DOMDocument->getElementsByTagName('Relationship');
-            foreach ($Relationships as $Relationship) {
-                $id = intval(str_replace('rId', '', $Relationship->getAttribute('Id')));
-                if($id > $rIdMax) {
-                    $rIdMax = $id;
-                }
-            }
-        }
-        
-        $rIdMax = $rIdMax + 1;
+        $this->rIdMax = $this->rIdMax + 1;
         
         switch ($fileType) {
             case MDWORD_IMG:
@@ -118,8 +120,8 @@ array (
                 $mimeArr = explode('/', $imageInfo['mime'],2);
                 $Extension = $mimeArr[1];
 
-                $target = 'media/image'.$rIdMax.'.'.$Extension;
-                $rId = 'rId'.$rIdMax;
+                $target = 'media/image'.$this->rIdMax.'.'.$Extension;
+                $rId = 'rId'.$this->rIdMax;
                 $Relationship = $this->createNodeByXml('<Relationship Id="'.$rId.'" Type="'.$type.'" Target="'.$target.'" />');
                 if($this->DOMDocument->getElementsByTagName('Relationships')->length == 0){
                     $Relationships = $this->createNodeByXml('<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"></Relationships>');
@@ -133,6 +135,33 @@ array (
                 
                 $this->word->Content_Types->addDefault($Extension, $imageInfo['mime']);
                 return ['rId'=>$rId,'imageInfo'=>$imageInfo];
+                break;
+            case 'clone':
+                $rid = $file;
+                $Relationship = $this->ridToTarget[$rid];
+                $type = $this->getAttr($Relationship, 'Type');
+                $oldTarget = $Relationship->getAttribute('Target');
+                $c = $this->word->zip->getFromName($this->partInfo['dirname'].'/'.$oldTarget);
+                $target = preg_replace_callback('/\d+?(?=\.)/i',function($match) {
+                    return $this->rIdMax;
+                },$oldTarget);
+                $rId = 'rId'.$this->rIdMax;
+
+                $Relationship = $this->createNodeByXml('<Relationship Id="'.$rId.'" Type="'.$type.'" Target="'.$target.'" />');
+                if($this->DOMDocument->getElementsByTagName('Relationships')->length == 0){
+                    $Relationships = $this->createNodeByXml('<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"></Relationships>');
+                    $this->DOMDocument->encoding = 'UTF-8';
+                    $this->DOMDocument->appendChild($Relationships);
+                }
+                $this->DOMDocument->getElementsByTagName('Relationships')->item(0)->appendChild($Relationship);
+                $target = $this->partInfo['dirname'].'/'.$target;
+                $this->word->zip->addFromString($target, $c);
+                if($type === 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/header') {
+                    $this->word->Content_Types->addOverride('/'.$target, 'application/vnd.openxmlformats-officedocument.wordprocessingml.header+xml');
+                }elseif($type === 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/footer') {
+                    $this->word->Content_Types->addOverride('/'.$target, 'application/vnd.openxmlformats-officedocument.wordprocessingml.footer+xml');
+                }
+                return ['rId'=>$rId,'partName'=>$target,'xml'=>$c];
                 break;
         }
     }
