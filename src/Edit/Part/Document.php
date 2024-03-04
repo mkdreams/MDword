@@ -934,7 +934,7 @@ class Document extends PartBase
                             $headerReference = $this->domList[$lastNodeIdx]->getElementsByTagName('headerReference')->item(0);
                             if(!is_null($headerReference)) {
                                 $rid = $this->getAttr($headerReference,'id','r');
-                                $cloneInfo = $this->getRels()->clone($rid);
+                                $cloneInfo = $this->getRels()->cloneRels($rid);
                                 $this->setAttr($headerReference,'id',$cloneInfo['rId'],'r');
 
                                 $this->word->needUpdateParts[$cloneInfo['partName']] = [
@@ -956,7 +956,7 @@ class Document extends PartBase
                             $footerReference = $this->domList[$lastNodeIdx]->getElementsByTagName('footerReference')->item(0);
                             if(!is_null($footerReference)) {
                                 $rid = $this->getAttr($footerReference,'id','r');
-                                $cloneInfo = $this->getRels()->clone($rid);
+                                $cloneInfo = $this->getRels()->cloneRels($rid);
                                 $this->setAttr($footerReference,'id',$cloneInfo['rId'],'r');
 
                                 $this->word->needUpdateParts[$cloneInfo['partName']] = [

@@ -103,7 +103,7 @@ array (
         }
     }
 
-    public function clone($rid) {
+    public function cloneRels($rid) {
         return $this->insert($rid,'clone');
     }
     
