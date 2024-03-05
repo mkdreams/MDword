@@ -924,13 +924,37 @@ class Document extends PartBase
                 }
 
                 list($sectionIdx,$nodeIdxs) = $this->getSectionNodeIdxs($nodeIdxs[0]);
-                // var_dump($sectionIdx,$nodeIdxs);exit;
                 $lastNodeIdx = end($nodeIdxs);
+                $isCloneLast = false;
+                //last section
+                if($this->domList[$sectionIdx]->localName === 'sectPr') {
+                    $isCloneLast = true;
+                    $sectPrXml = $this->DOMDocument->saveXML($this->domList[$sectionIdx]);
+                }
+
                 for($i=1;$i<$value;$i++) {
                     foreach($nodeIdxs as $nodeIdx) {
-                        $lastNodeIdx = $this->cloneNode($nodeIdx,$lastNodeIdx,$name,$i);
                         //section
                         if($sectionIdx === $nodeIdx) {
+                            if($isCloneLast === true) {
+                                if($value-1 === $i) {
+                                    $prpr = $this->createNodeByXml($sectPrXml);
+                                    $this->treeToList($prpr);
+
+                                    //change last org section
+                                    $this->markDelete($this->domList[$sectionIdx]);
+                                    $orgSection = $this->createNodeByXml('<w:p><w:pPr>'.$sectPrXml.'</w:pPr></w:p>');
+                                    $this->treeToList($orgSection);
+                                    $this->insertBefore($orgSection,$this->domList[$sectionIdx]);
+                                }else{
+                                    $prpr = $this->createNodeByXml('<w:p><w:pPr>'.$sectPrXml.'</w:pPr></w:p>');
+                                    $this->treeToList($prpr);
+                                }
+                                $this->insertAfter($prpr,$this->domList[$lastNodeIdx]);
+                                $lastNodeIdx = $prpr->idxBegin;
+                            }else{
+                                $lastNodeIdx = $this->cloneNode($nodeIdx,$lastNodeIdx,$name,$i);
+                            }
                             $headerReference = $this->domList[$lastNodeIdx]->getElementsByTagName('headerReference')->item(0);
                             if(!is_null($headerReference)) {
                                 $rid = $this->getAttr($headerReference,'id','r');
@@ -974,6 +998,8 @@ class Document extends PartBase
                                     $footerEdit->cloneNode($nodeIdxTemp,$nodeIdxTemp,$name,0,$i);
                                 }
                             }
+                        }else{
+                            $lastNodeIdx = $this->cloneNode($nodeIdx,$lastNodeIdx,$name,$i);
                         }
                     }
                 }
