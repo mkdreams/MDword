@@ -28,7 +28,7 @@ class Common
         return $files;
     }
     
-    public function CurlSend($url,$headers='',$post=[],$timeoutMs=30000) {
+    public function curlSend($url,$headers='',$post=[],$timeoutMs=30000) {
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, FALSE);//https
         curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, FALSE);//https

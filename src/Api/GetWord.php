@@ -62,12 +62,12 @@ class GetWord extends Base{
                 if($dataInfo['headers'] === '' && $dataInfo['postData'] === '') {
                     $content = file_get_contents($dataInfo['url']);
                 }else{
-                    $content = $this->common->CurlSend($dataInfo['url'],$dataInfo['headers'],$dataInfo['postData']);
+                    $content = $this->common->curlSend($dataInfo['url'],$dataInfo['headers'],$dataInfo['postData']);
                 }
                 return $this->formatConvert($content,$data['type']);
                 break;
             case 'excel':
-                $data = $this->common->CurlSend($data['url'],$data['headers'],$data['postData']);
+                $data = $this->common->curlSend($data['url'],$data['headers'],$data['postData']);
                 $data = json_decode($data,true);
                 return $data;
                 break;
