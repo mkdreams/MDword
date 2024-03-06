@@ -155,8 +155,17 @@ class Word
                         $this->zip->addFromString($part['PartName'], $this->SimSunExtBSupport($this->autoDeleteSpaceBeforeBreakPage($part['DOMElement']->saveXML())));
                     }else{
                         //add MDword flag
-                        if($type === 9 && ($description = $part['DOMElement']->getElementsByTagName('description')->item(0))) {
-                            $description->nodeValue='Made with MDword';
+                        if($type === 9) {
+                            $description = $part['DOMElement']->getElementsByTagName('description')->item(0);
+                            if(is_null($description)) {
+                                $el = $part['DOMElement']->createElement('dc:description','Made with MDword');
+                                if($coreProperties = $part['DOMElement']->getElementsByTagName('coreProperties')->item(0)) {
+                                    $coreProperties->appendChild($el); 
+                                }
+                            }else{
+                                $description->nodeValue='Made with MDword';
+                            }
+
                         }
                         $this->zip->addFromString($part['PartName'], $this->SimSunExtBSupport($part['DOMElement']->saveXML()));
                     }
