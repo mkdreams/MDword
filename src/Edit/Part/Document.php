@@ -58,6 +58,19 @@ class Document extends PartBase
                 $this->hyperlinkParentNodeArr[$match[1]] = $this->getParentToNode($instrText);
             }
         }
+
+        //fixed: some TOC jump not include:PAGEREF OR HYPERLINK
+        if(isset($sdtContent->tagList['w:hyperlink'])) {
+            $hyperlinks = $sdtContent->tagList['w:hyperlink'];
+            foreach($hyperlinks as $hyperlink) {
+                $parentNode = $hyperlink->parentNode;
+                $anchor = $this->getAttr($hyperlink, 'anchor');
+                if(!isset($this->hyperlinkParentNodeArr[$anchor])) {
+                    $this->hyperlinkParentNodeArr[$anchor] = $parentNode;
+                }
+            }
+        }
+
         if(isset($this->DOMDocument->documentElement->tagList['w:pPr'])) {
             $pPrs = $this->DOMDocument->documentElement->tagList['w:pPr'];
         }else{
