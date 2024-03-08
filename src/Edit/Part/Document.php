@@ -81,7 +81,7 @@ class Document extends PartBase
             $pPr = $pPrs[$i];
             $pStyle = $pPr->firstChild;
             if($pStyle->localName === 'pStyle') {
-                $val = intval($this->getAttr($pStyle, 'val'));
+                $val = $this->getAttr($pStyle, 'val');
                 if(isset($this->anchors[$val])) {
                     continue;
                 }
@@ -299,17 +299,21 @@ class Document extends PartBase
 
         $this->treeToListCallback($this->DOMDocument,function($node) use(&$titles) {
             if($node->localName === 'pStyle') {
-                $val = intval($this->getAttr($node, 'val'));
+                $val = $this->getAttr($node, 'val');
                 $pPr = $node->parentNode;
                 
                 if(isset($this->anchors[$val])) {
+                    $text = $this->getTextContent($pPr->parentNode);
+                    if($text === '') {
+                        return null;
+                    }
                     $anchorInfo = [];
                     $anchorInfo = $this->updateBookMark($pPr->parentNode);
 
                     $anchorNode = $this->anchors[$val];
                     $copy = clone $anchorNode;
     
-                    $titles[] = ['copy'=>$copy,'anchor'=>$anchorInfo,'text'=>$this->getTextContent($pPr->parentNode)];
+                    $titles[] = ['copy'=>$copy,'anchor'=>$anchorInfo,'text'=>$text];
 
                     if($val > 0) {
                         $this->levels[] = ['index'=>count($this->levels),'level'=>$val,'name'=>$anchorInfo[0]['name'],'text'=>$this->getTextContent($pPr->parentNode)];
