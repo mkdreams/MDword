@@ -207,15 +207,21 @@ class Document extends PartBase
         foreach($titles as $index => $title) {
             $anchor = $title['anchor'][0]['name'];
             $copy = $title['copy'];
-            $t = $copy->getElementsByTagName('t')->item(0);
+            $ts = $copy->getElementsByTagName('t');
+            $t = $ts->item(0);
             $this->setAttr($t, 'space', 'preserve','xml');
             $t->nodeValue  = $this->htmlspecialcharsBase($title['text']);
-            
-            if($tItme = $copy->getElementsByTagName('t')->item(1)) {
+            $tLen = $ts->length;
+            for($i=1;$i<$tLen-1;$i++) {
+                $r = $this->getParentToNode($ts->item($i),'r');
+                $this->markDelete($r);
+            }
+
+            if($tItme = $ts->item($tLen-1)) {
                 $tItme->nodeValue = '';
             }
 
-            $hyperlink_r = $this->getParentToNode($copy->getElementsByTagName('t')->item(0),'r');
+            $hyperlink_r = $this->getParentToNode($ts->item(0),'r');
 
             $isHyperlink = true;
             if($hyperlink = $copy->getElementsByTagName('hyperlink')->item(0)) {
