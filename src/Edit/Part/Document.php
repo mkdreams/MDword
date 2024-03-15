@@ -12,6 +12,7 @@ class Document extends PartBase
     public $usedBlock = [];
     private $anchors = [];
     private $hyperlinkParentNodeArr = [];
+    private $outlineLvl = [1,3];
 
     public $levels = [];
     
@@ -30,6 +31,11 @@ class Document extends PartBase
     }
     
     private function initLevelToAnchor() {
+        static $stylesEdit = null;
+        if(is_null($stylesEdit)) {
+            $stylesEdit = $this->word->wordProcessor->getStylesEdit();
+        }
+
         if(isset($this->DOMDocument->documentElement->tagList['w:sdtContent'])) {
             $sdtContent = $this->DOMDocument->documentElement->tagList['w:sdtContent'][0];
         }else{
@@ -57,6 +63,12 @@ class Document extends PartBase
             if(isset($match[1]) && !isset($this->hyperlinkParentNodeArr[$match[1]])) {
                 $this->hyperlinkParentNodeArr[$match[1]] = $this->getParentToNode($instrText);
             }
+
+            preg_match('/TOC[\s\S]+?(\d+)\-(\d+)/i',$text,$match);
+            if(isset($match[1])) {
+                $this->outlineLvl[0] = intval($match[1])-1;
+                $this->outlineLvl[2] = intval($match[2])-1;
+            }
         }
 
         //fixed: some TOC jump not include:PAGEREF OR HYPERLINK
@@ -79,9 +91,23 @@ class Document extends PartBase
         $pPrLen = count($pPrs);
         for($i = 0;$i<$pPrLen;$i++) {
             $pPr = $pPrs[$i];
-            $pStyle = $pPr->firstChild;
-            if($pStyle->localName === 'pStyle') {
-                $val = $this->getAttr($pStyle, 'val');
+            $outlineLvl = $this->getVal($pPr,'outlineLvl');
+            if(is_null($outlineLvl)) {
+                $pStyleId = $this->getVal($pPr,'pStyle');
+                if(is_null($pStyleId)) {
+                    continue;
+                }
+                
+                $pStyle = $stylesEdit->getStyleById($pStyleId);
+                $pPrTemp = $pStyle->getElementsByTagName('pPr')->item(0);
+                if(is_null($pPrTemp)) {
+                    continue;
+                }
+                $outlineLvl = $this->getVal($pPrTemp,'outlineLvl');
+            }
+
+            if(!is_null($outlineLvl)) {
+                $val = $outlineLvl;
                 if(isset($this->anchors[$val])) {
                     continue;
                 }
@@ -304,31 +330,55 @@ class Document extends PartBase
         }
 
         $this->treeToListCallback($this->DOMDocument,function($node) use(&$titles) {
-            if($node->localName === 'pStyle') {
-                $val = $this->getAttr($node, 'val');
-                $pPr = $node->parentNode;
+            if($node->localName === 'pPr') {
+                $pPr = $node;
+
+                $outlineLvl = $this->getVal($pPr,'outlineLvl');
+                $pStyleId = $this->getVal($pPr,'pStyle');
                 
-                if(isset($this->anchors[$val])) {
-                    $text = $this->getTextContent($pPr->parentNode);
+                if(is_null($outlineLvl)) {
+                    if(is_null($pStyleId)) {
+                        return null;
+                    }
+
+                    $pStyle = $this->word->wordProcessor->getStylesEdit()->getStyleById($pStyleId);
+                    $pPrTemp = $pStyle->getElementsByTagName('pPr')->item(0);
+                    if(is_null($pPrTemp)) {
+                        return null;
+                    }
+                    $outlineLvl = $this->getVal($pPrTemp,'outlineLvl');
+                }
+
+                if(!is_null($outlineLvl) && isset($this->anchors[$outlineLvl])
+                                                    && $outlineLvl >= $this->outlineLvl[0]
+                                                    && $outlineLvl <= $this->outlineLvl[1]
+                                                ) {
+                    $text = trim($this->getTextContent($pPr->parentNode));
                     if($text === '') {
                         return null;
                     }
+
+                    $numText = $this->getNumText($pPr,$pStyleId);
+                    if($numText !== '') {
+                        $text = $numText.'　'.$text;
+                    }
+
                     $anchorInfo = [];
                     $anchorInfo = $this->updateBookMark($pPr->parentNode);
 
-                    $anchorNode = $this->anchors[$val];
+                    $anchorNode = $this->anchors[$outlineLvl];
                     $copy = clone $anchorNode;
     
                     $titles[] = ['copy'=>$copy,'anchor'=>$anchorInfo,'text'=>$text];
 
-                    if($val > 0) {
-                        $this->levels[] = ['index'=>count($this->levels),'level'=>$val,'name'=>$anchorInfo[0]['name'],'text'=>$this->getTextContent($pPr->parentNode)];
+                    if($pStyleId > 0) {
+                        $this->levels[] = ['index'=>count($this->levels),'level'=>$pStyleId,'name'=>$anchorInfo[0]['name'],'text'=>$this->getTextContent($pPr->parentNode)];
                     }
-                }elseif($val > 0) {
+                }elseif($pStyleId > 0) {
                     $anchorInfo = [];
                     $anchorInfo = $this->updateBookMark($pPr->parentNode);
 
-                    $this->levels[] = ['index'=>count($this->levels),'level'=>$val,'name'=>$anchorInfo[0]['name'],'text'=>$this->getTextContent($pPr->parentNode)];
+                    $this->levels[] = ['index'=>count($this->levels),'level'=>$pStyleId,'name'=>$anchorInfo[0]['name'],'text'=>$this->getTextContent($pPr->parentNode)];
                 }
                 return null;
             }else{
@@ -337,6 +387,36 @@ class Document extends PartBase
         });
 
         return $titles;
+    }
+
+    private function getNumText($pPr,$id) {
+        if(is_null($id)) {
+            return '';
+        }
+
+        static $stylesEdit = null;
+        static $numberingEdit = null;
+        if(is_null($stylesEdit)) {
+            $stylesEdit = $this->word->wordProcessor->getStylesEdit();
+            $numberingEdit = $this->word->wordProcessor->getNumberingEdit();
+        }
+
+        $numPr = $pPr->getElementsByTagName('numPr')->item(0);
+        if(is_null($numPr)) {
+            $style = $stylesEdit->getStyleById($id);
+            $numPr = $style->getElementsByTagName('numPr')->item(0);
+        }
+
+        if(is_null($numPr)) {
+            return '';
+        }
+
+        $ilvl = $this->getVal($numPr,'ilvl');
+        if(is_null($ilvl)) {
+            $ilvl = 0;
+        }
+
+        return $numberingEdit->getText(intval($this->getVal($numPr,'numId')),$ilvl);
     }
 
 

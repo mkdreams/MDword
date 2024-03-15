@@ -8,6 +8,7 @@ use MDword\Common\Bind;
 use MDword\Edit\Part\Header;
 use MDword\Edit\Part\Footer;
 use MDword\Edit\Part\Styles;
+use MDword\Edit\Part\Numbering;
 
 class WordProcessor
 {
@@ -398,6 +399,9 @@ class WordProcessor
         return $data[$partName];
     }
     
+    /**
+     * @return Styles
+     */
     public function getStylesEdit() {
         $stylesEdit = $this->words[$this->wordsIndex]->stylesEdit;
         if(is_null($stylesEdit)) {
@@ -408,6 +412,21 @@ class WordProcessor
         }
         
         return $stylesEdit;
+    }
+
+    /**
+     * @return Numbering
+     */
+    public function getNumberingEdit() {
+        $numberingEdit = $this->words[$this->wordsIndex]->numberingEdit;
+        if(is_null($numberingEdit)) {
+            $document = $this->words[$this->wordsIndex]->parts[12][0]['DOMElement'];
+            $numberingEdit = new Numbering($this->words[$this->wordsIndex],$document);
+            $this->words[$this->wordsIndex]->numberingEdit = $numberingEdit;
+            $this->words[$this->wordsIndex]->numberingEdit->partName = $this->words[$this->wordsIndex]->parts[12][0]['PartName'];
+        }
+        
+        return $numberingEdit;
     }
     
     public function saveAs($fileName,$remainComments=false,$autoClean=true)

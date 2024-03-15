@@ -48,6 +48,28 @@ class PartBase
         }
     }
     
+    public function getExist($item,$name) {
+        $itemTemps = $item->getElementsByTagName($name);
+
+        if($itemTemps->length === 0) {
+            return false;
+        }else{
+            return true;
+        }
+    }
+
+    public function getVal($item,$name,$ns='w') {
+        $itemTemps = $item->getElementsByTagName($name);
+
+        if($itemTemps->length === 0) {
+            return null;
+        }elseif($itemTemps->length === 1) {
+            return $this->getAttr($itemTemps->item(0),'val',$ns);
+        }else{
+            //todo
+        }
+    }
+
     public function getAttr($item,$name,$ns='w') {
         if(isset($this->xmlns[$ns])) {
             return $item->getAttributeNS($this->xmlns[$ns],$name);
