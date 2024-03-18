@@ -1115,7 +1115,7 @@ class Document extends PartBase
                         $headerReference = $this->domList[$lastNodeIdx]->getElementsByTagName('headerReference')->item(0);
                         if(!is_null($headerReference)) {
                             $rid = $this->getAttr($headerReference,'id','r');
-                            $Relationship = $this->rels->ridToTarget[$rid];
+                            $Relationship = $this->getRels()->ridToTarget[$rid];
                             $type = $this->getAttr($Relationship, 'Type');
                             $oldTarget = $Relationship->getAttribute('Target');
                             $headerEdit = $this->word->wordProcessor->getHeaderEdit('word/'.$oldTarget);
@@ -1127,7 +1127,7 @@ class Document extends PartBase
                         $footerReference = $this->domList[$lastNodeIdx]->getElementsByTagName('footerReference')->item(0);
                         if(!is_null($footerReference)) {
                             $rid = $this->getAttr($footerReference,'id','r');
-                            $Relationship = $this->rels->ridToTarget[$rid];
+                            $Relationship = $this->getRels()->ridToTarget[$rid];
                             $type = $this->getAttr($Relationship, 'Type');
                             $oldTarget = $Relationship->getAttribute('Target');
                             $footerEdit = $this->word->wordProcessor->getFooterEdit('word/'.$oldTarget);
