@@ -419,7 +419,7 @@ class WordProcessor
      */
     public function getNumberingEdit() {
         $numberingEdit = $this->words[$this->wordsIndex]->numberingEdit;
-        if(is_null($numberingEdit)) {
+        if(is_null($numberingEdit) && isset($this->words[$this->wordsIndex]->parts[12])) {
             $document = $this->words[$this->wordsIndex]->parts[12][0]['DOMElement'];
             $numberingEdit = new Numbering($this->words[$this->wordsIndex],$document);
             $this->words[$this->wordsIndex]->numberingEdit = $numberingEdit;

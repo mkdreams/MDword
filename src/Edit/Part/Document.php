@@ -401,6 +401,10 @@ class Document extends PartBase
             $numberingEdit = $this->word->wordProcessor->getNumberingEdit();
         }
 
+        if(is_null($numberingEdit)) {
+            return '';
+        }
+
         $numPr = $pPr->getElementsByTagName('numPr')->item(0);
         if(is_null($numPr)) {
             $style = $stylesEdit->getStyleById($id);
