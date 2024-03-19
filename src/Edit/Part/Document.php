@@ -234,17 +234,23 @@ class Document extends PartBase
             $anchor = $title['anchor'][0]['name'];
             $copy = $title['copy'];
             $ts = $copy->getElementsByTagName('t');
-            $t = $ts->item(0);
+            $tLen = $ts->length;
+
+            $numT = $ts->item($tLen-3);
+            if(!is_null($numT) && $title['numText'] != '') {
+                $numT->nodeValue = $title['numText'];
+            }
+            
+            $t = $ts->item($tLen-2);
+            if(is_null($t)) {
+                $t = $ts->item(0);
+            }
             $this->setAttr($t, 'space', 'preserve','xml');
             $t->nodeValue  = $this->htmlspecialcharsBase($title['text']);
-            $tLen = $ts->length;
-            for($i=1;$i<$tLen-1;$i++) {
-                $r = $this->getParentToNode($ts->item($i),'r');
-                $this->markDelete($r);
-            }
-
-            if($tItme = $ts->item($tLen-1)) {
-                $tItme->nodeValue = '';
+            
+            $pageT = $ts->item($tLen-1);
+            if(!is_null($pageT) && $tLen-1 > 0) {
+                $pageT->nodeValue = '';
             }
 
             $hyperlink_r = $this->getParentToNode($ts->item(0),'r');
@@ -359,9 +365,6 @@ class Document extends PartBase
                     }
 
                     $numText = $this->getNumText($pPr,$pStyleId);
-                    if($numText !== '') {
-                        $text = $numText.'　'.$text;
-                    }
 
                     $anchorInfo = [];
                     $anchorInfo = $this->updateBookMark($pPr->parentNode);
@@ -369,7 +372,7 @@ class Document extends PartBase
                     $anchorNode = $this->anchors[$outlineLvl];
                     $copy = clone $anchorNode;
     
-                    $titles[] = ['copy'=>$copy,'anchor'=>$anchorInfo,'text'=>$text];
+                    $titles[] = ['copy'=>$copy,'anchor'=>$anchorInfo,'text'=>$text,'numText'=>$numText];
 
                     if($pStyleId > 0) {
                         $this->levels[] = ['index'=>count($this->levels),'level'=>$pStyleId,'name'=>$anchorInfo[0]['name'],'text'=>$this->getTextContent($pPr->parentNode)];
@@ -399,10 +402,6 @@ class Document extends PartBase
         if(is_null($stylesEdit)) {
             $stylesEdit = $this->word->wordProcessor->getStylesEdit();
             $numberingEdit = $this->word->wordProcessor->getNumberingEdit();
-        }
-
-        if(is_null($numberingEdit)) {
-            return '';
         }
 
         $numPr = $pPr->getElementsByTagName('numPr')->item(0);

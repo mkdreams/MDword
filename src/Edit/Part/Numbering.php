@@ -131,6 +131,21 @@ class Numbering extends PartBase
                 $nf = new \NumberFormatter('zh_CN', \NumberFormatter::SPELLOUT);
                 return $nf->format($index);
                 break;
+            case 'ideographTraditional':
+                $list = ["","甲", "乙", "丙", "丁", "戊", "己", "庚", "辛", "壬", "癸"];
+                return isset($list[$index])?$list[$index]:($index+1);
+                break;
+            case 'ideographZodiac':
+                $list = ["","子", "丑", "寅", "卯", "辰", "巳", "午", "未", "申", "酉", "戌", "亥"];
+                return isset($list[$index])?$list[$index]:($index+1);
+                break;
+            case 'chineseLegalSimplified':
+                $list = ['零', '壹', '贰', '叁', '肆', '伍', '陆', '柒', '捌', '玖'];
+                return isset($list[$index])?$list[$index]:($index+1);
+                break;
+            default:
+                return $index+1;
+                break;
         }
     }
 }
