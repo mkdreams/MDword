@@ -236,17 +236,30 @@ class Document extends PartBase
             $ts = $copy->getElementsByTagName('t');
             $tLen = $ts->length;
 
-            $numT = $ts->item($tLen-3);
+            $numTIdx = $tLen-3;
+            $numT = $ts->item($numTIdx);
             if(!is_null($numT) && $title['numText'] != '') {
                 $numT->nodeValue = $title['numText'];
+            }else{
+                $numTIdx = -1;
             }
             
-            $t = $ts->item($tLen-2);
+            $tIdx = $tLen-2;
+            $t = $ts->item($tIdx);
             if(is_null($t)) {
-                $t = $ts->item(0);
+                $tIdx = 0;
+                $t = $ts->item($tIdx);
             }
             $this->setAttr($t, 'space', 'preserve','xml');
             $t->nodeValue  = $this->htmlspecialcharsBase($title['text']);
+
+            for($i=1;$i<$tLen-1;$i++) {
+                if($tIdx === $i || $numTIdx === $i) {
+                    continue;
+                }
+                $r = $this->getParentToNode($ts->item($i),'r');
+                $this->markDelete($r);
+            }
             
             $pageT = $ts->item($tLen-1);
             if(!is_null($pageT) && $tLen-1 > 0) {
