@@ -67,7 +67,7 @@ class Document extends PartBase
             preg_match('/TOC[\s\S]+?(\d+)\-(\d+)/i',$text,$match);
             if(isset($match[1])) {
                 $this->outlineLvl[0] = intval($match[1])-1;
-                $this->outlineLvl[2] = intval($match[2])-1;
+                $this->outlineLvl[1] = intval($match[2])-1;
             }
         }
 
