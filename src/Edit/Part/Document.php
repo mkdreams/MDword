@@ -236,7 +236,7 @@ class Document extends PartBase
             $ts = $copy->getElementsByTagName('t');
             $tLen = $ts->length;
 
-            $numTIdx = $tLen-3;
+            $numTIdx = 0;
             $numT = $ts->item($numTIdx);
             if(!is_null($numT) && $title['numText'] != '') {
                 $numT->nodeValue = $title['numText'];
@@ -253,7 +253,7 @@ class Document extends PartBase
             $this->setAttr($t, 'space', 'preserve','xml');
             $t->nodeValue  = $this->htmlspecialcharsBase($title['text']);
 
-            for($i=1;$i<$tLen-1;$i++) {
+            for($i=0;$i<$tLen-1;$i++) {
                 if($tIdx === $i || $numTIdx === $i) {
                     continue;
                 }
