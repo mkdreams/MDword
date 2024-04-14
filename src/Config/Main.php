@@ -1,5 +1,6 @@
 <?php 
 ini_set("pcre.backtrack_limit",10000000);
+ini_set("pcre.jit",0);
 
 define('MDWORD_DEBUG', false);
 define('MDWORD_TEST_DIRECTORY', dirname(dirname(dirname(__FILE__))).'/tests');
