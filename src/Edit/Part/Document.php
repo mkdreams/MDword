@@ -194,7 +194,7 @@ class Document extends PartBase
      * @param string $type
      */
     public function setValue($name,$value,$type=MDWORD_TEXT,$needRecord=true) {
-        if(strlen($name) === 32 || is_array($name)) {//media md5
+        if((strlen($name) === 32 && preg_match('/^[a-z0-9]+?$/iu',$name) === 1)|| is_array($name)) {//media md5
             $blocks = [null];
         }else{
             $blocks = $this->getBlocks($name);
