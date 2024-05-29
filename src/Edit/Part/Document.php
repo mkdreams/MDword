@@ -194,6 +194,8 @@ class Document extends PartBase
      * @param string $type
      */
     public function setValue($name,$value,$type=MDWORD_TEXT,$needRecord=true) {
+        $updateCount = 0;
+
         if((strlen($name) === 32 && preg_match('/^[a-z0-9]+?$/iu',$name) === 1)|| is_array($name)) {//media md5
             $blocks = [null];
         }else{
@@ -204,6 +206,8 @@ class Document extends PartBase
         }
         
         foreach($blocks as $key => $block) {
+            $updateCount++;
+
             $this->update($block,$name,$value,$type);
             //update node idx
             if(!is_null($block)) {
@@ -216,6 +220,8 @@ class Document extends PartBase
             //--SAVE-ANIMALCODE--
 //--SAVE-ANIMALCODE--
         }
+
+        return $updateCount;
     }
     
     public function updateToc() {

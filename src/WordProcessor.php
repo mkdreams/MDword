@@ -48,6 +48,7 @@ class WordProcessor
     }
     
     public function setValue($name, $value, $type=MDWORD_TEXT) {
+        $updateCount = 0;
         foreach($this->words[$this->wordsIndex]->needUpdateParts as $part) {
             $func = $part['func'];
             $partName = $part['partName'];
@@ -55,20 +56,24 @@ class WordProcessor
              * @var Document $documentEdit
              */
             $documentEdit = $this->$func($partName);
-            $documentEdit->setValue($name, $value, $type);
+            $updateCount += $documentEdit->setValue($name, $value, $type);
         }
+
+        return $updateCount;
     }
     
     public function setValues($values,$pre='') {
+        $updateCount = 0;
         foreach ($values as $index => $valueArr) {
             foreach($valueArr as $name => $value) {
                 if(is_array($value)) {
-                    $this->setValues($value,'#'.$index);
+                    $updateCount += $this->setValues($value,'#'.$index);
                 }else{
-                    $this->setValue($name.$pre.'#'.$index, $value);
+                    $updateCount += $this->setValue($name.$pre.'#'.$index, $value);
                 }
             }
         }
+        return $updateCount;
     }
 
     public function getInnerVars() {
