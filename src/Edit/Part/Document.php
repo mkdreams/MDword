@@ -1734,7 +1734,7 @@ class Document extends PartBase
     }
 
     private function updateMDWORD_LINK($beginNode,$endNode,$link) {
-        $link = $this->htmlspecialcharsBase($link);
+        $link = $this->htmlspecialcharsBase($link,false);
         if(strpos($link,'#') === 0) {
             $link = ltrim($link,'#');
             $hyperlinkNodeBegin = $this->createNodeByXml('<w:r><w:fldChar w:fldCharType="begin"/></w:r>');
