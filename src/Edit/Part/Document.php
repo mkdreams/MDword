@@ -1204,6 +1204,13 @@ class Document extends PartBase
                             $this->markDelete($tr);
                         }
                     }
+                }elseif($value == 'tbl') {
+                    foreach($nodeIdxs as $nodeIdx) {
+                        $tbl = $this->getParentToNode($nodeIdx,'tbl');
+                        if(!is_null($tbl)) {
+                            $this->markDelete($tbl);
+                        }
+                    }
                 }elseif($value == 'section') {
                     list($sectionIdx,$nodeIdxs) = $this->getSectionNodeIdxs($nodeIdxs[0]);
                     foreach($nodeIdxs as $nodeIdx) {

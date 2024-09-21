@@ -113,6 +113,22 @@ class WordProcessor
     }
     
     /**
+     * delete tbl include the block
+     * @param string $name
+     */
+    public function deleteTbl($name) {
+        foreach($this->words[$this->wordsIndex]->needUpdateParts as $part) {
+            $func = $part['func'];
+            $partName = $part['partName'];
+            /**
+             * @var Document $documentEdit
+             */
+            $documentEdit = $this->$func($partName);
+            $documentEdit->setValue($name, 'tbl',MDWORD_DELETE);
+        }
+    }
+
+    /**
      * delete tr include the block
      * @param string $name
      */

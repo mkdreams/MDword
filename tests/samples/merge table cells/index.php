@@ -27,4 +27,7 @@ $TemplateProcessor->setValue('vMerge', [['text' => 'vMerge', 'table_style' => ['
 $TemplateProcessor->setValue('vMerge2', [['text' => 'vMerge2', 'table_style' => ['vMerge'=>2], 'type' => MDWORD_TEXT]]);
 $TemplateProcessor->setValue('gridSpan', [['text' => 'gridSpan', 'table_style' => ['gridSpan'=>2], 'type' => MDWORD_TEXT]]);
 
+//delete table
+$TemplateProcessor->deleteTbl('row1');
+
 $TemplateProcessor->saveAs($rtemplate);
