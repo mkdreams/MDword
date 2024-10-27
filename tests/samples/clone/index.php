@@ -56,6 +56,11 @@ $bind->bindValue('tableitem',[])
 
 
 
+$TemplateProcessor->cloneP('titletext',2);
+$TemplateProcessor->setValue('titletext#0',[['type'=>MDWORD_TEXT,'text'=>'clone titletext#0','pstyle'=>'titlestyle-1','style'=>'titlestyle-1']]);
+$TemplateProcessor->setValue('titletext#1',[['type'=>MDWORD_TEXT,'text'=>'clone titletext#1','pstyle'=>'titlestyle-1','style'=>'titlestyle-1']]);
+$TemplateProcessor->setValue('titletext-sub',[['type'=>MDWORD_TEXT,'text'=>'titletext-sub','pstyle'=>'titlestyle-2']]);
+
 $TemplateProcessor->cloneSection('section2',2);
 $TemplateProcessor->setValue('section2#0','section2#012345');
 $TemplateProcessor->setValue('section2#1','section2#1');
