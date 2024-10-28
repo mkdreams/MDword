@@ -689,10 +689,8 @@ class Document extends PartBase
                                     if(!is_null($pPr)) {
                                         $pPrCopy = clone $pPr;
                                         $pPrOrg = $targetNode->parentNode->getElementsByTagName('pPr')->item(0);
-                                        if(is_null($pPrOrg)) {// pPr insert before t
-                                            $this->insertBefore($pPrCopy, $targetNode);
-                                        }else{
-                                            $this->insertBefore($pPrCopy, $targetNode);
+                                        $this->insertBefore($pPrCopy, $targetNode->parentNode->firstChild);
+                                        if(!is_null($pPrOrg)) {// pPr insert before t
                                             $this->markDelete($pPrOrg);
                                         }
                                     }
