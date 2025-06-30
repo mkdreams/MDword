@@ -474,7 +474,9 @@ class Document extends PartBase
         }
         
         $nodeIdxs = $this->getBlocks($name);
-        if(!isset($nodeIdxs[0])) {
+        if(strlen($name) === 32 && $type === MDWORD_IMG) {//media md5
+            $md5 = true;
+        }else if(!isset($nodeIdxs[0])) {
             return null;
         }
         
@@ -491,7 +493,13 @@ class Document extends PartBase
                 return $rPr;
                 break;
             case MDWORD_IMG:
-                $targetNode = $this->getTarget($nodeIdxs,'drawing');
+                if($md5 === true) {
+                    $rids = $this->getRidByMd5($name);
+                    $blip = $this->rIdToNode[$rids[0]];
+                    $targetNode = $this->getParentToTag($blip,'drawing');
+                }else{
+                    $targetNode = $this->getTarget($nodeIdxs,'drawing');
+                }
                 $styles[$stylekey] = $targetNode;
                 return $targetNode;
             case MDWORD_TABLE:    
@@ -626,11 +634,20 @@ class Document extends PartBase
                                     }
                                     $copyDrawing = clone $drawing;
                                     
+                                    $extents = $copyDrawing->getElementsByTagName('extent');
                                     $refInfo = $this->updateRef($valueArr['text'],null,MDWORD_IMG);
                                     $rId = $refInfo['rId'];
                                     $imageInfo = $refInfo['imageInfo'];
                                     if(isset($valueArr['width'])) { 
-                                        $imageInfo[1] = intval($imageInfo[1]*($valueArr['width']/$imageInfo[0]));
+                                        if (strpos($valueArr['width'],'%') !== false) {
+                                            foreach($extents as $extent) {
+                                                $orgCxPx = intval($this->getAttr($extent, 'cx', null)/9530);
+                                            }
+
+                                            $valueArr['width'] = intval(intval($valueArr['width'])/100*$orgCxPx);
+                                        }
+                                        
+                                        $imageInfo[1] = ceil($imageInfo[1]*($valueArr['width']/$imageInfo[0]));
                                         $imageInfo[0] = $valueArr['width'];
                                     }else{
                                         //max width 550 px
@@ -649,7 +666,6 @@ class Document extends PartBase
                                     $orgCx = intval($imageInfo[0]*9530);
                                     $orgCy = intval($imageInfo[1]*9530);
                                     
-                                    $extents = $copyDrawing->getElementsByTagName('extent');
                                     foreach($extents as $extent) {
                                         $this->setAttr($extent, 'cx', $orgCx, null);
                                         $this->setAttr($extent, 'cy', $orgCy, null);
@@ -874,7 +890,6 @@ class Document extends PartBase
                     }
 
                     $rids = $name;
-                    $handleFlag = false;
                     $domTmp = $this->domList;
                     $node = array_shift($domTmp);
                     $drawings = $node->getElementsByTagName('drawing');

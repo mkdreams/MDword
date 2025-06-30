@@ -190,12 +190,16 @@ class WordProcessor
                 }
             }
             
-            /**
-             * @var Document $edit
-             */
             $edit = null;
             foreach($includeImageEdits as list($edit,$rids)) {
-                $edit->setValue($rids, $value, MDWORD_IMG);
+                /**
+                 * @var Document $edit
+                 */
+                if (is_array($value)) {
+                    $edit->setValue($rids, $value, MDWORD_TEXT);
+                }else{
+                    $edit->setValue($rids, $value, MDWORD_IMG);
+                }
             }
             
             return ;
@@ -648,5 +652,11 @@ class WordProcessor
             $word->free();
             unset($this->words[$key]);
         }
+    }
+
+    //删除tmp下文件
+    public function deleteTmpFile(){
+        $word = $this->words[$this->wordsIndex];
+        $word->deleteTmpFile();
     }
 }

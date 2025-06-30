@@ -31,6 +31,7 @@ class PartBase
     protected $idxExtendIdxs = [];
     
     protected $xmlns = [];
+    protected $rIdToNode = [];
 
     private static $controlCharacters = array();
 
@@ -329,7 +330,11 @@ class PartBase
                     $tags = $this->treeToList($childNode);
                     foreach($tags as $tag => $vals) {
                         foreach($vals as $val) {
-                            $node->tagList[$tag][] = $val; 
+                            $node->tagList[$tag][] = $val;
+                            if ($tag === 'a:blip') {
+                                $rId = $this->getAttr($val,'r:embed');
+                                $this->rIdToNode[$rId] = $val;
+                            }
                         }
                     }
                 }
@@ -421,6 +426,14 @@ class PartBase
         }
         
         return null;
+    }
+
+    protected function getParentToTag($parentNode, $target) {
+        while($parentNode = $parentNode->parentNode) {
+            if($parentNode->localName === $target) {
+                return $parentNode;
+            }
+        }
     }
     
     protected function getRangeTrace($id,$commentRangeStartItem,$commentRangeEndItem) {
