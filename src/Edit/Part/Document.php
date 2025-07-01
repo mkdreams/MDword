@@ -590,21 +590,24 @@ class Document extends PartBase
                                     if(!isset($valueArr['text'])) {
                                         $valueArr['text'] = 1;
                                     }
-
-                                    $this->markDelete($targetNode);
-
-                                    $targetNodeParent = $this->updateMDWORD_BREAK_PAGE($targetNode->parentNode,$valueArr['text'],false);
-
-                                    //get first r include t
-                                    $rs  = $targetNodeParent->getElementsByTagName('r');
-                                    foreach($rs as $r) {
-                                        $t = $r->getElementsByTagName('t');
-                                        if($t->length > 0) {
-                                            $targetNode = $r;
-                                            break;
+                                    
+                                    if ($valueArr['replace'] === false) {
+                                        $this->markDelete($targetNode);
+                                        $targetNodeParent = $this->updateMDWORD_BREAK_PAGE($targetNode->parentNode,$valueArr['text'],false);
+                                        //get first r include t
+                                        $rs  = $targetNodeParent->getElementsByTagName('r');
+                                        foreach($rs as $r) {
+                                            $t = $r->getElementsByTagName('t');
+                                            if($t->length > 0) {
+                                                $targetNode = $r;
+                                                break;
+                                            }
                                         }
+                                        $this->removeMarkDelete($targetNode);
+                                    }else{
+                                        $targetNodeParent = $this->updateMDWORD_BREAK_PAGE($targetNode->parentNode,$valueArr['text'],true);
                                     }
-                                    $this->removeMarkDelete($targetNode);
+
                                     break;
                                 case MDWORD_LINK:
                                     if(isset($valueArr['style'])) {
@@ -1730,11 +1733,13 @@ class Document extends PartBase
             }
         }
 
-        $baseIndex = $this->treeToList(null);
-        $this->treeToList($cloneP);
-        $indexs[] = $baseIndex;
-        $this->insertAfter($cloneP,$p);
-        $p = $cloneP;
+        if($replace === false) {
+            $baseIndex = $this->treeToList(null);
+            $this->treeToList($cloneP);
+            $indexs[] = $baseIndex;
+            $this->insertAfter($cloneP,$p);
+            $p = $cloneP;
+        }
         
         if(count($indexs) > 0) {
             $this->extendIds($copyP->idxBegin,$indexs);
