@@ -630,7 +630,11 @@ class Document extends PartBase
                                     }
 
                                     if(is_null($drawing)) {
-                                        $drawing = $this->createNodeByXml('image');
+                                        if(isset($valueArr['temple'])) {
+                                            $drawing = $this->createNodeByXml($valueArr['temple']);
+                                        }else{
+                                            $drawing = $this->createNodeByXml('image');
+                                        }
                                     }
                                     $copyDrawing = clone $drawing;
                                     
@@ -641,10 +645,14 @@ class Document extends PartBase
                                     if(isset($valueArr['width'])) { 
                                         if (strpos($valueArr['width'],'%') !== false) {
                                             foreach($extents as $extent) {
-                                                $orgCxPx = intval($this->getAttr($extent, 'cx', null)/9530);
+                                                $orgCxPx = ceil($this->getAttr($extent, 'cx', null)/9530);
                                             }
 
-                                            $valueArr['width'] = intval(intval($valueArr['width'])/100*$orgCxPx);
+                                            $percent = floatval($valueArr['width']);
+                                            $valueArr['width'] = intval($percent/100*$orgCxPx);
+                                            if ($percent >= 100) {
+                                                $valueArr['width'] = $valueArr['width']+1;
+                                            }
                                         }
                                         
                                         $imageInfo[1] = ceil($imageInfo[1]*($valueArr['width']/$imageInfo[0]));

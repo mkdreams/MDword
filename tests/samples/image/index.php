@@ -44,13 +44,10 @@ $Medies = $TemplateProcessor->getMedies();
 foreach($Medies as $Medie) {
     if('a2a9f8b099d7c5764da685b628468052' === $Medie['md5']) {
         $TemplateProcessor->setImageValue($Medie['md5'], dirname(__FILE__).'/img.jpg');
-        continue;
-    }
-
-    if('6507647f189b0c7762c5abb2941d6ac5' === $Medie['md5']) {
-        $TemplateProcessor->setValue("full", [['text' => dirname(__FILE__).'/full.png','style'=>'6507647f189b0c7762c5abb2941d6ac5','type' => MDWORD_IMG,'width'=>'100%']]);
     }
 }
+
+$TemplateProcessor->setValue("full", [['text' => dirname(__FILE__).'/full.png','temple'=>file_get_contents(dirname(__FILE__).'/temple/full.xml'),'type' => MDWORD_IMG,'width'=>'100%']]);
 
 
 $TemplateProcessor->saveAs($rtemplate);
