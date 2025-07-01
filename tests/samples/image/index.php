@@ -48,6 +48,17 @@ foreach($Medies as $Medie) {
 }
 
 $TemplateProcessor->setValue("full", [['text' => dirname(__FILE__).'/full.png','temple'=>file_get_contents(dirname(__FILE__).'/temple/full.xml'),'type' => MDWORD_IMG,'width'=>'100%']]);
+$TemplateProcessor->setValue("full2", [
+    ['type' => MDWORD_TEXT,'text'=> "This is text."],
+    ['type' => MDWORD_PAGE_BREAK],
+    ['text' => dirname(__FILE__).'/full.png','temple'=>file_get_contents(dirname(__FILE__).'/temple/full.xml'),'type' => MDWORD_IMG,'width'=>'100%'],
+    ['type' => MDWORD_PAGE_BREAK],
+    ['text' => dirname(__FILE__).'/full.png','temple'=>file_get_contents(dirname(__FILE__).'/temple/full.xml'),'type' => MDWORD_IMG,'width'=>'100%'],
+    ['type' => MDWORD_PAGE_BREAK],
+    ['type' => MDWORD_TEXT,'text'=> "This is text2."],
+    ['type' => MDWORD_PAGE_BREAK],
+    ['text' => dirname(__FILE__).'/full.png','temple'=>file_get_contents(dirname(__FILE__).'/temple/full.xml'),'type' => MDWORD_IMG,'width'=>'100%'],
+]);
 
 
 $TemplateProcessor->saveAs($rtemplate);

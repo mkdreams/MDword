@@ -428,14 +428,6 @@ class PartBase
         return null;
     }
 
-    protected function getParentToTag($parentNode, $target) {
-        while($parentNode = $parentNode->parentNode) {
-            if($parentNode->localName === $target) {
-                return $parentNode;
-            }
-        }
-    }
-    
     protected function getRangeTrace($id,$commentRangeStartItem,$commentRangeEndItem) {
         $delTags = ['commentRangeStart'=>0];
         $traces = [];

@@ -496,7 +496,7 @@ class Document extends PartBase
                 if($md5 === true) {
                     $rids = $this->getRidByMd5($name);
                     $blip = $this->rIdToNode[$rids[0]];
-                    $targetNode = $this->getParentToTag($blip,'drawing');
+                    $targetNode = $this->getParentToNode($blip->idxBegin,'drawing');
                 }else{
                     $targetNode = $this->getTarget($nodeIdxs,'drawing');
                 }
@@ -590,7 +590,21 @@ class Document extends PartBase
                                     if(!isset($valueArr['text'])) {
                                         $valueArr['text'] = 1;
                                     }
-                                    $this->updateMDWORD_BREAK_PAGE($targetNode->parentNode,$valueArr['text'],true);
+
+                                    $this->markDelete($targetNode);
+
+                                    $targetNodeParent = $this->updateMDWORD_BREAK_PAGE($targetNode->parentNode,$valueArr['text'],false);
+
+                                    //get first r include t
+                                    $rs  = $targetNodeParent->getElementsByTagName('r');
+                                    foreach($rs as $r) {
+                                        $t = $r->getElementsByTagName('t');
+                                        if($t->length > 0) {
+                                            $targetNode = $r;
+                                            break;
+                                        }
+                                    }
+                                    $this->removeMarkDelete($targetNode);
                                     break;
                                 case MDWORD_LINK:
                                     if(isset($valueArr['style'])) {
@@ -1697,6 +1711,7 @@ class Document extends PartBase
     
     private function updateMDWORD_BREAK_PAGE($p,$count=1,$replace=true) {
         $copyP = $this->createNodeByXml('<w:p><w:r><w:br w:type="page"/></w:r></w:p>');
+        $cloneP = clone $p;
         if($replace === true) {
             $this->markDelete($p);
         }
@@ -1714,6 +1729,12 @@ class Document extends PartBase
                 $copy = clone $copyP;
             }
         }
+
+        $baseIndex = $this->treeToList(null);
+        $this->treeToList($cloneP);
+        $indexs[] = $baseIndex;
+        $this->insertAfter($cloneP,$p);
+        $p = $cloneP;
         
         if(count($indexs) > 0) {
             $this->extendIds($copyP->idxBegin,$indexs);
