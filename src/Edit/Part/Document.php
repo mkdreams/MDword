@@ -605,7 +605,7 @@ class Document extends PartBase
                                         }
                                         $this->removeMarkDelete($targetNode);
                                     }else{
-                                        $targetNodeParent = $this->updateMDWORD_BREAK_PAGE($targetNode->parentNode,$valueArr['text'],true);
+                                        $this->updateMDWORD_BREAK_PAGE($targetNode->parentNode,$valueArr['text'],true);
                                     }
 
                                     break;
