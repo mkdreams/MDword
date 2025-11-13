@@ -283,11 +283,17 @@ class Word
 
     private function SimSunExtBSupport($xml) {
         $fontMap = [
-            0=>'<w:rFonts w:ascii="SimSun-ExtB" w:eastAsia="SimSun-ExtB" w:hAnsi="SimSun-ExtB" w:cs="SimSun-ExtB" w:hint="eastAsia"/>',
-            1=>'<w:rFonts w:ascii="Cambria Math" w:eastAsia="Cambria Math" w:hAnsi="Cambria Math" w:cs="Cambria Math" w:hint="eastAsia"/>'
+            1=>'<w:rFonts w:ascii="SimSun-ExtB" w:eastAsia="SimSun-ExtB" w:hAnsi="SimSun-ExtB" w:cs="SimSun-ExtB" w:hint="eastAsia"/>',
+            2=>'<w:rFonts w:ascii="Arial Unicode MS" w:eastAsia="Arial Unicode MS" w:hAnsi="Arial Unicode MS" w:cs="Arial Unicode MS" w:hint="eastAsia"/>',
+            3=>'<w:rFonts w:ascii="Cambria Math" w:eastAsia="Cambria Math" w:hAnsi="Cambria Math" w:cs="Cambria Math" w:hint="eastAsia"/>',
+            4=>'<w:rFonts w:ascii="Leelawadee UI" w:eastAsia="Leelawadee UI" w:hAnsi="Leelawadee UI" w:cs="Leelawadee UI" w:hint="eastAsia"/>',
+            5=>'<w:rFonts w:ascii="Myanmar Text" w:eastAsia="Myanmar Text" w:hAnsi="Myanmar Text" w:cs="Myanmar Text" w:hint="eastAsia"/>',
+            6=>'<w:rFonts w:ascii="Segoe UI Emoji" w:hAnsi="Segoe UI Emoji" w:cs="Segoe UI Emoji"/>',
+            7=>'<w:rFonts w:ascii="Segoe UI Symbol" w:eastAsia="Segoe UI Symbol" w:hAnsi="Segoe UI Symbol" w:cs="Segoe UI Symbol" w:hint="eastAsia"/>',
+            8=>'<w:rFonts w:ascii="Nirmala UI" w:eastAsia="Nirmala UI" w:hAnsi="Nirmala UI" w:cs="Nirmala UI"/>',
         ];
 
-        return preg_replace_callback('/(<w:r(?: [^>]+?>|>))(?:(?!<w:r(?: [^>]+?>|>)).)*?\{%\{\d\}%\}(?:(?!<w:r(?: [^>]+?>|>)).)*?(<\/w:r>)/i',function($match) use($fontMap) {
+        return preg_replace_callback('/(<w:r(?: [^>]+?>|>))(?:(?!<w:r(?: [^>]+?>|>))[\s\S])*?\{%\{\d\}%\}(?:(?!<w:r(?: [^>]+?>|>))[\s\S])*?(<\/w:r>)/i',function($match) use($fontMap) {
             preg_match('/(<w:rPr(?: [^>]+?>|>)[\s\S]+?)(<w:rFonts[\s\S]*?\/\>)([\s\S]*<\/w:rPr>)|(<w:rPr(?: [^>]+?>|>)[\s\S]+?)<\/w:rPr>/i',$match[0],$fontMatch);
             if(isset($fontMatch[0])) {
                 if(isset($fontMatch[4])) {
@@ -308,8 +314,8 @@ class Word
             return preg_replace_callback('/\{%\{(\d)\}%\}([\s\S]+?)\{%\{\/\d\}%\}/i',function($match2) use($fontMap,$match,$orgFont,$rPrB,$rPrE) {
                 $font = $fontMap[intval($match2[1])];
                 return '</w:t></w:r>'.
-                        $match[1].$rPrB.$font.$rPrE.'<w:t>'.$match2[2].'</w:t></w:r>'
-                        .$match[1].($orgFont===''?$rPrB.$rPrE:$rPrB.$orgFont.$rPrE).'<w:t>';
+                        $match[1].$rPrB.$font.$rPrE.'<w:t xml:space="preserve">'.$match2[2].'</w:t></w:r>'
+                        .$match[1].($orgFont===''?$rPrB.$rPrE:$rPrB.$orgFont.$rPrE).'<w:t xml:space="preserve">';
             },$match[0]);
         },$xml);
     }
@@ -609,5 +615,13 @@ class Word
         //fixed bug:not use unset
         // unset($this->documentEdit);
         $this->documentEdit = null;
+    }
+
+    //删除tmp下文件
+    public function deleteTmpFile(){
+        $this->zip->close();
+        if(is_file($this->tempDocumentFilename)){
+            @unlink($this->tempDocumentFilename);
+        }
     }
 }

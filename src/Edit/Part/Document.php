@@ -257,7 +257,7 @@ class Document extends PartBase
                 $t = $ts->item($tIdx);
             }
             $this->setAttr($t, 'space', 'preserve','xml');
-            $t->nodeValue  = $this->htmlspecialcharsBase($title['text']);
+            $t->nodeValue  = $this->htmlspecialcharsBase($title['text'], false);
 
             for($i=0;$i<$tLen-1;$i++) {
                 if($tIdx === $i || $numTIdx === $i) {
